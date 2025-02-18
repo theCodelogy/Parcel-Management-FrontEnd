@@ -43,7 +43,7 @@ const Navbar = () => {
 
       {/* Mobile Navigation */}
       {open && (
-        <div className="absolute top-full left-0 w-full bg-gray-400 lg:hidden flex flex-col items-center py-5 space-y-4">
+        <div className="absolute top-full left-0 w-full bg-gray-400 md:hidden flex flex-col items-center py-5 space-y-4">
           <Link className="hover:text-[#A31621] hover:underline" to="/" onClick={() => setOpen(false)}>Home</Link>
           <Link className="hover:text-[#A31621] hover:underline" to="/services" onClick={() => setOpen(false)}>Services</Link>
           <Link className="hover:text-[#A31621] hover:underline" to="/project" onClick={() => setOpen(false)}>Project</Link>
