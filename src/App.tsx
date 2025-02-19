@@ -1,16 +1,11 @@
-import Home from "./Pages/Home/Home"
-import Navbar from "./Shared/Navbar/Navbar"
-
-
+import MainLayout from "./layouts/MainLayout";
 
 function App() {
-
   return (
     <>
-     <Navbar/>
-     <Home/>
+      <MainLayout />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
