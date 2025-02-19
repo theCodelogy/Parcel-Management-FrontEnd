@@ -1,5 +1,3 @@
-import React from "react";
-
 export default function LogsDashboard() {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -21,10 +19,22 @@ export default function LogsDashboard() {
               {[...Array(10)].map((_, index) => (
                 <tr key={index} className="border-t text-sm md:text-base">
                   <td className="p-3">{index + 1}</td>
-                  <td className="p-3">{index % 3 === 0 ? "User" : index % 2 === 0 ? "Merchant" : "ToDo"}</td>
-                  <td className="p-3">{index % 2 === 0 ? "Updated" : "levels.deleted"}</td>
-                  <td className="p-3">App\Models\Backend\{index % 2 === 0 ? "User" : "To_do"}</td>
-                  <td className="p-3">{index % 2 === 0 ? "Updated" : "levels.deleted"}</td>
+                  <td className="p-3">
+                    {index % 3 === 0
+                      ? "User"
+                      : index % 2 === 0
+                      ? "Merchant"
+                      : "ToDo"}
+                  </td>
+                  <td className="p-3">
+                    {index % 2 === 0 ? "Updated" : "levels.deleted"}
+                  </td>
+                  <td className="p-3">
+                    App\Models\Backend\{index % 2 === 0 ? "User" : "To_do"}
+                  </td>
+                  <td className="p-3">
+                    {index % 2 === 0 ? "Updated" : "levels.deleted"}
+                  </td>
                   <td className="p-3">
                     <button className="px-4 py-2 bg-purple-600 text-white rounded">
                       View
