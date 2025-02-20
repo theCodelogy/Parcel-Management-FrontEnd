@@ -6,6 +6,7 @@ import Home from "../pages/home/Home";
 import { adminRoutes } from "./Admin.Routes";
 import { merchantRoutes } from "./Merchant.Routes";
 import { riderRoutes } from "./Rider.Routes";
+import MerchantDashboardLayout from "../layouts/MerchantDashboardLayout";
 
 const router = createBrowserRouter([
   {
@@ -25,7 +26,8 @@ const router = createBrowserRouter([
   },
   {
     path: "/merchant",
-    element: <DashboardLayout />,
+    // element: <DashboardLayout />,
+    element: <MerchantDashboardLayout />,
     children: routeGenerator(merchantRoutes),
   },
   {
