@@ -33,7 +33,7 @@ import {
   Settings,
   Currency,
   DatabaseBackup,
-  Link, // added for Social Link
+  Link,
 } from "lucide-react";
 
 import Branch from "../features/admin/pages/branch-manage/Branch";

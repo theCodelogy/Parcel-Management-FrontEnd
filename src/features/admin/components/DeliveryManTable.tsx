@@ -71,10 +71,13 @@ const initialDeliveryMen: DeliveryMan[] = [
 ];
 
 const DeliveryManTable = () => {
-  const [deliveryMen, setDeliveryMen] = useState<DeliveryMan[]>(initialDeliveryMen);
+  const [deliveryMen, setDeliveryMen] =
+    useState<DeliveryMan[]>(initialDeliveryMen);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newDeliveryMan, setNewDeliveryMan] = useState<Partial<DeliveryMan>>({ status: "Active" });
+  const [newDeliveryMan, setNewDeliveryMan] = useState<Partial<DeliveryMan>>({
+    status: "Active",
+  });
 
   const handleAddDeliveryMan = () => {
     if (!newDeliveryMan.name || !newDeliveryMan.email || !newDeliveryMan.hub) {
@@ -103,7 +106,9 @@ const DeliveryManTable = () => {
   return (
     <div className="p-6 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Delivery Man</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          Delivery Man
+        </h2>
         <button
           className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
           onClick={() => setIsModalOpen(true)}
@@ -129,10 +134,17 @@ const DeliveryManTable = () => {
           </thead>
           <tbody className="text-gray-900 dark:text-gray-200">
             {deliveryMen.map((man) => (
-              <tr key={man.id} className="border-t border-gray-200 dark:border-gray-700">
+              <tr
+                key={man.id}
+                className="border-t border-gray-200 dark:border-gray-700"
+              >
                 <td className="p-3">{man.id}</td>
                 <td className="p-3 flex items-center space-x-2">
-                  <img src={man.avatar} alt={man.name} className="w-8 h-8 rounded-full" />
+                  <img
+                    src={man.avatar}
+                    alt={man.name}
+                    className="w-8 h-8 rounded-full"
+                  />
                   <div>
                     <p className="font-semibold">{man.name}</p>
                     <p className="text-xs text-gray-500">{man.email}</p>
@@ -144,14 +156,22 @@ const DeliveryManTable = () => {
                 <td className="p-3">{man.returnCharge}</td>
                 <td className="p-3">{man.currentBalance}</td>
                 <td className="p-3">
-                  <span className={`px-3 py-1 text-xs font-semibold rounded-full ${man.status === "Active" ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"}`}>
+                  <span
+                    className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                      man.status === "Active"
+                        ? "bg-green-200 text-green-800"
+                        : "bg-red-200 text-red-800"
+                    }`}
+                  >
                     {man.status}
                   </span>
                 </td>
                 <td className="p-3 relative">
                   <button
                     className="p-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
-                    onClick={() => setOpenDropdown(openDropdown === man.id ? null : man.id)}
+                    onClick={() =>
+                      setOpenDropdown(openDropdown === man.id ? null : man.id)
+                    }
                   >
                     <FaEllipsisV />
                   </button>
@@ -177,12 +197,40 @@ const DeliveryManTable = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg w-96">
             <h3 className="text-lg font-semibold mb-4">Add New Delivery Man</h3>
-            <input className="w-full mb-2 p-2 border rounded" placeholder="Name" onChange={(e) => setNewDeliveryMan({ ...newDeliveryMan, name: e.target.value })} />
-            <input className="w-full mb-2 p-2 border rounded" placeholder="Email" onChange={(e) => setNewDeliveryMan({ ...newDeliveryMan, email: e.target.value })} />
-            <input className="w-full mb-2 p-2 border rounded" placeholder="Hub" onChange={(e) => setNewDeliveryMan({ ...newDeliveryMan, hub: e.target.value })} />
+            <input
+              className="w-full mb-2 p-2 border rounded"
+              placeholder="Name"
+              onChange={(e) =>
+                setNewDeliveryMan({ ...newDeliveryMan, name: e.target.value })
+              }
+            />
+            <input
+              className="w-full mb-2 p-2 border rounded"
+              placeholder="Email"
+              onChange={(e) =>
+                setNewDeliveryMan({ ...newDeliveryMan, email: e.target.value })
+              }
+            />
+            <input
+              className="w-full mb-2 p-2 border rounded"
+              placeholder="Hub"
+              onChange={(e) =>
+                setNewDeliveryMan({ ...newDeliveryMan, hub: e.target.value })
+              }
+            />
             <div className="flex justify-end">
-              <button className="px-4 py-2 bg-gray-400 text-white rounded mr-2" onClick={() => setIsModalOpen(false)}>Cancel</button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded" onClick={handleAddDeliveryMan}>Add</button>
+              <button
+                className="px-4 py-2 bg-gray-400 text-white rounded mr-2"
+                onClick={() => setIsModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded"
+                onClick={handleAddDeliveryMan}
+              >
+                Add
+              </button>
             </div>
           </div>
         </div>

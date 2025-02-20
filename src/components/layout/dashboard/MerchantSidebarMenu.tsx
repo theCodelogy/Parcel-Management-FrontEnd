@@ -8,7 +8,7 @@ interface SidebarMenuProps {
   role: "admin" | "merchant" | "rider";
 }
 
-const SidebarMenu: React.FC<SidebarMenuProps> = ({ role }) => {
+const MerchantSidebarMenu: React.FC<SidebarMenuProps> = ({ role }) => {
   const location = useLocation();
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
   const submenuRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -35,22 +35,43 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ role }) => {
 
   const routeItems = getRoutesForRole();
 
-  // Helper function to determine if any child route is active
+  // Helper function to check if any child route is active
   const isChildActive = (children: RouteItem[]) =>
     children.some((child) => location.pathname === child.path);
 
   return (
-    <div
-      style={{ height: "calc(100vh - 64.8px)" }}
-      className="w-64 bg-white shadow-lg overflow-y-auto hide-scrollbar hidden lg:block pb-6"
-    >
+    <div className="w-64 bg-white  overflow-y-auto hide-scrollbar hidden lg:block pb-6 h-screen">
+      {/*
+         Only show this purple header when role = "merchant".
+         If you want it to appear for other roles as well,
+         remove or adjust the condition below.
+       */}
+      {role === "merchant" && (
+        <div className="p-4 border-b border-gray-200 text-white flex flex-col items-center">
+          {/* Enlarged and centered image */}
+          <div className="w-26 h-26 bg-gray-200 rounded-full flex items-center justify-center mb-3 overflow-hidden">
+            <img
+              src="https://i.ibb.co/bFMCnfT/me.png"
+              alt="User Profile"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          {/* Text below image */}
+          <div className="text-center text-black">
+            <div className="font-semibold">Beargrass(FE-24)</div>
+            <div className="text-sm">Maam</div>
+          </div>
+        </div>
+      )}
+
       <div className="p-4 text-gray-600 text-sm font-semibold">MENU</div>
+
       <div className="space-y-1">
         {routeItems.map((item, index) => (
           <div key={index}>
             {item.children ? (
               <>
-                {/* Parent item with children */}
+                {/* Parent with sub-routes */}
                 <div
                   className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer ${
                     isChildActive(item.children) ? "bg-gray-200" : ""
@@ -62,14 +83,15 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ role }) => {
                   {item.icon && <item.icon className="w-5 h-5 mr-3" />}
                   <span className="flex-grow">{item.label}</span>
                   <span
-                    className={`ml-2 transform transition-transform duration-300 ease-out ${
-                      openMenus[item.label] ? "rotate-90" : "rotate-0"
+                    className={`ml-2 transform transition-transform duration-300 ${
+                      openMenus[item.label] ? "rotate-90" : ""
                     }`}
                   >
-                    ›
+                    ▸
                   </span>
                 </div>
-                {/* Child items */}
+
+                {/* Child (sub-menu) items */}
                 <div
                   ref={(el) => {
                     submenuRefs.current[item.label] = el;
@@ -78,7 +100,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ role }) => {
                     maxHeight: openMenus[item.label]
                       ? submenuRefs.current[item.label]?.scrollHeight
                       : 0,
-                    transition: "max-height 0.3s ease-out",
+                    transition: "max-height 0.3s ease",
                   }}
                   className="overflow-hidden"
                 >
@@ -119,4 +141,4 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ role }) => {
   );
 };
 
-export default SidebarMenu;
+export default MerchantSidebarMenu;

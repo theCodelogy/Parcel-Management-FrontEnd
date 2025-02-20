@@ -6,6 +6,7 @@ import {
   Settings as SettingsIcon,
   Headphones,
   BookOpen,
+  Plus,
 } from "lucide-react";
 
 import MerchantDashboard from "../features/merchant/pages/MerchantDashboard";
@@ -16,6 +17,7 @@ import MerchantSettings from "../features/merchant/pages/Settings"; // New merch
 import Support from "../features/merchant/pages/Support";
 import APIDocs from "../features/merchant/pages/APIDocs";
 import { RouteItem } from "./Admin.Routes";
+import ParcelCreate from "../features/merchant/pages/CreateParcel";
 
 export const merchantRoutes: RouteItem[] = [
   {
@@ -59,5 +61,11 @@ export const merchantRoutes: RouteItem[] = [
     path: "api-docs",
     element: <APIDocs />,
     icon: BookOpen,
+  },
+  {
+    label: "Create Parcel",
+    path: "create-parcel",
+    element: <ParcelCreate />,
+    icon: Plus,
   },
 ];
