@@ -16,8 +16,82 @@ const CreateParcel: React.FC = () => {
     codCharge: 0,
     totalPayable: 0,
   });
-
   const [agreed, setAgreed] = useState(false);
+  const [selectedDivision, setSelectedDivision] = useState("");
+
+  // Mapping divisions to their districts
+  const districtsByDivision: { [key: string]: string[] } = {
+    dhaka: [
+      "Dhaka",
+      "Faridpur",
+      "Gazipur",
+      "Gopalganj",
+      "Kishoreganj",
+      "Madaripur",
+      "Manikganj",
+      "Munshiganj",
+      "Narayanganj",
+      "Narsingdi",
+      "Rajbari",
+      "Shariatpur",
+      "Tangail",
+    ],
+    chattogram: [
+      "Chattogram",
+      "Cox's Bazar",
+      "Bandarban",
+      "Rangamati",
+      "Khagrachari",
+      "Noakhali",
+      "Feni",
+      "Comilla",
+      "Lakshmipur",
+      "Brahmanbaria",
+      "Chandpur",
+    ],
+    rajshahi: [
+      "Rajshahi",
+      "Natore",
+      "Chapai Nawabganj",
+      "Pabna",
+      "Bogura",
+      "Joypurhat",
+      "Naogaon",
+      "Sirajganj",
+    ],
+    khulna: [
+      "Khulna",
+      "Jessore",
+      "Satkhira",
+      "Bagerhat",
+      "Narail",
+      "Magura",
+      "Meherpur",
+      "Chuadanga",
+      "Jhenaidah",
+      "Kushtia",
+    ],
+    barisal: [
+      "Barguna",
+      "Barisal",
+      "Bhola",
+      "Jhalokati",
+      "Patuakhali",
+      "Pirojpur",
+    ],
+    sylhet: ["Sylhet", "Moulvibazar", "Habiganj", "Sunamganj"],
+    rangpur: [
+      "Rangpur",
+      "Dinajpur",
+      "Gaibandha",
+      "Kurigram",
+      "Lalmonirhat",
+      "Nilphamari",
+      "Panchagarh",
+      "Thakurgaon",
+    ],
+    mymensingh: ["Mymensingh", "Jamalpur", "Netrokona", "Sherpur"],
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,18 +142,83 @@ const CreateParcel: React.FC = () => {
                   Delivery Info
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <select className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
-                    <option>ঢাকার ভিতরে (ID- 4)</option>
+                  {/* Delivery Area */}
+                  <select
+                    defaultValue=""
+                    className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="" disabled>
+                      Delivery Area
+                    </option>
+                    <option value="4">ঢাকার ভিতরে (ID- 4)</option>
+                    <option value="3">ঢাকা সাব এরিয়া (ID- 3)</option>
+                    <option value="2">ঢাকার বাইরে (ID- 2)</option>
                   </select>
-                  <select className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
-                    <option>Regular Delivery (ID- 1)</option>
+
+                  {/* Delivery Service */}
+                  <select
+                    defaultValue="1"
+                    className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="" disabled>
+                      Delivery Service
+                    </option>
+                    <option value="1">Regular Delivery (ID- 1)</option>
+                    <option value="2">Express Delivery (ID- 2)</option>
+                    <option value="4">Same Day Delivery (ID- 4)</option>
                   </select>
-                  <select className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
-                    <option>Regular Parcel (ID- 1)</option>
+
+                  {/* Product Type */}
+                  <select
+                    defaultValue="1"
+                    className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="" disabled>
+                      Product Type
+                    </option>
+                    <option value="1">Regular Parcel (ID- 1)</option>
+                    <option value="8">Mango (ID- 8)</option>
+                    <option value="9">Frozen (ID- 9)</option>
+                    <option value="10">Glass Items (ID- 10)</option>
                   </select>
-                  <select className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
-                    <option>Select Division (optional)</option>
+
+                  {/* Division (Optional) */}
+                  <select
+                    defaultValue=""
+                    onChange={(e) => setSelectedDivision(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="">Select Division (optional)</option>
+                    <option value="dhaka">Dhaka Division</option>
+                    <option value="chattogram">Chattogram Division</option>
+                    <option value="rajshahi">Rajshahi Division</option>
+                    <option value="khulna">Khulna Division</option>
+                    <option value="barisal">Barisal Division</option>
+                    <option value="sylhet">Sylhet Division</option>
+                    <option value="rangpur">Rangpur Division</option>
+                    <option value="mymensingh">Mymensingh Division</option>
                   </select>
+
+                  {/* District (Optional) */}
+                  <select
+                    defaultValue=""
+                    className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="">Select District (optional)</option>
+                    {selectedDivision &&
+                    districtsByDivision[selectedDivision] ? (
+                      districtsByDivision[selectedDivision].map(
+                        (district, index) => (
+                          <option key={index} value={district.toLowerCase()}>
+                            {district}
+                          </option>
+                        )
+                      )
+                    ) : (
+                      <option disabled>Please select a division first</option>
+                    )}
+                  </select>
+
                   <input
                     type="text"
                     placeholder="Cash Collection Amount"
@@ -93,6 +232,7 @@ const CreateParcel: React.FC = () => {
                   <input
                     type="text"
                     value="1"
+                    readOnly
                     className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
                   />
                 </div>

@@ -6,7 +6,7 @@ const MerchantNavbar: React.FC = () => {
     <nav className="w-full bg-white py-4 px-6 shadow-md">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
         {/* Logo Section */}
-        <div className="flex items-center">
+        <div className="flex items-center pr-3">
           <img
             src={logo}
             alt="Company Logo"
