@@ -1,10 +1,11 @@
-import React from "react";
-
 const Filter = () => {
   return (
     <div className="flex flex-wrap -mx-4">
       <div className="form-group px-4 xl:w-1/4 md:w-1/3 w-full mb-4">
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-gray-700"
+        >
           Name
         </label>
         <input
@@ -17,7 +18,10 @@ const Filter = () => {
       </div>
 
       <div className="form-group px-4 xl:w-1/4 md:w-1/3 w-full mb-4">
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="email"
+          className="block text-sm font-medium text-gray-700"
+        >
           Email
         </label>
         <input
@@ -30,7 +34,10 @@ const Filter = () => {
       </div>
 
       <div className="form-group px-4 xl:w-1/4 md:w-1/3 w-full mb-4">
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="phone"
+          className="block text-sm font-medium text-gray-700"
+        >
           Phone
         </label>
         <span className="text-danger"></span>

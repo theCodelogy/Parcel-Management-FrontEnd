@@ -10,7 +10,7 @@ export default function FilterForm() {
     phone: "",
   });
 
-  const handleChange = (e: { target: { name: any; value: any; }; }) => {
+  const handleChange = (e: { target: { name: any; value: any } }) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
@@ -20,11 +20,16 @@ export default function FilterForm() {
 
   return (
     <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md border dark:border-gray-700 mx-auto">
-      <form action="https://cte.fitspick.com/admin/deliveryman/filter" method="GET">
+      <form
+        action="https://cte.fitspick.com/admin/deliveryman/filter"
+        method="GET"
+      >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mx-auto">
           {/* Name Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Name
+            </label>
             <input
               type="text"
               name="name"
@@ -37,7 +42,9 @@ export default function FilterForm() {
 
           {/* Email Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Email
+            </label>
             <input
               type="email"
               name="email"
@@ -50,7 +57,9 @@ export default function FilterForm() {
 
           {/* Phone Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Phone
+            </label>
             <input
               type="text"
               name="phone"

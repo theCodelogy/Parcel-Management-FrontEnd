@@ -7,11 +7,13 @@ type Period = "AM" | "PM";
 
 const CalendarClock: React.FC = () => {
   const now = new Date();
-  
+
   const [date, setDate] = useState<Date>(now);
   const [hour, setHour] = useState<number>(now.getHours() % 12 || 12);
   const [minute, setMinute] = useState<number>(now.getMinutes());
-  const [period, setPeriod] = useState<Period>(now.getHours() >= 12 ? "PM" : "AM");
+  const [period, setPeriod] = useState<Period>(
+    now.getHours() >= 12 ? "PM" : "AM"
+  );
 
   // Update the time every minute
   useEffect(() => {
@@ -44,9 +46,13 @@ const CalendarClock: React.FC = () => {
               {format(date, "MMMM yyyy")}
             </div>
             <div className="flex items-center mt-4">
-              <span className="text-2xl font-bold">{hour.toString().padStart(2, "0")}</span>
+              <span className="text-2xl font-bold">
+                {hour.toString().padStart(2, "0")}
+              </span>
               <span className="mx-1 text-xl font-bold">:</span>
-              <span className="text-2xl font-bold">{minute.toString().padStart(2, "0")}</span>
+              <span className="text-2xl font-bold">
+                {minute.toString().padStart(2, "0")}
+              </span>
             </div>
             <button
               className="mt-3 px-4 py-2 bg-purple-600 text-white rounded-full"
