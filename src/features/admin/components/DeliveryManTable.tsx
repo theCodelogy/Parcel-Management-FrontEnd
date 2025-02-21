@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { FaEllipsisV, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import { FaEllipsisV, FaEdit, FaTrash, } from "react-icons/fa";
+import ModalXXL from "./ModalXXL";
+
 
 interface DeliveryMan {
   id: number;
@@ -109,12 +111,8 @@ const DeliveryManTable = () => {
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
           Delivery Man
         </h2>
-        <button
-          className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <FaPlus className="mr-2" /> Add Delivery Man
-        </button>
+        <ModalXXL/>
+       
       </div>
 
       <div className="overflow-x-auto">
