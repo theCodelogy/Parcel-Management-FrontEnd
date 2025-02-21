@@ -18,6 +18,7 @@ const CreateParcel: React.FC = () => {
   });
   const [agreed, setAgreed] = useState(false);
   const [selectedDivision, setSelectedDivision] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Mapping divisions to their districts
   const districtsByDivision: { [key: string]: string[] } = {
@@ -95,7 +96,14 @@ const CreateParcel: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
+    // Handle form submission here
+    console.log("Form submitted");
+  };
+
+  // Added handleUpload function for the Bulk Upload modal.
+  const handleUpload = () => {
+    // Handle file upload functionality here
+    console.log("File upload triggered");
   };
 
   return (
@@ -103,7 +111,11 @@ const CreateParcel: React.FC = () => {
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Form Section */}
         <div className="flex-1">
-          <button className="px-4 py-2 border border-blue-500 text-blue-500 rounded hover:bg-blue-50 mb-6 transition duration-200">
+          {/* Bulk Upload Button */}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2 border border-blue-500 text-blue-500 rounded hover:bg-blue-50 mb-6 transition duration-200"
+          >
             Bulk Upload
           </button>
 
@@ -323,6 +335,91 @@ const CreateParcel: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal for Bulk Upload with a slightly black overlay */}
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          {/* Overlay with slight opacity */}
+          <div
+            className="absolute inset-0 bg-black opacity-30"
+            onClick={() => setIsModalOpen(false)}
+          ></div>
+
+          {/* Modal Content */}
+          <div className="relative bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl z-10">
+            {/* Close Icon (top-right) */}
+            <button
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              onClick={() => setIsModalOpen(false)}
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            {/* Heading and Sample File Link */}
+            <h2 className="text-lg font-semibold mb-4">
+              Excel File Column Instruction (
+              <a
+                href="#"
+                className="text-blue-500 underline hover:text-blue-700"
+              >
+                Sample file
+              </a>
+              )
+            </h2>
+
+            {/* Table of required columns */}
+            <div className="overflow-x-auto mb-4">
+              <table className="min-w-full border text-sm text-center">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="p-2 border">Customer Name</th>
+                    <th className="p-2 border">Product Type</th>
+                    <th className="p-2 border">Customer Phone</th>
+                    <th className="p-2 border">Cash Collection Amount</th>
+                    <th className="p-2 border">Customer Address</th>
+                    <th className="p-2 border">Delivery Zone</th>
+                    <th className="p-2 border">Weight</th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
+
+            {/* Upload Section */}
+            <p className="font-medium mb-2">Upload Excel</p>
+            <div className="flex items-center gap-2 mb-4">
+              <input type="file" />
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={handleUpload}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-200"
+              >
+                Upload
+              </button>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition duration-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
