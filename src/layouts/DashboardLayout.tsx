@@ -43,7 +43,7 @@ const DashboardLayout = () => {
       <div className="flex flex-1">
         {/* Sidebar (visible on large screens) */}
         <aside className="hidden lg:block fixed top-[64.8px] left-0 h-[calc(100vh-64.8px)] z-[999]">
-          <SidebarMenu role="merchant" />
+          <SidebarMenu role="admin" />
         </aside>
 
         {/* Main content area */}

@@ -46,7 +46,6 @@ import AdminDashboard from "../features/admin/pages/AdminDashboard";
 import Ticket from "../features/admin/pages/Ticket";
 import Parcels from "../features/admin/pages/Parcels";
 import Offers from "../features/admin/pages/Offers";
-import ActiveLogs from "../features/admin/pages/ActiveLogs";
 import DeceptionCheck from "../features/admin/pages/DeceptionCheck";
 import Subscribe from "../features/admin/pages/Subscribe";
 import PickupRegular from "../features/admin/pages/PickupRegular";
@@ -95,6 +94,7 @@ import OnlinePaymentSetup from "../features/admin/pages/setting/OnlinePaymentSet
 import Packaging from "../features/admin/pages/setting/Packaging";
 import AssetsCategory from "../features/admin/pages/setting/AssetsCategory";
 import InvoiceGenerate from "../features/admin/pages/setting/InvoiceGenerate";
+import LogsDashboard from "../features/admin/components/LogsDashboard";
 
 export interface RouteItem {
   label: string;
@@ -182,7 +182,7 @@ export const adminRoutes: RouteItem[] = [
   {
     label: "Active Logs",
     path: "active-logs",
-    element: <ActiveLogs />,
+    element: <LogsDashboard />,
     icon: Clock,
   },
   {
