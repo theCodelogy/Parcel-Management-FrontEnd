@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FaEllipsisV, FaEdit, FaTrash, FaPlus, FaSearch, FaFileInvoice } from "react-icons/fa";
+import CreateMerchant from "./CreateMerchant";
 
 // Sample data for merchants
 interface Merchant {
@@ -176,6 +177,7 @@ const MerchantList = () => {
             ))}
           </tbody>
         </table>
+        <CreateMerchant/>
       </div>
     </div>
   );

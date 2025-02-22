@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { FaEllipsisV, FaEdit, FaTrash } from "react-icons/fa";
 import CreateBranchModal from "./CreateBranchModal";
+import { NavLink } from "react-router-dom";
 
 // Static data structure for branches
 interface Branch {
@@ -47,6 +48,7 @@ const Branch = () => {
           Branches
         </h2>
         <CreateBranchModal />
+        <NavLink to={'createBranch'}>CreateBranchModal</NavLink>
       </div>
 
       <div className="overflow-x-auto">
