@@ -134,8 +134,11 @@ export const adminRoutes: RouteItem[] = [
         element: <BranchPayments />,
         icon: CreditCard,
       },
+      
     ],
+    
   },
+  
   {
     label: "Merchant Manage",
     path: "merchant-manage",

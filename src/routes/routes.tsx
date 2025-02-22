@@ -35,6 +35,7 @@ const router = createBrowserRouter([
     element: <DashboardLayout />,
     children: routeGenerator(riderRoutes),
   },
+  
 ]);
 
 export default router;
