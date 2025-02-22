@@ -39,7 +39,7 @@ import {
 import Branch from "../features/admin/pages/branch-manage/Branch";
 import BranchPayments from "../features/admin/pages/branch-manage/BranchPayments";
 import DeliveryMan from "../features/admin/pages/DeliveryMan";
-import Merchants from "../features/admin/pages/merchant-manage/Merchants";
+import Merchants from "../features/admin/pages/merchant-manage/MerchantsPage";
 import Payment from "../features/admin/pages/merchant-manage/Payment";
 import TodoList from "../features/admin/pages/TodoList";
 import AdminDashboard from "../features/admin/pages/AdminDashboard";
@@ -95,6 +95,8 @@ import Packaging from "../features/admin/pages/setting/Packaging";
 import AssetsCategory from "../features/admin/pages/setting/AssetsCategory";
 import InvoiceGenerate from "../features/admin/pages/setting/InvoiceGenerate";
 import LogsDashboard from "../features/admin/components/LogsDashboard";
+import CreateDeliveryMan from "../features/admin/pages/CreateDeliveryMan";
+import CreateMerchantsPage from "../features/admin/pages/merchant-manage/CreateMerchantsPage";
 
 export interface RouteItem {
   label: string;
@@ -114,8 +116,21 @@ export const adminRoutes: RouteItem[] = [
   {
     label: "Delivery Man",
     path: "delivery-man",
-    element: <DeliveryMan />,
     icon: Truck,
+    children: [
+      {
+        label: "Delivery Man",
+        path: "delivery-man",
+        element: <DeliveryMan />,
+        icon: Truck,
+      },
+      {
+        label: "Create Delivery Man",
+        path: "create-delivery-man",
+        element: <CreateDeliveryMan />,
+        icon: CreditCard,
+      },
+    ],
   },
   {
     label: "Branch Manage",
@@ -145,6 +160,12 @@ export const adminRoutes: RouteItem[] = [
         label: "Merchants",
         path: "merchants",
         element: <Merchants />,
+        icon: UserPlus,
+      },
+      {
+        label: "Create Merchants",
+        path: "create-merchants",
+        element: <CreateMerchantsPage />,
         icon: UserPlus,
       },
       {

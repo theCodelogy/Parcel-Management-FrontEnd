@@ -7,6 +7,8 @@ import { adminRoutes } from "./Admin.Routes";
 import { merchantRoutes } from "./Merchant.Routes";
 import { riderRoutes } from "./Rider.Routes";
 import MerchantDashboardLayout from "../layouts/MerchantDashboardLayout";
+import Login from "../pages/auth/Login";
+import Registration from "../pages/auth/Registration";
 
 const router = createBrowserRouter([
   {
@@ -18,6 +20,14 @@ const router = createBrowserRouter([
         element: <Home />,
       },
     ],
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/registration",
+    element: <Registration />,
   },
   {
     path: "/admin",
