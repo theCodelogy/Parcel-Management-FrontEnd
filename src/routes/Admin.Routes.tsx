@@ -37,11 +37,11 @@ import {
 } from "lucide-react";
 
 import Branch from "../features/admin/pages/branch-manage/Branch";
-import BranchPayments from "../features/admin/pages/branch-manage/BranchPayments";
+import BranchPayments from "../features/admin/pages/branch-manage/BranchPaymentsListPage";
 import DeliveryMan from "../features/admin/pages/DeliveryMan";
 import Merchants from "../features/admin/pages/merchant-manage/MerchantsPage";
 import Payment from "../features/admin/pages/merchant-manage/Payment";
-import TodoList from "../features/admin/pages/TodoList";
+import TodoList from "../features/admin/pages/TodoListPage";
 import AdminDashboard from "../features/admin/pages/AdminDashboard";
 import Ticket from "../features/admin/pages/Ticket";
 import Parcels from "../features/admin/pages/Parcels";
@@ -95,7 +95,7 @@ import Packaging from "../features/admin/pages/setting/Packaging";
 import AssetsCategory from "../features/admin/pages/setting/AssetsCategory";
 import InvoiceGenerate from "../features/admin/pages/setting/InvoiceGenerate";
 import LogsDashboard from "../features/admin/components/LogsDashboard";
-import CreateDeliveryMan from "../features/admin/pages/CreateDeliveryMan";
+import CreateDeliveryMan from "../features/admin/pages/CreateDeliveryManPage";
 import CreateMerchantsPage from "../features/admin/pages/merchant-manage/CreateMerchantsPage";
 
 export interface RouteItem {
@@ -149,8 +149,11 @@ export const adminRoutes: RouteItem[] = [
         element: <BranchPayments />,
         icon: CreditCard,
       },
+      
     ],
+    
   },
+  
   {
     label: "Merchant Manage",
     path: "merchant-manage",
