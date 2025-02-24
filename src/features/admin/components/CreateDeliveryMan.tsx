@@ -47,7 +47,9 @@ const CreateDeliveryMan: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    const drivingLicense = e.target.drivingLicense;
+    console.log(drivingLicense);
+    // console.log('Form submitted:', formData);
   };
 
   return (
