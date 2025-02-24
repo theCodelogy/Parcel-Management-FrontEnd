@@ -14,7 +14,8 @@ const Hero = () => {
             <span>Fastest Delivery</span>
           </h1>
           <p className="text-base md:text-lg mt-4 text-gray-600">
-            We are committed to delivery – making it easy, efficient, and high quality.
+            We are committed to delivery – making it easy, efficient, and high
+            quality.
           </p>
 
           {/* Tracking Form */}

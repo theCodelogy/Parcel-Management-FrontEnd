@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaSignInAlt, FaEnvelope } from "react-icons/fa";
 
 interface FormData {
@@ -13,6 +13,8 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -23,24 +25,40 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     setErrorMsg("");
     try {
-      // Build the query parameters from the form data
+      // Prepare the payload to be sent in the request body
       const payload = {
         emailORphone: data.emailORphone,
         password: data.password,
       };
       console.log("Sending payload:", payload);
 
-      const response = await axios.get(
-        "https://parcel-management-back-end.vercel.app/api/v1/superAdmin",
+      const response = await axios.post(
+        "https://parcel-management-back-end.vercel.app/api/v1/auth/login",
+        payload,
         {
-          params: payload,
           headers: {
             "Content-Type": "application/json",
           },
         }
       );
       console.log("Login successful:", response.data);
-      // Handle success (e.g., store token, redirect, etc.)
+
+      // Check the response structure and user role
+      if (
+        response.data &&
+        response.data.success &&
+        response.data.data &&
+        response.data.data.user
+      ) {
+        const userRole = response.data.data.user.role;
+
+        if (userRole === "Super Admin") {
+          navigate("/admin/dashboard");
+        } else if (userRole === "Merchant") {
+          navigate("/merchant/dashboard");
+        }
+      }
+      // You can handle other roles or cases here
     } catch (error: any) {
       console.error("Error response:", error.response);
       if (

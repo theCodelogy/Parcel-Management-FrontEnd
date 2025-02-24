@@ -21,6 +21,24 @@
 //   loading: boolean;
 // }
 
+// export type TDeliveryMan = {
+//   name: string;
+//   phone: string;
+//   email: string;
+//   role: "Delivery Man";
+//   deliveryCharge: number;
+//   returnCharge: number;
+//   pickupCharge: number;
+//   openingBalance: number;
+//   password: string;
+//   salary: number;
+//   status: "Pending" | "Active" | "Disabled";
+//   hub: string;
+//   drivingLicence: string;
+//   image?: string;
+//   address: string;
+// };
+
 // const CreateDeliveryManPage: React.FC = () => {
 //   const [state, setState] = useState<AuthState>({
 //     name: "",
@@ -32,7 +50,7 @@
 //     openingBalance: "",
 //     password: "",
 //     salary: 0,
-//     status: "",
+//     status: "Pending",
 //     hub: "",
 //     drivingLicense: null,
 //     image: null,
@@ -81,36 +99,35 @@
 //     e.preventDefault();
 //     setState({ ...state, loading: true });
 
-//     // Create form data to send, including files
-//     const formData = new FormData();
-//     formData.append("name", state.name);
-//     formData.append("phone", state.phone);
-//     formData.append("email", state.email);
-//     formData.append("deliveryCharge", state.deliveryCharge.toString());
-//     formData.append("returnCharge", state.returnCharge.toString());
-//     formData.append("pickupCharge", state.pickupCharge.toString());
-//     formData.append("openingBalance", state.openingBalance);
-//     formData.append("password", state.password);
-//     formData.append("salary", state.salary.toString());
-//     formData.append("status", state.status);
-//     formData.append("hub", state.hub);
-//     formData.append("address", state.address);
+//     // Build payload that conforms to TDeliveryMan
+//     const payload: TDeliveryMan = {
+//       name: state.name,
+//       phone: state.phone,
+//       email: state.email,
+//       role: "Delivery Man",
+//       deliveryCharge: state.deliveryCharge,
+//       returnCharge: state.returnCharge,
+//       pickupCharge: state.pickupCharge,
+//       openingBalance: Number(state.openingBalance),
+//       password: state.password,
+//       salary: state.salary,
+//       status: state.status as "Pending" | "Active" | "Disabled",
+//       hub: state.hub,
+//       drivingLicence: state.drivingLicense ? state.drivingLicense.name : "",
+//       image: state.image ? state.image.name : undefined,
+//       address: state.address,
+//     };
 
-//     if (state.drivingLicense) {
-//       formData.append("drivingLicense", state.drivingLicense);
-//     }
-
-//     if (state.image) {
-//       formData.append("image", state.image);
-//     }
+//     // Log the payload to the console
+//     console.log("Payload:", payload);
 
 //     try {
 //       const response = await axios.post(
 //         "https://parcel-management-back-end.vercel.app/api/v1/deliveryMan",
-//         formData,
+//         payload,
 //         {
 //           headers: {
-//             "Content-Type": "multipart/form-data",
+//             "Content-Type": "application/json",
 //           },
 //         }
 //       );
@@ -127,7 +144,6 @@
 //   return (
 //     <div className="min-h-screen flex items-center justify-center bg-gray-100">
 //       <div className="w-full bg-white rounded-2xl shadow-xl overflow-auto p-8">
-//         {/* Header */}
 //         <div className="col-span-2 mb-6 text-center">
 //           <h2 className="text-2xl font-bold text-gray-800">
 //             Create Delivery Man
@@ -245,7 +261,7 @@
 //                 Opening Balance
 //               </label>
 //               <input
-//                 type="text"
+//                 type="number"
 //                 name="openingBalance"
 //                 value={state.openingBalance}
 //                 onChange={handleChange}
@@ -319,7 +335,7 @@
 //                 onChange={handleChange}
 //                 required
 //                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-//                 placeholder="Status"
+//                 placeholder="Pending, Active, or Disabled"
 //               />
 //             </div>
 
@@ -411,7 +427,6 @@
 // };
 
 // export default CreateDeliveryManPage;
-
 import React, { useState } from "react";
 import axios from "axios";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -437,8 +452,8 @@ interface AuthState {
 
 export type TDeliveryMan = {
   name: string;
-  phone: string;
   email: string;
+  phone: string;
   role: "Delivery Man";
   deliveryCharge: number;
   returnCharge: number;
@@ -513,11 +528,11 @@ const CreateDeliveryManPage: React.FC = () => {
     e.preventDefault();
     setState({ ...state, loading: true });
 
-    // Build payload that conforms to TDeliveryMan
+    // Build payload that strictly follows the TDeliveryMan type.
     const payload: TDeliveryMan = {
       name: state.name,
-      phone: state.phone,
       email: state.email,
+      phone: state.phone,
       role: "Delivery Man",
       deliveryCharge: state.deliveryCharge,
       returnCharge: state.returnCharge,
@@ -532,7 +547,7 @@ const CreateDeliveryManPage: React.FC = () => {
       address: state.address,
     };
 
-    // Log the payload to the console
+    // Log the payload to the console for debugging.
     console.log("Payload:", payload);
 
     try {
@@ -769,15 +784,15 @@ const CreateDeliveryManPage: React.FC = () => {
               />
             </div>
 
-            {/* Driving License */}
+            {/* Driving Licence */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Driving License
+                Driving Licence
               </label>
               <label className="block w-full py-2 px-3 border border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 text-center cursor-pointer">
                 {state.drivingLicense
                   ? state.drivingLicense.name
-                  : "Choose Driving License File"}
+                  : "Choose Driving Licence File"}
                 <input
                   type="file"
                   name="drivingLicense"
