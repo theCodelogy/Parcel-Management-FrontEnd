@@ -41,7 +41,7 @@ const initialTodos: Todo[] = [
   },
 ];
 
-const TodoListTable = () => {
+const TodoListPage = () => {
   const [todos, setTodos] = useState<Todo[]>(initialTodos);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -69,11 +69,9 @@ const TodoListTable = () => {
   };
 
   return (
-    <div className="p-6 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
+    <div className="p-6 bg-white rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Todo List
-        </h2>
+        <h2 className="text-xl font-semibold text-gray-900">Todo List</h2>
         <button
           className="bg-green-600 text-white px-4 py-2 rounded-md"
           onClick={() => setIsModalOpen(true)}
@@ -83,8 +81,8 @@ const TodoListTable = () => {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full border border-gray-200 dark:border-gray-700">
-          <thead className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+        <table className="w-full border border-gray-200">
+          <thead className="bg-gray-100 text-gray-600">
             <tr>
               <th className="p-3 text-left">SL</th>
               <th className="p-3 text-left">Date</th>
@@ -96,12 +94,9 @@ const TodoListTable = () => {
               <th className="p-3 text-left">Action</th>
             </tr>
           </thead>
-          <tbody className="text-gray-900 dark:text-gray-200">
+          <tbody className="text-gray-900">
             {todos.map((todo) => (
-              <tr
-                key={todo.id}
-                className="border-t border-gray-200 dark:border-gray-700"
-              >
+              <tr key={todo.id} className="border-t border-gray-200">
                 <td className="p-3">{todo.id}</td>
                 <td className="p-3">{todo.date}</td>
                 <td className="p-3">{todo.title}</td>
@@ -121,7 +116,6 @@ const TodoListTable = () => {
                     {todo.status}
                   </span>
                 </td>
-              
                 <td className="p-3 relative">
                   <button
                     className="p-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
@@ -133,11 +127,11 @@ const TodoListTable = () => {
                   </button>
 
                   {openDropdown === todo.id && (
-                    <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
-                      <button className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                      <button className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100">
                         <FaEdit className="mr-2" /> Edit
                       </button>
-                      <button className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <button className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-100">
                         <FaTrash className="mr-2" /> Delete
                       </button>
                     </div>
@@ -151,7 +145,7 @@ const TodoListTable = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg w-96">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h3 className="text-lg font-semibold mb-4">Add New Todo</h3>
             <input
               className="w-full mb-2 p-2 border rounded"
@@ -177,9 +171,7 @@ const TodoListTable = () => {
             <input
               className="w-full mb-2 p-2 border rounded"
               placeholder="Note"
-              onChange={(e) =>
-                setNewTodo({ ...newTodo, note: e.target.value })
-              }
+              onChange={(e) => setNewTodo({ ...newTodo, note: e.target.value })}
             />
             <div className="flex justify-end">
               <button
@@ -202,4 +194,4 @@ const TodoListTable = () => {
   );
 };
 
-export default TodoListTable;
+export default TodoListPage;

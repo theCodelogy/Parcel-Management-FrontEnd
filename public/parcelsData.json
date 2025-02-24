@@ -1,0 +1,352 @@
+[
+  {
+    "id": 1,
+    "trackingId": "CTEX87542317",
+    "recipient": {
+      "name": "Alice",
+      "phone": "0199950001",
+      "address": "Dhaka"
+    },
+    "merchant": {
+      "name": "ShopOne",
+      "id": "01681835026",
+      "address": "Gulshan"
+    },
+    "amounts": {
+      "cod": 1000,
+      "totalCharge": 50,
+      "vat": 5,
+      "currentPayable": 945
+    },
+    "priority": "High",
+    "status": "Pending",
+    "statusUpdate": "2025-02-19 08:00:00 AM",
+    "payment": "PENDING",
+    "reference": "CTEX-100"
+  },
+  {
+    "id": 2,
+    "trackingId": "CTEX87542318",
+    "recipient": {
+      "name": "Bob",
+      "phone": "0199950002",
+      "address": "Chittagong"
+    },
+    "merchant": {
+      "name": "GadgetStore",
+      "id": "01681835027",
+      "address": "Banani"
+    },
+    "amounts": {
+      "cod": 1200,
+      "totalCharge": 60,
+      "vat": 10,
+      "currentPayable": 1130
+    },
+    "priority": "Medium",
+    "status": "Pickup Assign",
+    "statusUpdate": "2025-02-19 09:00:00 AM",
+    "payment": "PROCESSING",
+    "reference": "CTEX-101"
+  },
+  {
+    "id": 3,
+    "trackingId": "CTEX87542319",
+    "recipient": {
+      "name": "Charlie",
+      "phone": "0199950003",
+      "address": "Sylhet"
+    },
+    "merchant": {
+      "name": "FashionHub",
+      "id": "01681835028",
+      "address": "Dhanmondi"
+    },
+    "amounts": {
+      "cod": 1300,
+      "totalCharge": 70,
+      "vat": 5,
+      "currentPayable": 1225
+    },
+    "priority": "High",
+    "status": "Pickup Re-schedule",
+    "statusUpdate": "2025-02-19 10:00:00 AM",
+    "payment": "PENDING",
+    "reference": "CTEX-102"
+  },
+  {
+    "id": 4,
+    "trackingId": "CTEX87542320",
+    "recipient": {
+      "name": "Diana",
+      "phone": "0199950004",
+      "address": "Khulna"
+    },
+    "merchant": {
+      "name": "ElectroMart",
+      "id": "01681835029",
+      "address": "Uttara"
+    },
+    "amounts": {
+      "cod": 1500,
+      "totalCharge": 80,
+      "vat": 0,
+      "currentPayable": 1420
+    },
+    "priority": "Medium",
+    "status": "Received by Pickup Man",
+    "statusUpdate": "2025-02-19 11:00:00 AM",
+    "payment": "PAID",
+    "reference": "CTEX-103"
+  },
+  {
+    "id": 5,
+    "trackingId": "CTEX87542321",
+    "recipient": {
+      "name": "Eve",
+      "phone": "0199950005",
+      "address": "Rajshahi"
+    },
+    "merchant": {
+      "name": "TechStore",
+      "id": "01681835030",
+      "address": "Motijheel"
+    },
+    "amounts": {
+      "cod": 1100,
+      "totalCharge": 55,
+      "vat": 10,
+      "currentPayable": 1035
+    },
+    "priority": "Low",
+    "status": "Received by Warehouse",
+    "statusUpdate": "2025-02-19 12:00:00 PM",
+    "payment": "PROCESSING",
+    "reference": "CTEX-104"
+  },
+  {
+    "id": 6,
+    "trackingId": "CTEX87542322",
+    "recipient": {
+      "name": "Frank",
+      "phone": "0199950006",
+      "address": "Barishal"
+    },
+    "merchant": {
+      "name": "HomeStore",
+      "id": "01681835031",
+      "address": "Mirpur"
+    },
+    "amounts": {
+      "cod": 1400,
+      "totalCharge": 65,
+      "vat": 15,
+      "currentPayable": 1320
+    },
+    "priority": "High",
+    "status": "Transfer to Hub",
+    "statusUpdate": "2025-02-19 01:00:00 PM",
+    "payment": "PENDING",
+    "reference": "CTEX-105"
+  },
+  {
+    "id": 7,
+    "trackingId": "CTEX87542323",
+    "recipient": {
+      "name": "Grace",
+      "phone": "0199950007",
+      "address": "Rangpur"
+    },
+    "merchant": {
+      "name": "BookStore",
+      "id": "01681835032",
+      "address": "Savar"
+    },
+    "amounts": {
+      "cod": 900,
+      "totalCharge": 45,
+      "vat": 5,
+      "currentPayable": 850
+    },
+    "priority": "Medium",
+    "status": "Received by Hub",
+    "statusUpdate": "2025-02-19 02:00:00 PM",
+    "payment": "PROCESSING",
+    "reference": "CTEX-106"
+  },
+  {
+    "id": 8,
+    "trackingId": "CTEX87542324",
+    "recipient": {
+      "name": "Hank",
+      "phone": "0199950008",
+      "address": "Mymensingh"
+    },
+    "merchant": {
+      "name": "MobileHub",
+      "id": "01681835033",
+      "address": "Lalmatia"
+    },
+    "amounts": {
+      "cod": 1600,
+      "totalCharge": 75,
+      "vat": 10,
+      "currentPayable": 1515
+    },
+    "priority": "High",
+    "status": "Delivery Man Assigned",
+    "statusUpdate": "2025-02-19 03:00:00 PM",
+    "payment": "PAID",
+    "reference": "CTEX-107"
+  },
+  {
+    "id": 9,
+    "trackingId": "CTEX87542325",
+    "recipient": {
+      "name": "Ivy",
+      "phone": "0199950009",
+      "address": "Narayanganj"
+    },
+    "merchant": {
+      "name": "StyleMart",
+      "id": "01681835034",
+      "address": "Jamalpur"
+    },
+    "amounts": {
+      "cod": 950,
+      "totalCharge": 40,
+      "vat": 5,
+      "currentPayable": 905
+    },
+    "priority": "Low",
+    "status": "Return to Courier",
+    "statusUpdate": "2025-02-19 04:00:00 PM",
+    "payment": "PROCESSING",
+    "reference": "CTEX-108"
+  },
+  {
+    "id": 10,
+    "trackingId": "CTEX87542326",
+    "recipient": {
+      "name": "Jack",
+      "phone": "0199950010",
+      "address": "Comilla"
+    },
+    "merchant": {
+      "name": "SuperMart",
+      "id": "01681835035",
+      "address": "Mirpur"
+    },
+    "amounts": {
+      "cod": 1250,
+      "totalCharge": 60,
+      "vat": 10,
+      "currentPayable": 1180
+    },
+    "priority": "Medium",
+    "status": "Partial Delivered",
+    "statusUpdate": "2025-02-19 05:00:00 PM",
+    "payment": "PENDING",
+    "reference": "CTEX-109"
+  },
+  {
+    "id": 11,
+    "trackingId": "CTEX87542327",
+    "recipient": {
+      "name": "Kathy",
+      "phone": "0199950011",
+      "address": "Rangpur"
+    },
+    "merchant": {
+      "name": "ElectroPlus",
+      "id": "01681835036",
+      "address": "Uttara"
+    },
+    "amounts": {
+      "cod": 1800,
+      "totalCharge": 90,
+      "vat": 15,
+      "currentPayable": 1695
+    },
+    "priority": "High",
+    "status": "Delivered",
+    "statusUpdate": "2025-02-19 06:00:00 PM",
+    "payment": "PAID",
+    "reference": "CTEX-110"
+  },
+  {
+    "id": 12,
+    "trackingId": "CTEX87542328",
+    "recipient": {
+      "name": "Leo",
+      "phone": "0199950012",
+      "address": "Sylhet"
+    },
+    "merchant": {
+      "name": "QuickStore",
+      "id": "01681835037",
+      "address": "Dhanmondi"
+    },
+    "amounts": {
+      "cod": 1050,
+      "totalCharge": 55,
+      "vat": 10,
+      "currentPayable": 985
+    },
+    "priority": "Low",
+    "status": "Return Assigned to Merchant",
+    "statusUpdate": "2025-02-19 07:00:00 PM",
+    "payment": "PROCESSING",
+    "reference": "CTEX-111"
+  },
+  {
+    "id": 13,
+    "trackingId": "CTEX87542329",
+    "recipient": {
+      "name": "Mia",
+      "phone": "0199950013",
+      "address": "Dhaka"
+    },
+    "merchant": {
+      "name": "GroceryPlus",
+      "id": "01681835038",
+      "address": "Gulshan"
+    },
+    "amounts": {
+      "cod": 1150,
+      "totalCharge": 50,
+      "vat": 5,
+      "currentPayable": 1095
+    },
+    "priority": "Medium",
+    "status": "Return Assigned to Merchant Re-schedule",
+    "statusUpdate": "2025-02-19 08:00:00 PM",
+    "payment": "PENDING",
+    "reference": "CTEX-112"
+  },
+  {
+    "id": 14,
+    "trackingId": "CTEX87542330",
+    "recipient": {
+      "name": "Nina",
+      "phone": "0199950014",
+      "address": "Chittagong"
+    },
+    "merchant": {
+      "name": "FashionCorner",
+      "id": "01681835039",
+      "address": "Banani"
+    },
+    "amounts": {
+      "cod": 1350,
+      "totalCharge": 65,
+      "vat": 10,
+      "currentPayable": 1275
+    },
+    "priority": "High",
+    "status": "Return Received by Merchant",
+    "statusUpdate": "2025-02-19 09:00:00 PM",
+    "payment": "PAID",
+    "reference": "CTEX-113"
+  }
+]

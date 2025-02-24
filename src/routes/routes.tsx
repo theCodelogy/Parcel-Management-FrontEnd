@@ -7,7 +7,7 @@ import { adminRoutes } from "./Admin.Routes";
 import { merchantRoutes } from "./Merchant.Routes";
 import { riderRoutes } from "./Rider.Routes";
 import MerchantDashboardLayout from "../layouts/MerchantDashboardLayout";
-import Login from "../pages/auth/Login";
+import Login from "../pages/auth/LoginPage";
 import Registration from "../pages/auth/Registration";
 
 const router = createBrowserRouter([
@@ -45,6 +45,7 @@ const router = createBrowserRouter([
     element: <DashboardLayout />,
     children: routeGenerator(riderRoutes),
   },
+  
 ]);
 
 export default router;

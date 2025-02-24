@@ -1,23 +1,60 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { FaSignInAlt, FaEnvelope } from "react-icons/fa";
 
 interface FormData {
-  email: string;
+  emailORphone: string;
   password: string;
 }
 
-const Login: React.FC = () => {
+const LoginPage: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>();
 
-  const onSubmit = (data: FormData) => {
-    console.log("Email:", data.email);
-    console.log("Password:", data.password);
+  const onSubmit = async (data: FormData) => {
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      // Build the query parameters from the form data
+      const payload = {
+        emailORphone: data.emailORphone,
+        password: data.password,
+      };
+      console.log("Sending payload:", payload);
+
+      const response = await axios.get(
+        "https://parcel-management-back-end.vercel.app/api/v1/superAdmin",
+        {
+          params: payload,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Login successful:", response.data);
+      // Handle success (e.g., store token, redirect, etc.)
+    } catch (error: any) {
+      console.error("Error response:", error.response);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        setErrorMsg(error.response.data.message);
+      } else {
+        setErrorMsg("Failed to login");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,26 +73,22 @@ const Login: React.FC = () => {
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
+                Email Address or Phone
               </label>
               <div className="relative">
                 <input
-                  type="email"
-                  placeholder="you@example.com"
-                  {...register("email", {
-                    required: "Email is required",
-                    pattern: {
-                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: "Invalid email address",
-                    },
+                  type="text"
+                  placeholder="you@example.com or 016XXXXXXXX"
+                  {...register("emailORphone", {
+                    required: "Email or Phone is required",
                   })}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
                 />
                 <FaEnvelope className="absolute right-2 top-2 w-5 h-5 text-gray-400" />
               </div>
-              {errors.email && (
+              {errors.emailORphone && (
                 <p className="mt-1 text-sm text-red-600">
-                  {errors.email.message}
+                  {errors.emailORphone.message}
                 </p>
               )}
             </div>
@@ -85,11 +118,16 @@ const Login: React.FC = () => {
               )}
             </div>
 
+            {errorMsg && (
+              <p className="text-red-600 text-sm mb-2">{errorMsg}</p>
+            )}
+
             <button
               type="submit"
+              disabled={loading}
               className="w-full bg-[#d63384] text-white py-2 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-300"
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 
@@ -119,4 +157,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default LoginPage;

@@ -18,14 +18,14 @@ const AdminDashboard = () => {
       <Statements />
       <DynamicChart />
       <CalendarClock />
-      <CreateDeliveryMan />
-      <DeliveryManTable />
-      <Filter />
+      {/* <CreateDeliveryMan />
+      <DeliveryManTable /> */}
+      {/* <Filter />
       <FilterForm />
-      <LogsDashboard />
-      <ParcelDashboard />
+      <LogsDashboard /> */}
+      {/* <ParcelDashboard />
       <PayoutPage />
-      <WalletRequest />
+      <WalletRequest /> */}
     </div>
   );
 };
