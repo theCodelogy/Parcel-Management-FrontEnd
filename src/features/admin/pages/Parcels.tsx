@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchParcelsApi } from "../services/parcelsApi";
 import TablePaginationInfo from "../../../components/ui/TablePaginationInfo";
 import TablePagination from "../../../components/ui/TablePagination";
 import { FiChevronDown, FiEye } from "react-icons/fi";
+import { fetchParcelsApi } from "../services/parcelsApi";
 
 interface FilterState {
   date: string;
@@ -16,43 +16,23 @@ interface FilterState {
 
 // Define your ParcelStatus type
 export type ParcelStatus =
-  | "Pending"
-  | "Pickup Assign"
-  | "Pickup Re-schedule"
-  | "Received by Pickup Man"
-  | "Received by Warehouse"
-  | "Transfer to Hub"
-  | "Received by Hub"
-  | "Delivery Man Assigned"
-  | "Return to Courier"
-  | "Partial Delivered"
+  | "Processing"
+  | "Dispatched"
   | "Delivered"
-  | "Return Assigned to Merchant"
-  | "Return Assigned to Merchant Re-schedule"
-  | "Return Received by Merchant";
+  | "Returned";
 
 // Create an array of statuses from the ParcelStatus type
 const parcelStatuses: ParcelStatus[] = [
-  "Pending",
-  "Pickup Assign",
-  "Pickup Re-schedule",
-  "Received by Pickup Man",
-  "Received by Warehouse",
-  "Transfer to Hub",
-  "Received by Hub",
-  "Delivery Man Assigned",
-  "Return to Courier",
-  "Partial Delivered",
+  "Processing",
+  "Dispatched",
   "Delivered",
-  "Return Assigned to Merchant",
-  "Return Assigned to Merchant Re-schedule",
-  "Return Received by Merchant",
+  "Returned",
 ];
 
 const Parcels: React.FC = () => {
   // Fetch parcels with TanStack Query
   const {
-    data: parcels,
+    data: parcelsData,
     isLoading,
     error,
   } = useQuery({
@@ -60,8 +40,11 @@ const Parcels: React.FC = () => {
     queryFn: fetchParcelsApi,
   });
 
+  // Ensure parcels is an array
+  const parcels = Array.isArray(parcelsData) ? parcelsData : [];
+
   // Local state for UI controls
-  const [selectedParcels, setSelectedParcels] = useState<Set<number>>(
+  const [selectedParcels, setSelectedParcels] = useState<Set<string>>(
     new Set()
   );
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -75,19 +58,17 @@ const Parcels: React.FC = () => {
   });
 
   // State for dropdown open rows (to show status options)
-  const [openDropdownRows, setOpenDropdownRows] = useState<Set<number>>(
+  const [openDropdownRows, setOpenDropdownRows] = useState<Set<string>>(
     new Set()
   );
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 14;
-  const totalEntries = parcels?.length || 0;
+  const totalEntries = parcels.length;
   const totalPages = Math.ceil(totalEntries / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
-  const currentData = parcels
-    ? parcels.slice(startIndex, startIndex + pageSize)
-    : [];
+  const currentData = parcels.slice(startIndex, startIndex + pageSize);
 
   // Event handlers
   const handleFilterChange = useCallback(
@@ -101,7 +82,7 @@ const Parcels: React.FC = () => {
   const handleSelectAll = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.checked && parcels) {
-        setSelectedParcels(new Set(parcels.map((p) => p.id)));
+        setSelectedParcels(new Set(parcels.map((p) => p._id)));
       } else {
         setSelectedParcels(new Set());
       }
@@ -109,7 +90,7 @@ const Parcels: React.FC = () => {
     [parcels]
   );
 
-  const handleSelectParcel = useCallback((id: number) => {
+  const handleSelectParcel = useCallback((id: string) => {
     setSelectedParcels((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
@@ -155,7 +136,7 @@ const Parcels: React.FC = () => {
   };
 
   // Toggle dropdown for status update options
-  const toggleDropdown = useCallback((id: number) => {
+  const toggleDropdown = useCallback((id: string) => {
     setOpenDropdownRows((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
@@ -197,32 +178,11 @@ const Parcels: React.FC = () => {
               className="w-full border border-gray-200 rounded-md p-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
               <option value="">Select Status</option>
-              <option value="Pending">Pending</option>
-              <option value="Pickup Assign">Pickup Assign</option>
-              <option value="Pickup Re-schedule">Pickup Re-schedule</option>
-              <option value="Received by Pickup Man">
-                Received by Pickup Man
-              </option>
-              <option value="Received by Warehouse">
-                Received by Warehouse
-              </option>
-              <option value="Transfer to Hub">Transfer to Hub</option>
-              <option value="Received by Hub">Received by Hub</option>
-              <option value="Delivery Man Assigned">
-                Delivery Man Assigned
-              </option>
-              <option value="Return to Courier">Return to Courier</option>
-              <option value="Partial Delivered">Partial Delivered</option>
-              <option value="Delivered">Delivered</option>
-              <option value="Return Assigned to Merchant">
-                Return Assigned to Merchant
-              </option>
-              <option value="Return Assigned to Merchant Re-schedule">
-                Return Assigned to Merchant Re-schedule
-              </option>
-              <option value="Return Received by Merchant">
-                Return Received by Merchant
-              </option>
+              {parcelStatuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
             </select>
           </div>
           {/* Merchant Filter */}
@@ -238,6 +198,7 @@ const Parcels: React.FC = () => {
               className="w-full border border-gray-200 rounded-md p-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
               <option value="">Select Merchant</option>
+              {/* Add merchant options dynamically if available */}
             </select>
           </div>
           {/* Delivery Man Filter */}
@@ -446,55 +407,48 @@ const Parcels: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {currentData.map((parcel) => (
-                <tr key={parcel.id} className="hover:bg-gray-50">
+              {currentData.map((parcel, index) => (
+                <tr key={parcel._id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm text-gray-600">
-                    {parcel.id}
+                    {startIndex + index + 1}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm">
                       <div className="font-medium text-gray-900">
-                        {parcel.trackingId}
-                      </div>
-                      {parcel.reference && (
-                        <div className="text-gray-500">
-                          Ref: {parcel.reference}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="text-sm">
-                      <div className="font-medium text-gray-900">
-                        {parcel.recipient.name}
-                      </div>
-                      <div className="text-gray-500">
-                        {parcel.recipient.phone}
-                      </div>
-                      <div className="text-gray-500">
-                        {parcel.recipient.address}
+                        {parcel.TrakingId}
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm">
                       <div className="font-medium text-gray-900">
-                        {parcel.merchant.name}
+                        {parcel.customerName}
                       </div>
-                      <div className="text-gray-500">{parcel.merchant.id}</div>
                       <div className="text-gray-500">
-                        {parcel.merchant.address}
+                        {parcel.customerPhone}
+                      </div>
+                      <div className="text-gray-500">
+                        {parcel.customerAddress}
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm">
-                      <div>COD: ৳{parcel.amounts.cod}</div>
-                      <div>Total Charge: ৳{parcel.amounts.totalCharge}</div>
-                      <div>VAT: ৳{parcel.amounts.vat}</div>
-                      <div>
-                        Current Payable: ৳{parcel.amounts.currentPayable}
+                      <div className="font-medium text-gray-900">
+                        {parcel.merchant}
                       </div>
+                      <div className="text-gray-500">{parcel.pickupPoints}</div>
+                      <div className="text-gray-500">
+                        {parcel.pickupAddress}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm">
+                      <div>COD: ৳{parcel.cashCollection}</div>
+                      <div>Total Charge: ৳{parcel.totalCharge}</div>
+                      <div>VAT: ৳{parcel.vat}</div>
+                      <div>Current Payable: ৳{parcel.currentPayable}</div>
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -505,37 +459,48 @@ const Parcels: React.FC = () => {
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span
                       className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${
-                        parcel.status === "Delivered"
+                        parcel.parcelStatus[parcel.parcelStatus.length - 1]
+                          .status === "Delivered"
                           ? "bg-green-500 text-white"
-                          : parcel.status === "Pending"
+                          : parcel.parcelStatus[parcel.parcelStatus.length - 1]
+                              .status === "Processing"
                           ? "bg-red-500 text-white"
                           : "bg-yellow-500 text-white"
                       }`}
                     >
-                      {parcel.status}
+                      {
+                        parcel.parcelStatus[parcel.parcelStatus.length - 1]
+                          .status
+                      }
                     </span>
-                    <p> {parcel.statusUpdate}</p>
+                    <p>
+                      {" "}
+                      {
+                        parcel.parcelStatus[parcel.parcelStatus.length - 1]
+                          .timestamp
+                      }
+                    </p>
                   </td>
 
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="relative">
                       <button
-                        onClick={() => toggleDropdown(parcel.id)}
+                        onClick={() => toggleDropdown(parcel._id)}
                         className="focus:outline-none flex items-center bg-red-200 p-2 rounded-md"
                       >
                         <FiChevronDown className="w-4 h-4 text-gray-600" />
                       </button>
-                      {openDropdownRows.has(parcel.id) && (
+                      {openDropdownRows.has(parcel._id) && (
                         <div className="absolute mt-2 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-max">
                           {parcelStatuses.map((status) => (
                             <div
                               key={status}
                               onClick={() => {
                                 console.log(
-                                  `Selected status for parcel ${parcel.id}: ${status}`
+                                  `Selected status for parcel ${parcel._id}: ${status}`
                                 );
                                 // Add your update logic here (e.g., call an API to update the parcel status)
-                                toggleDropdown(parcel.id);
+                                toggleDropdown(parcel._id);
                               }}
                               className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
                             >
@@ -548,7 +513,7 @@ const Parcels: React.FC = () => {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {parcel.payment}
+                      {parcel.paymentMethod}
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">

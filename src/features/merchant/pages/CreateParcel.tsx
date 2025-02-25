@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { FaMoneyBill } from "react-icons/fa";
 
 interface DeliveryCharges {
   cashCollection: number;
@@ -9,6 +11,14 @@ interface DeliveryCharges {
   netPayable: number;
   currentPayable: number;
   totalPayable: number;
+}
+
+interface Category {
+  _id: string;
+  title: string;
+  status: string;
+  position: number;
+  __v: number;
 }
 
 const CreateParcel: React.FC = () => {
@@ -42,9 +52,11 @@ const CreateParcel: React.FC = () => {
     priority: false,
     paymentMethod: "COD",
     weight: "",
+    advance: "400",
   });
 
-  const [agreed, setAgreed] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -65,22 +77,89 @@ const CreateParcel: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form submitted", formData);
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+    if (!formData.merchant) newErrors.merchant = "Merchant is required";
+    if (!formData.cashCollection)
+      newErrors.cashCollection = "Cash Collection is required";
+    if (!formData.customerName)
+      newErrors.customerName = "Customer Name is required";
+    if (!formData.customerPhone)
+      newErrors.customerPhone = "Customer Phone is required";
+    if (!formData.customerAddress)
+      newErrors.customerAddress = "Customer Address is required";
+    if (!formData.category) newErrors.category = "Category is required";
+    if (!formData.deliveryType)
+      newErrors.deliveryType = "Delivery Type is required";
+    if (formData.category === "KG" && !formData.weight)
+      newErrors.weight = "Weight is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  // Calculate delivery charges based on cashCollection and paymentMethod
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    const payload = {
+      merchant: formData.merchant,
+      pickupPoints: formData.pickupPoints,
+      pickupPhone: formData.pickupPhone,
+      pickupAddress: formData.pickupAddress,
+      cashCollection: parseFloat(formData.cashCollection) || 0,
+      sellingPrice: parseFloat(formData.sellingPrice) || 0,
+      invoice: formData.invoiceNumber,
+      deliveryType: formData.deliveryType,
+      Weight: formData.category === "KG" ? parseFloat(formData.weight) || 0 : 0,
+      customerName: formData.customerName,
+      customerPhone: formData.customerPhone,
+      customerAddress: formData.customerAddress,
+      note: formData.note,
+      packaging: formData.packaging,
+      priority: formData.priority ? "High" : "Normal",
+      paymentMethod: formData.paymentMethod,
+      deliveryCharge: charges.deliveryCharge,
+      liquidORFragile: formData.liquidFragile ? 1 : 0,
+      codCharge: charges.codCharge,
+      totalCharge: charges.totalCharge,
+      vat: charges.vat,
+      netPayable: charges.netPayable,
+      advance: parseFloat(formData.advance) || 0,
+      currentPayable: charges.currentPayable,
+      parcelStatus: [
+        {
+          status: "Processing",
+        },
+      ],
+    };
+
+    axios
+      .post(
+        "https://parcel-management-back-end.vercel.app/api/v1/parcel",
+        payload
+      )
+      .then((response) => {
+        console.log("Response data:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error sending data:", error);
+      });
+
+    console.log("Form submitted", payload);
+  };
+
   useEffect(() => {
     const cashCollection = parseFloat(formData.cashCollection) || 0;
-    const deliveryCharge = cashCollection * 0.1; // e.g., 10%
+    const deliveryCharge = cashCollection * 0.1;
     const codCharge =
-      formData.paymentMethod === "COD" ? cashCollection * 0.02 : 0; // e.g., 2% for COD orders
+      formData.paymentMethod === "COD" ? cashCollection * 0.02 : 0;
     const totalCharge = cashCollection + deliveryCharge + codCharge;
-    const vat = totalCharge * 0.15; // e.g., 15% VAT
+    const vat = totalCharge * 0.15;
     const netPayable = totalCharge + vat;
-    const currentPayable = netPayable; // can be updated if needed
-    const totalPayable = netPayable; // final amount
+    const currentPayable = netPayable;
+    const totalPayable = netPayable;
 
     setCharges({
       cashCollection,
@@ -94,10 +173,26 @@ const CreateParcel: React.FC = () => {
     });
   }, [formData.cashCollection, formData.paymentMethod]);
 
+  useEffect(() => {
+    axios
+      .get(
+        "https://parcel-management-back-end.vercel.app/api/v1/deliveryCategory"
+      )
+      .then((response) => {
+        setCategories(response.data.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching categories:", error);
+      });
+  }, []);
+
+  const activeCategories = categories.filter(
+    (category) => category.status === "Active"
+  );
+
   return (
     <div className="p-6 bg-white rounded-lg shadow-md max-w-7xl mx-auto">
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Form Section */}
         <div className="flex-1">
           <h2 className="text-2xl font-semibold mb-4 text-gray-800">
             Add New Parcel
@@ -105,34 +200,35 @@ const CreateParcel: React.FC = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
-              {/* Parcel Info Section */}
               <section>
                 <h3 className="text-xl font-medium mb-4 text-gray-700">
                   Parcel Info
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Merchant */}
                   <div>
                     <label
                       htmlFor="merchant"
                       className="block text-gray-700 font-medium mb-1"
                     >
-                      Merchant
+                      Merchant <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="merchant"
                       name="merchant"
                       value={formData.merchant}
                       onChange={handleInputChange}
+                      required
                       className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
                     >
                       <option value="">Select Merchant</option>
                       <option value="merchantA">Merchant A</option>
                       <option value="merchantB">Merchant B</option>
                     </select>
+                    {errors.merchant && (
+                      <p className="text-red-500 text-sm">{errors.merchant}</p>
+                    )}
                   </div>
 
-                  {/* Pickup Points */}
                   <div>
                     <label
                       htmlFor="pickupPoints"
@@ -151,7 +247,6 @@ const CreateParcel: React.FC = () => {
                     />
                   </div>
 
-                  {/* Pickup Phone */}
                   <div>
                     <label
                       htmlFor="pickupPhone"
@@ -170,7 +265,6 @@ const CreateParcel: React.FC = () => {
                     />
                   </div>
 
-                  {/* Pickup Address */}
                   <div>
                     <label
                       htmlFor="pickupAddress"
@@ -189,13 +283,12 @@ const CreateParcel: React.FC = () => {
                     />
                   </div>
 
-                  {/* Cash Collection */}
                   <div>
                     <label
                       htmlFor="cashCollection"
                       className="block text-gray-700 font-medium mb-1"
                     >
-                      Cash Collection
+                      Cash Collection <span className="text-red-500">*</span>
                     </label>
                     <input
                       id="cashCollection"
@@ -204,11 +297,16 @@ const CreateParcel: React.FC = () => {
                       placeholder="Cash Collection Amount"
                       value={formData.cashCollection}
                       onChange={handleInputChange}
+                      required
                       className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
                     />
+                    {errors.cashCollection && (
+                      <p className="text-red-500 text-sm">
+                        {errors.cashCollection}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Selling Price */}
                   <div>
                     <label
                       htmlFor="sellingPrice"
@@ -226,8 +324,23 @@ const CreateParcel: React.FC = () => {
                       className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
                     />
                   </div>
-
-                  {/* Invoice Number */}
+                  <div>
+                    <label
+                      htmlFor="advance"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
+                      Advance
+                    </label>
+                    <input
+                      id="advance"
+                      type="number"
+                      name="advance"
+                      placeholder="Advance Amount"
+                      value={formData.advance}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
                   <div>
                     <label
                       htmlFor="invoiceNumber"
@@ -246,28 +359,33 @@ const CreateParcel: React.FC = () => {
                     />
                   </div>
 
-                  {/* Category */}
                   <div>
                     <label
                       htmlFor="category"
                       className="block text-gray-700 font-medium mb-1"
                     >
-                      Category
+                      Category <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="category"
                       name="category"
                       value={formData.category}
                       onChange={handleInputChange}
+                      required
                       className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
                     >
                       <option value="">Select Category</option>
-                      <option value="KG">KG</option>
-                      <option value="electronics">Electronics</option>
+                      {activeCategories.map((category) => (
+                        <option key={category._id} value={category.title}>
+                          {category.title}
+                        </option>
+                      ))}
                     </select>
+                    {errors.category && (
+                      <p className="text-red-500 text-sm">{errors.category}</p>
+                    )}
                   </div>
 
-                  {/* Conditionally render Weight field if category is KG */}
                   {formData.category === "KG" && (
                     <div>
                       <label
@@ -290,31 +408,40 @@ const CreateParcel: React.FC = () => {
                           </option>
                         ))}
                       </select>
+                      {errors.weight && (
+                        <p className="text-red-500 text-sm">{errors.weight}</p>
+                      )}
                     </div>
                   )}
 
-                  {/* Delivery Type */}
                   <div>
                     <label
                       htmlFor="deliveryType"
                       className="block text-gray-700 font-medium mb-1"
                     >
-                      Delivery Type
+                      Delivery Type <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="deliveryType"
                       name="deliveryType"
                       value={formData.deliveryType}
                       onChange={handleInputChange}
+                      required
                       className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
                     >
                       <option value="">Select Delivery Type</option>
-                      <option value="regular">Regular</option>
-                      <option value="express">Express</option>
+                      <option value="Same Day">Same Day</option>
+                      <option value="Next Day">Next Day</option>
+                      <option value="Sub City">Sub City</option>
+                      <option value="Outside City">Outside City</option>
                     </select>
+                    {errors.deliveryType && (
+                      <p className="text-red-500 text-sm">
+                        {errors.deliveryType}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Packaging */}
                   <div>
                     <label
                       htmlFor="packaging"
@@ -330,12 +457,13 @@ const CreateParcel: React.FC = () => {
                       className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
                     >
                       <option value="">Select Packaging Type</option>
-                      <option value="standard">Standard</option>
-                      <option value="premium">Premium</option>
+                      <option value="Poly">Poly</option>
+                      <option value="Bubble Poly">Bubble Poly</option>
+                      <option value="Box">Box</option>
+                      <option value="Box Poly">Box Poly</option>
                     </select>
                   </div>
 
-                  {/* Note (full width) */}
                   <div className="col-span-2">
                     <label
                       htmlFor="note"
@@ -355,19 +483,17 @@ const CreateParcel: React.FC = () => {
                 </div>
               </section>
 
-              {/* Customer Info Section */}
               <section>
                 <h3 className="text-xl font-medium mb-4 text-gray-700">
                   Customer Info
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Customer Name */}
                   <div>
                     <label
                       htmlFor="customerName"
                       className="block text-gray-700 font-medium mb-1"
                     >
-                      Customer Name
+                      Customer Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       id="customerName"
@@ -376,17 +502,23 @@ const CreateParcel: React.FC = () => {
                       placeholder="Customer Name"
                       value={formData.customerName}
                       onChange={handleInputChange}
+                      required
                       className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
                     />
+                    {errors.customerName && (
+                      <p className="text-red-500 text-sm">
+                        {errors.customerName}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Customer Phone */}
                   <div>
                     <label
                       htmlFor="customerPhone"
                       className="block text-gray-700 font-medium mb-1"
                     >
-                      Customer Phone Number
+                      Customer Phone Number{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       id="customerPhone"
@@ -395,17 +527,23 @@ const CreateParcel: React.FC = () => {
                       placeholder="Customer Phone Number"
                       value={formData.customerPhone}
                       onChange={handleInputChange}
+                      required
                       className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
                     />
+                    {errors.customerPhone && (
+                      <p className="text-red-500 text-sm">
+                        {errors.customerPhone}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Customer Address (full width) */}
                   <div className="col-span-2">
                     <label
                       htmlFor="customerAddress"
                       className="block text-gray-700 font-medium mb-1"
                     >
-                      Customer Full Address
+                      Customer Full Address{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       id="customerAddress"
@@ -413,19 +551,23 @@ const CreateParcel: React.FC = () => {
                       placeholder="Customer Full Address"
                       value={formData.customerAddress}
                       onChange={handleInputChange}
+                      required
                       className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500 min-h-[100px]"
                     />
+                    {errors.customerAddress && (
+                      <p className="text-red-500 text-sm">
+                        {errors.customerAddress}
+                      </p>
+                    )}
                   </div>
                 </div>
               </section>
 
-              {/* Parcel Options Section */}
               <section>
                 <h3 className="text-xl font-medium mb-4 text-gray-700">
                   Parcel Options
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Liquid/Fragile */}
                   <div className="flex items-center gap-2">
                     <input
                       id="liquidFragile"
@@ -440,7 +582,6 @@ const CreateParcel: React.FC = () => {
                     </label>
                   </div>
 
-                  {/* Priority */}
                   <div className="flex items-center gap-2">
                     <input
                       id="priority"
@@ -455,38 +596,25 @@ const CreateParcel: React.FC = () => {
                     </label>
                   </div>
 
-                  {/* Payment Method (centered compact button) */}
                   <div className="col-span-2">
                     <button
                       type="button"
                       className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow-md"
                     >
-                      {/* Example Icon */}
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8c-2 0-4 1-4 3s2 3 4 3 4-1 4-3-2-3-4-3z"
-                        />
-                      </svg>
-                      <span>Cash on Delivery</span>
+                      <FaMoneyBill className="h-5 w-5" />
+                      <span>
+                        {formData.paymentMethod === "COD"
+                          ? "Cash on Delivery"
+                          : formData.paymentMethod}
+                      </span>
                     </button>
                   </div>
                 </div>
               </section>
 
-              {/* Submit Section */}
               <div className="space-y-4 pt-4">
                 <button
                   type="submit"
-                  disabled={!agreed}
                   className="w-full py-3 bg-purple-600 text-white rounded font-medium disabled:bg-purple-300 disabled:cursor-not-allowed hover:bg-purple-700 transition duration-200"
                 >
                   Submit
@@ -496,7 +624,6 @@ const CreateParcel: React.FC = () => {
           </form>
         </div>
 
-        {/* Delivery Charges Card */}
         <div className="w-full lg:w-80">
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -504,7 +631,6 @@ const CreateParcel: React.FC = () => {
                 Delivery Charge Details
               </h3>
             </div>
-
             <div className="p-4">
               <div className="space-y-2">
                 <div className="flex justify-between p-3 rounded-md">
@@ -513,7 +639,6 @@ const CreateParcel: React.FC = () => {
                     {charges.cashCollection} Tk
                   </span>
                 </div>
-
                 <div className="flex justify-between p-3 rounded-md">
                   <span className="text-gray-600">Delivery Charge</span>
                   <span className="font-medium">
@@ -528,7 +653,6 @@ const CreateParcel: React.FC = () => {
                   <span className="text-gray-600">Total Charge</span>
                   <span className="font-medium">{charges.totalCharge} Tk</span>
                 </div>
-
                 <div className="flex justify-between p-3 rounded-md">
                   <span className="text-gray-600">VAT</span>
                   <span className="font-medium">{charges.vat} Tk</span>
@@ -543,7 +667,6 @@ const CreateParcel: React.FC = () => {
                     {charges.currentPayable} Tk
                   </span>
                 </div>
-
                 <div className="pt-3 border-t border-gray-200 mt-3">
                   <div className="flex justify-between p-3 rounded-md bg-purple-100 font-medium">
                     <span className="text-gray-800">Total Payable Amount</span>
@@ -552,7 +675,6 @@ const CreateParcel: React.FC = () => {
                     </span>
                   </div>
                 </div>
-
                 <div className="mt-4 p-3 bg-gray-50 rounded-md">
                   <p className="text-sm text-gray-500 text-center">
                     Note: If you request for pick up after 5pm, it will be
