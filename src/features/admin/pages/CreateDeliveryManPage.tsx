@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { hostImage } from "../../../utils/hostImageOnIMGBB";
 import toast from "react-hot-toast";
+import useAxiosSecure from "../../../Hoocks/useAxiosSecure";
 
 interface AuthState {
   name: string;
@@ -36,12 +36,13 @@ export type TDeliveryMan = {
   salary: number;
   status: "Pending" | "Active" | "Disabled";
   hub: string;
-  drivingLicence: string;
+  drivingLicence?: string;
   image?: string;
   address: string;
 };
 
 const CreateDeliveryManPage: React.FC = () => {
+  const axiosSecure =useAxiosSecure()
   const [state, setState] = useState<AuthState>({
     name: "",
     phone: "",
@@ -80,15 +81,13 @@ const CreateDeliveryManPage: React.FC = () => {
 
   const handleFileChange = async(e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.files && e.target.name === "drivingLicense") {
-      const drivingLicenceUrl = await hostImage(e.target.files[0])
-      setState({ ...state, drivingLicense:drivingLicenceUrl });
+      setState({ ...state, drivingLicense:e.target.files[0] });
     }
   };
 
   const handleImageChange = async(e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.files) {
-      const imageUrl = await hostImage(e.target.files[0])
-      setState({ ...state, image: imageUrl });
+      setState({ ...state, image: e.target.files[0] });
     }
   };
 
@@ -102,11 +101,6 @@ const CreateDeliveryManPage: React.FC = () => {
   ): Promise<void> => {
     e.preventDefault();
     setState({ ...state, loading: true });
-
-    const drivinglicenceUrl = await hostImage(e.target.drivingLicense.files[0])
-    const imageUrl = await hostImage(e.target.image.files[0])
-  
-
     // Build payload that conforms to TDeliveryMan
     const payload: TDeliveryMan = {
       name: state.name,
@@ -121,17 +115,25 @@ const CreateDeliveryManPage: React.FC = () => {
       salary: state.salary,
       status: "Pending",
       hub: state.hub,
-      drivingLicence: drivinglicenceUrl ,
-      image: imageUrl,
       address: state.address,
     };
+   
+    
+    if(e.target.drivingLicense.files[0]){
+      const drivinglicenceUrl = await hostImage(e.target.drivingLicense.files[0])
+      payload.drivingLicence = drivinglicenceUrl;
+    }
 
-    // Log the payload to the console
-    console.log("Payload:", payload);
+    if(e.target.image.files[0]){
+      const imageUrl = await hostImage(e.target.image.files[0])
+      payload.image = imageUrl
+    }
+  
+
 
     
     try{
-      const res= await axios.post('https://parcel-management-back-end.vercel.app/api/v1/deliveryMan',payload)
+      const res= await axiosSecure.post('/deliveryMan',payload)
       const data = await res.data;
       if (data.success) {
         console.log(data);
