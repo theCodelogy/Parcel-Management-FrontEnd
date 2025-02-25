@@ -9,7 +9,7 @@ export interface DeliveryManData {
   currentBalance: string;
   openingBalance: string;
   status: string;
-  avatar: string;
+  image: string;
 }
 
 export interface BranchData {

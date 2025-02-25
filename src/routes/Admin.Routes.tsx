@@ -631,7 +631,7 @@ import {
 
 import Branch from "../features/admin/pages/branch-manage/Branch";
 import BranchPayments from "../features/admin/pages/branch-manage/BranchPaymentsListPage";
-import DeliveryMan from "../features/admin/pages/DeliveryMan";
+import DeliveryMan from "../features/admin/pages/DeliveryManPage";
 import Merchants from "../features/admin/pages/merchant-manage/MerchantsPage";
 import Payment from "../features/admin/pages/merchant-manage/Payment";
 import TodoList from "../features/admin/pages/TodoListPage";

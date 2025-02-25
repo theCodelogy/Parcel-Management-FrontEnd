@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query"; // or "react-query" if using v3
+import { useQuery } from "@tanstack/react-query";
 import {
   FaEraser,
   FaFilter,
@@ -43,7 +43,7 @@ const TablePaginationInfo: React.FC<TablePaginationInfoProps> = ({
   );
 };
 
-const DeliveryManComponent = () => {
+const DeliveryManPage = () => {
   // react-hook-form for filter form
   const { register, handleSubmit, reset } = useForm<Filters>({
     defaultValues: { name: "", email: "", phone: "" },
@@ -84,7 +84,7 @@ const DeliveryManComponent = () => {
 
   // Pagination logic
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 2; 
+  const pageSize = 10;
   const totalEntries = deliveryMen.length;
   const totalPages = Math.ceil(totalEntries / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
@@ -189,6 +189,7 @@ const DeliveryManComponent = () => {
                     <th className="p-3 text-left">Delivery Charge</th>
                     <th className="p-3 text-left">Pickup Charge</th>
                     <th className="p-3 text-left">Return Charge</th>
+                    <th className="p-3 text-left">Opening Balance</th>
                     <th className="p-3 text-left">Current Balance</th>
                     <th className="p-3 text-left">Status</th>
                     <th className="p-3 text-left">Actions</th>
@@ -203,7 +204,7 @@ const DeliveryManComponent = () => {
                       <td className="p-3">{man.id}</td>
                       <td className="p-3 flex items-center space-x-2">
                         <img
-                          src={man.avatar}
+                          src={man.image}
                           alt={man.name}
                           className="w-8 h-8 rounded-full"
                         />
@@ -216,6 +217,7 @@ const DeliveryManComponent = () => {
                       <td className="p-3">{man.deliveryCharge}</td>
                       <td className="p-3">{man.pickupCharge}</td>
                       <td className="p-3">{man.returnCharge}</td>
+                      <td className="p-3">{man.openingBalance}</td>
                       <td className="p-3">{man.currentBalance}</td>
                       <td className="p-3">
                         <span
@@ -278,4 +280,4 @@ const DeliveryManComponent = () => {
   );
 };
 
-export default DeliveryManComponent;
+export default DeliveryManPage;
