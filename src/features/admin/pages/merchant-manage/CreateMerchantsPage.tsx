@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { hostImage } from "../../../../utils/hostImageOnIMGBB";
+import toast from "react-hot-toast";
+import useAxiosSecure from "../../../../Hoocks/useAxiosSecure";
 
 interface AuthState {
   businessName: string;
@@ -28,6 +31,7 @@ interface AuthState {
 }
 
 const CreateMerchantsPage: React.FC = () => {
+  const axiosSecure =useAxiosSecure()
   const [state, setState] = useState<AuthState>({
     businessName: "",
     name: "",
@@ -88,36 +92,60 @@ const CreateMerchantsPage: React.FC = () => {
 
   const validatePassword = (password: string): boolean => password.length >= 8;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     setState({ ...state, loading: true });
+const payload = {
+  businessName: state.businessName,
+  name:state.name,
+  email:state.email,
+  phone: state.phone,
+  openingBalance: state.openingBalance,
+  password: state.password,
+  vat: state.vatPercent,
+  hub: state.hub,
+  nid: state.nid,
+  status: state.status,
+  referenceName: state.referenceName,
+  referencePhone:state.referencePhone,
+  paymentPeriod: state.paymentPeriod,
+  walletUseActivation: state.walletUserActivation,
+  address:state.address,
+  returnCharges: state.returnCharge, // default value 100%
+  codCharge:{
+    insideCity:state.insideCity,
+    subCity: state.subCity,
+    outsideCity: state.outsideCity,
+  }
+}
 
-    // Log form values
-    console.log("Business Name:", state.businessName);
-    console.log("Name:", state.name);
-    console.log("Email:", state.email);
-    console.log("Phone:", state.phone);
-    console.log("Opening Balance:", state.openingBalance);
-    console.log("Password:", state.password);
-    console.log("VAT (%):", state.vatPercent);
-    console.log("Hub:", state.hub);
-    console.log("NID:", state.nid);
-    console.log("Status:", state.status);
-    console.log("Trade License:", state.tradeLicense);
-    console.log("Image:", state.image);
-    console.log("Reference Name:", state.referenceName);
-    console.log("Reference Phone:", state.referencePhone);
-    console.log("Payment Period (Days):", state.paymentPeriod);
-    console.log("Wallet User Activation:", state.walletUserActivation);
-    console.log("Address:", state.address);
-    console.log("Return Charge (%):", state.returnCharge);
-    console.log("Inside City:", state.insideCity);
-    console.log("Sub City:", state.subCity);
-    console.log("Outside City:", state.outsideCity);
+
+    // host tradeLicense
+    if (state.tradeLicense) {
+      const tradeLicensUrl = await hostImage(state.tradeLicense);
+      payload.tradeLicense = tradeLicensUrl;
+    }
+    // host image
+    if (state.image) {
+      const imageUrl = await hostImage(state.image);
+      payload.image = imageUrl
+    }
+
+
+    try{
+      const res= await axiosSecure.post('/merchant',payload)
+      const data = await res.data;
+      if (data.success) {
+        toast.success('Successfully Merchant add!');
+
+       }
+   }catch(err){
+    console.error(err);
+    toast.error(err.message);
+   }
 
     setTimeout(() => {
       setState({ ...state, loading: false });
-      alert("Registered successfully!");
     }, 1500);
   };
 
@@ -207,7 +235,7 @@ const CreateMerchantsPage: React.FC = () => {
                 Opening Balance
               </label>
               <input
-                type="text"
+                type="number"
                 name="openingBalance"
                 value={state.openingBalance}
                 onChange={handleChange}
@@ -258,7 +286,7 @@ const CreateMerchantsPage: React.FC = () => {
                 VAT (%)
               </label>
               <input
-                type="text"
+                type="number"
                 name="vatPercent"
                 value={state.vatPercent}
                 onChange={handleChange}
@@ -445,7 +473,7 @@ const CreateMerchantsPage: React.FC = () => {
                 Inside City
               </label>
               <input
-                type="text"
+                type="number"
                 name="insideCity"
                 value={state.insideCity}
                 onChange={handleChange}
@@ -460,7 +488,7 @@ const CreateMerchantsPage: React.FC = () => {
                 Sub City
               </label>
               <input
-                type="text"
+                type="number"
                 name="subCity"
                 value={state.subCity}
                 onChange={handleChange}
@@ -475,7 +503,7 @@ const CreateMerchantsPage: React.FC = () => {
                 Outside City
               </label>
               <input
-                type="text"
+                type="number"
                 name="outsideCity"
                 value={state.outsideCity}
                 onChange={handleChange}

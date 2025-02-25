@@ -1,6 +1,7 @@
 import axios from "axios";
 import { DeliveryManData } from "../types";
 
+
 // Option 1: Simulate demo data using Axios with a delay
 export const fetchdeliveryManApi = async (): Promise<DeliveryManData[]> => {
   // Fetch the demo data from the public folder
@@ -12,7 +13,7 @@ export const fetchdeliveryManApi = async (): Promise<DeliveryManData[]> => {
   return response.data;
 };
 
-// // Option 2: Fetch from your API using Axios
+ // Option 2: Fetch from your API using Axios
 // export const fetchReturns = async (): Promise<TableData[]> => {
 //   const response = await axios.get<TableData[]>(
 //     "https://your-backend.com/api/returns"

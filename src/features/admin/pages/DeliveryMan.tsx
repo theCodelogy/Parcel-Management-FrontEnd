@@ -84,7 +84,7 @@ const DeliveryManComponent = () => {
 
   // Pagination logic
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 2;
+  const pageSize = 2; 
   const totalEntries = deliveryMen.length;
   const totalPages = Math.ceil(totalEntries / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
