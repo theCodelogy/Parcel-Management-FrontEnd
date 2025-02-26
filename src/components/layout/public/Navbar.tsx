@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -62,22 +62,22 @@ const Navbar = () => {
           Project
         </Link>
         <Link className="hover:text-[#A31621] hover:underline" to="/about-us">
-          About us
+          About Us
         </Link>
       </div>
 
       <div className="hidden md:flex space-x-4">
         <Link
-          className="rounded-xl p-3 bg-[#A31621] text-[#FCF7F8] hover:bg-white hover:text-[#A31621]"
-          to="/started"
+          className="rounded-xl p-3 border-2 border-white hover:bg-white hover:text-black"
+          to="/login"
         >
-          Get Started
+          Login
         </Link>
         <Link
-          className="rounded-xl p-3 border-2 border-white hover:bg-white hover:text-black"
-          to="/talk"
+          className="rounded-xl p-3 bg-[#A31621] text-[#FCF7F8]"
+          to="/registration"
         >
-          Let's talk
+          Register
         </Link>
       </div>
 
@@ -110,21 +110,21 @@ const Navbar = () => {
             to="/about-us"
             onClick={() => setOpen(false)}
           >
-            About us
+            About Us
           </Link>
           <Link
             className="rounded-xl p-3 bg-[#A31621] hover:bg-white hover:text-[#FCF7F8]"
-            to="/started"
+            to="/login"
             onClick={() => setOpen(false)}
           >
-            Get Started
+            Login
           </Link>
           <Link
             className="rounded-xl p-3 border-2 border-white hover:bg-white hover:text-black"
-            to="/talk"
+            to="/registration"
             onClick={() => setOpen(false)}
           >
-            Let's talk
+            Register
           </Link>
         </div>
       )}

@@ -3,6 +3,7 @@ import axios from "axios";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { FaSignInAlt, FaEnvelope } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 interface FormData {
   emailORphone: string;
@@ -11,7 +12,6 @@ interface FormData {
 
 const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
 
   const navigate = useNavigate();
 
@@ -23,7 +23,6 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    setErrorMsg("");
     try {
       // Prepare the payload to be sent in the request body
       const payload = {
@@ -57,6 +56,9 @@ const LoginPage: React.FC = () => {
         } else if (userRole === "Merchant") {
           navigate("/merchant/dashboard");
         }
+
+        // Show success notification
+        toast.success("Login successful!");
       }
       // You can handle other roles or cases here
     } catch (error: any) {
@@ -66,9 +68,9 @@ const LoginPage: React.FC = () => {
         error.response.data &&
         error.response.data.message
       ) {
-        setErrorMsg(error.response.data.message);
+        toast.error(error.response.data.message);
       } else {
-        setErrorMsg("Failed to login");
+        toast.error("Failed to login");
       }
     } finally {
       setLoading(false);
@@ -135,10 +137,6 @@ const LoginPage: React.FC = () => {
                 </p>
               )}
             </div>
-
-            {errorMsg && (
-              <p className="text-red-600 text-sm mb-2">{errorMsg}</p>
-            )}
 
             <button
               type="submit"
