@@ -43,10 +43,6 @@ const Parcels: React.FC = () => {
   // Ensure parcels is an array
   const parcels = Array.isArray(parcelsData) ? parcelsData : [];
 
-  // Local state for UI controls
-  const [selectedParcels, setSelectedParcels] = useState<Set<string>>(
-    new Set()
-  );
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [filterState, setFilterState] = useState<FilterState>({
     date: "",
@@ -78,29 +74,6 @@ const Parcels: React.FC = () => {
     },
     []
   );
-
-  const handleSelectAll = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.checked && parcels) {
-        setSelectedParcels(new Set(parcels.map((p) => p._id)));
-      } else {
-        setSelectedParcels(new Set());
-      }
-    },
-    [parcels]
-  );
-
-  const handleSelectParcel = useCallback((id: string) => {
-    setSelectedParcels((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  }, []);
 
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -460,25 +433,22 @@ const Parcels: React.FC = () => {
                     <span
                       className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${
                         parcel.parcelStatus[parcel.parcelStatus.length - 1]
-                          .status === "Delivered"
+                          .title === "Delivered"
                           ? "bg-green-500 text-white"
                           : parcel.parcelStatus[parcel.parcelStatus.length - 1]
-                              .status === "Processing"
+                              .title === "Processing"
                           ? "bg-red-500 text-white"
                           : "bg-yellow-500 text-white"
                       }`}
                     >
                       {
                         parcel.parcelStatus[parcel.parcelStatus.length - 1]
-                          .status
+                          .title
                       }
                     </span>
                     <p>
                       {" "}
-                      {
-                        parcel.parcelStatus[parcel.parcelStatus.length - 1]
-                          .timestamp
-                      }
+                      {parcel.parcelStatus[parcel.parcelStatus.length - 1].date}
                     </p>
                   </td>
 
@@ -491,7 +461,7 @@ const Parcels: React.FC = () => {
                         <FiChevronDown className="w-4 h-4 text-gray-600" />
                       </button>
                       {openDropdownRows.has(parcel._id) && (
-                        <div className="absolute mt-2 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-max">
+                        <div className="z-[999] absolute mt-2 bg-white border border-gray-200 rounded shadow-lg min-w-max">
                           {parcelStatuses.map((status) => (
                             <div
                               key={status}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaPlus } from "react-icons/fa";
-import CreateDeliveryMan from "./CreateDeliveryMan";
+import CreateDeliveryManPage from "../pages/CreateDeliveryManPage";
 
 const ModalXXL = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +26,7 @@ const ModalXXL = () => {
             className="relative w-screen h-screen bg-white shadow-sm p-6"
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
           >
-           <CreateDeliveryMan/>
+            <CreateDeliveryManPage />
 
             {/* Modal Footer */}
             <div className="flex justify-end space-x-2 pt-4">

@@ -1,31 +1,31 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 
-const CreateCategoryPage = () => {
-  // Initialize react-hook-form
+// Define the shape of the form data
+interface IFormInput {
+  title: string;
+  status: "Active" | "Inactive";
+  position: number;
+}
+
+const CreateCategoryPage: React.FC = () => {
+  // Initialize react-hook-form with type annotations
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
-  } = useForm({
+  } = useForm<IFormInput>({
     defaultValues: {
       title: "",
       status: "Active",
-      position: "",
+      position: 0,
     },
   });
 
   // Handle form submission
-  const onSubmit = (data) => {
+  const onSubmit: SubmitHandler<IFormInput> = (data) => {
     console.log("Saving category:", data);
     // Replace with your own logic, e.g. API call
-  };
-
-  // Handle cancel/reset
-  const handleCancel = () => {
-    reset();
-    // Or navigate away if desired
   };
 
   return (
@@ -87,7 +87,7 @@ const CreateCategoryPage = () => {
             id="position"
             type="number"
             placeholder="Enter Position"
-            {...register("position")}
+            {...register("position", { valueAsNumber: true })}
             className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-purple-500 transition-colors"
           />
         </div>

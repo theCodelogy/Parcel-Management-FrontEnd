@@ -33,25 +33,34 @@ const initialSalaries: Salary[] = [
   },
 ];
 
-const Salary = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const Salary: React.FC = () => {
   const [salaries, setSalaries] = useState<Salary[]>(initialSalaries);
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
 
-  
-
   // Create Salary Button Handler
   const handleCreateSalary = () => {
     alert("Create Salary button clicked!");
-    // Logic to create new salary can be added here
+    // Example logic to create a new salary
+    const newSalary = {
+      id: salaries.length + 1,
+      user: "New User",
+      fromAccount: "Account 3",
+      month: "March",
+      date: "2025-03-15",
+      note: "Newly created",
+      amount: "৳21,000",
+    };
+    setSalaries([...salaries, newSalary]); // Update the state with the new salary
   };
 
   // Filter Salaries by User and Month
   const filteredSalaries = salaries.filter((salary) => {
     return (
       (selectedUser ? salary.user === selectedUser : true) &&
-      (selectedMonth ? salary.month === selectedMonth : true)
+      (selectedMonth
+        ? new Date(salary.date).toISOString().slice(0, 7) === selectedMonth
+        : true)
     );
   });
 
@@ -64,8 +73,6 @@ const Salary = () => {
 
         {/* Salary Generate Buttons */}
         <div className="flex gap-4">
-       
-
           <button
             onClick={handleCreateSalary}
             className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
@@ -80,7 +87,10 @@ const Salary = () => {
       <div className="flex gap-4 mb-4">
         {/* User Filter */}
         <div>
-          <label htmlFor="user" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="user"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             User
           </label>
           <select
@@ -97,7 +107,10 @@ const Salary = () => {
 
         {/* Month Filter */}
         <div>
-          <label htmlFor="month" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="month"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Month
           </label>
           <input
@@ -146,7 +159,7 @@ const Salary = () => {
           </tbody>
         </table>
       </div>
-      <SalaryCreate/>
+      <SalaryCreate />
     </div>
   );
 };

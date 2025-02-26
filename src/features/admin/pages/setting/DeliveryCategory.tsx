@@ -1,25 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { Edit, Plus } from "lucide-react";
 
 interface DeliveryCategory {
-  id: number;
+  _id: string;
   title: string;
   status: "Active" | "Inactive";
   position: number;
 }
 
 const DeliveryCategoryComponent = () => {
-  const [categories, setCategories] = useState<DeliveryCategory[]>([
-    { id: 1, title: "KG", status: "Active", position: 1 },
-    { id: 2, title: "Mobile", status: "Active", position: 2 },
-    { id: 3, title: "Laptop", status: "Active", position: 3 },
-    { id: 4, title: "Tabs", status: "Active", position: 4 },
-    { id: 5, title: "Gaming Kybord", status: "Active", position: 5 },
-    { id: 6, title: "Cosmetics", status: "Active", position: 6 },
-  ]);
+  const [categories, setCategories] = useState<DeliveryCategory[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          "https://parcel-management-back-end.vercel.app/api/v1/deliveryCategory"
+        );
+        setCategories(response.data.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Handle edit action for a category
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string) => {
     console.log("Editing category with id:", id);
     // Add further edit logic here (e.g., open a modal, navigate, etc.)
   };
@@ -51,10 +60,10 @@ const DeliveryCategoryComponent = () => {
             <tbody className="text-gray-900">
               {categories.map((category) => (
                 <tr
-                  key={category.id}
+                  key={category._id}
                   className="border-t border-gray-200 hover:bg-gray-50 transition-colors duration-200"
                 >
-                  <td className="p-3">{category.id}</td>
+                  <td className="p-3">{category.position}</td>
                   <td className="p-3">{category.title}</td>
                   <td className="p-3">
                     <span
@@ -70,7 +79,7 @@ const DeliveryCategoryComponent = () => {
                   <td className="p-3">{category.position}</td>
                   <td className="p-3">
                     <button
-                      onClick={() => handleEdit(category.id)}
+                      onClick={() => handleEdit(category._id)}
                       className="flex items-center justify-center gap-1 p-2 rounded text-blue-600 hover:bg-blue-50"
                     >
                       <Edit className="h-4 w-4" />

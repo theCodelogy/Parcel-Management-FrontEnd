@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaMoneyBill } from "react-icons/fa";
 import { useForm, Controller } from "react-hook-form";
+import { generateStatus } from "../../../utils/statusGenerator";
 
 interface DeliveryCharges {
   cashCollection: number;
@@ -142,7 +143,12 @@ const CreateParcel: React.FC = () => {
     (category) => category.status === "Active"
   );
 
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
+    const status = await generateStatus({
+      title: "Parcel Create",
+      statusDetails: {},
+    });
+    console.log(status);
     const payload = {
       merchant: data.merchant,
       pickupPoints: data.pickupPoints,
@@ -168,11 +174,7 @@ const CreateParcel: React.FC = () => {
       netPayable: charges.netPayable,
       advance: parseFloat(data.advance) || 0,
       currentPayable: charges.currentPayable,
-      parcelStatus: [
-        {
-          status: "Processing",
-        },
-      ],
+      parcelStatus: [status],
     };
 
     axios

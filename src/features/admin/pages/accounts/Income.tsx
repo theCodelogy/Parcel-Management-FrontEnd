@@ -29,8 +29,7 @@ const initialIncomes: Income[] = [
   },
 ];
 
-const Income = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const Income: React.FC = () => {
   const [incomes, setIncomes] = useState<Income[]>(initialIncomes);
   const [filters, setFilters] = useState({
     toAccount: "",
@@ -45,9 +44,15 @@ const Income = () => {
     }));
   };
 
+  const addIncome = (newIncome: Income) => {
+    setIncomes((prevIncomes) => [...prevIncomes, newIncome]);
+  };
+
   return (
     <div className="p-6 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Income Records</h2>
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        Income Records
+      </h2>
 
       {/* Filters */}
       <div className="mb-4 flex gap-4">
@@ -69,7 +74,19 @@ const Income = () => {
       </div>
 
       {/* Create Income Button */}
-      <button className="px-4 py-2 bg-green-600 text-white rounded-md mb-4">
+      <button
+        className="px-4 py-2 bg-green-600 text-white rounded-md mb-4"
+        onClick={() =>
+          addIncome({
+            id: incomes.length + 1,
+            details: "New Income",
+            toAccount: "Account #12345",
+            date: "2025-02-23",
+            receipt: "Receipt #003",
+            amount: 1000,
+          })
+        }
+      >
         Create Income
       </button>
 
@@ -89,9 +106,12 @@ const Income = () => {
           </thead>
           <tbody className="text-gray-900 dark:text-gray-200">
             {incomes
-              .filter((income) =>
-                income.toAccount.toLowerCase().includes(filters.toAccount.toLowerCase()) &&
-                (filters.date ? income.date === filters.date : true)
+              .filter(
+                (income) =>
+                  income.toAccount
+                    .toLowerCase()
+                    .includes(filters.toAccount.toLowerCase()) &&
+                  (filters.date ? income.date === filters.date : true)
               )
               .map((income) => (
                 <tr key={income.id}>
@@ -114,7 +134,7 @@ const Income = () => {
           </tbody>
         </table>
       </div>
-      <CreateIncome/>
+      <CreateIncome />
     </div>
   );
 };

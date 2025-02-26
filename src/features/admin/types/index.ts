@@ -32,21 +32,21 @@ export interface MerchantData {
   avatar: string;
 }
 
-export type ParcelStatus =
-  | "Pending"
-  | "Pickup Assign"
-  | "Pickup Re-schedule"
-  | "Received by Pickup Man"
-  | "Received by Warehouse"
-  | "Transfer to Hub"
-  | "Received by Hub"
-  | "Delivery Man Assigned"
-  | "Return to Courier"
-  | "Partial Delivered"
-  | "Delivered"
-  | "Return Assigned to Merchant"
-  | "Return Assigned to Merchant Re-schedule"
-  | "Return Received by Merchant";
+// export type ParcelStatus =
+//   | "Pending"
+//   | "Pickup Assign"
+//   | "Pickup Re-schedule"
+//   | "Received by Pickup Man"
+//   | "Received by Warehouse"
+//   | "Transfer to Hub"
+//   | "Received by Hub"
+//   | "Delivery Man Assigned"
+//   | "Return to Courier"
+//   | "Partial Delivered"
+//   | "Delivered"
+//   | "Return Assigned to Merchant"
+//   | "Return Assigned to Merchant Re-schedule"
+//   | "Return Received by Merchant";
 
 export interface Amount {
   cod: number;
@@ -67,15 +67,54 @@ export interface Merchant {
   address: string;
 }
 
+// export interface ParcelData {
+//   id: number;
+//   trackingId: string;
+//   recipient: Recipient;
+//   merchant: Merchant;
+//   amounts: Amount;
+//   priority: "High" | "Medium" | "Low";
+//   status: ParcelStatus;
+//   statusUpdate: string;
+//   payment: string;
+//   reference: string | null;
+// }
+
+export interface ParcelStatus {
+  title: string;
+  name: string;
+  email: string;
+  phone: string;
+  current: string;
+  date: number;
+}
+
 export interface ParcelData {
-  id: number;
-  trackingId: string;
-  recipient: Recipient;
-  merchant: Merchant;
-  amounts: Amount;
-  priority: "High" | "Medium" | "Low";
-  status: ParcelStatus;
-  statusUpdate: string;
-  payment: string;
-  reference: string | null;
+  _id: string;
+  TrakingId: string;
+  merchant: string;
+  pickupPoints: string;
+  pickupPhone: string;
+  pickupAddress: string;
+  cashCollection: number;
+  sellingPrice: number;
+  invoice: string;
+  deliveryType: string;
+  Weight: number;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  note: string;
+  packaging: string;
+  priority: string;
+  paymentMethod: string;
+  deliveryCharge: number;
+  liquidORFragile: number;
+  codCharge: number;
+  totalCharge: number;
+  vat: number;
+  netPayable: number;
+  advance: number;
+  currentPayable: number;
+  parcelStatus: ParcelStatus[];
 }

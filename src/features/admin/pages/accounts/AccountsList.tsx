@@ -35,7 +35,9 @@ const AccountTable = () => {
     bank: "",
   });
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFilters((prev) => ({
       ...prev,
@@ -44,13 +46,22 @@ const AccountTable = () => {
   };
 
   const handleCreateAccount = () => {
-    // Your logic to open the modal or redirect for account creation can go here
+    const newAccount = {
+      id: accounts.length + 1,
+      gateway: "New Payment Gateway",
+      accountInfo: "New Account Info",
+      status: "Active",
+      bank: "Bank C",
+    };
+    setAccounts([...accounts, newAccount]);
     console.log("Create Account Clicked");
   };
 
   return (
     <div className="p-6 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Accounts</h2>
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        Accounts
+      </h2>
 
       {/* Filters */}
       <div className="mb-4 flex gap-4">
@@ -106,10 +117,15 @@ const AccountTable = () => {
           </thead>
           <tbody className="text-gray-900 dark:text-gray-200">
             {accounts
-              .filter((account) =>
-                account.gateway.toLowerCase().includes(filters.holderName.toLowerCase()) &&
-                account.accountInfo.toLowerCase().includes(filters.accountNo.toLowerCase()) &&
-                (filters.bank ? account.bank === filters.bank : true)
+              .filter(
+                (account) =>
+                  account.gateway
+                    .toLowerCase()
+                    .includes(filters.holderName.toLowerCase()) &&
+                  account.accountInfo
+                    .toLowerCase()
+                    .includes(filters.accountNo.toLowerCase()) &&
+                  (filters.bank ? account.bank === filters.bank : true)
               )
               .map((account) => (
                 <tr key={account.id}>
@@ -141,7 +157,7 @@ const AccountTable = () => {
           </tbody>
         </table>
       </div>
-      <CreateAccount/>
+      <CreateAccount />
     </div>
   );
 };

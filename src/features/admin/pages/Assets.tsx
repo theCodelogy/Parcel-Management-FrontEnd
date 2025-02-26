@@ -50,7 +50,7 @@ const initialAssets: Asset[] = [
   },
 ];
 
-const Assets = () => {
+const Assets: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>(initialAssets);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,7 +63,7 @@ const Assets = () => {
       assetCategory: newAsset.assetCategory || "",
       hub: newAsset.hub || "",
       supplierName: newAsset.supplierName || "",
-      quantity: newAsset.quantity || 0,
+      quantity: newAsset.quantity !== undefined ? Number(newAsset.quantity) : 0,
       warranty: newAsset.warranty || "",
       invoiceNo: newAsset.invoiceNo || "",
       amount: newAsset.amount || "",
@@ -80,7 +80,10 @@ const Assets = () => {
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
           Asset List
         </h2>
-        <button className="p-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+        <button
+          className="p-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+          onClick={() => setIsModalOpen(true)}
+        >
           <FaPlus /> Create Asset
         </button>
       </div>
@@ -190,7 +193,7 @@ const Assets = () => {
               type="number"
               value={newAsset.quantity || ""}
               onChange={(e) =>
-                setNewAsset({ ...newAsset, quantity: e.target.value })
+                setNewAsset({ ...newAsset, quantity: Number(e.target.value) })
               }
               className="w-full p-2 border border-gray-300 rounded-md mb-4"
             />
@@ -238,7 +241,7 @@ const Assets = () => {
           </div>
         </div>
       )}
-      <CreateAssest/>
+      <CreateAssest />
     </div>
   );
 };

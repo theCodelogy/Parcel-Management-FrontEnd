@@ -1,45 +1,68 @@
 // import React, { useState } from "react";
-// import { useForm } from "react-hook-form";
+// import { useForm, SubmitHandler } from "react-hook-form";
 // import { FaEye, FaEyeSlash } from "react-icons/fa";
 // import { hostImage } from "../../../../utils/hostImageOnIMGBB";
 // import toast from "react-hot-toast";
 // import useAxiosSecure from "../../../../Hoocks/useAxiosSecure";
 
-// const CreateMerchantsPage = () => {
+// // Define the form input types
+// interface IFormInput {
+//   businessName: string;
+//   name: string;
+//   email: string;
+//   phone: string;
+//   openingBalance: number;
+//   password: string;
+//   vatPercent: number;
+//   hub: string;
+//   nid: string;
+//   status: string;
+//   tradeLicense: FileList;
+//   image: FileList;
+//   referenceName: string;
+//   referencePhone: string;
+//   paymentPeriod: number;
+//   walletUserActivation: boolean;
+//   address: string;
+//   returnCharge: number;
+//   insideCity: number;
+//   subCity: number;
+//   outsideCity: number;
+// }
+
+// const CreateMerchantsPage: React.FC = () => {
 //   const axiosSecure = useAxiosSecure();
 //   const {
 //     register,
 //     handleSubmit,
-//     watch,
-//     setValue,
 //     formState: { errors },
-//   } = useForm();
+//   } = useForm<IFormInput>();
 //   const [showPassword, setShowPassword] = useState(false);
 //   const [loading, setLoading] = useState(false);
 
-//   const onSubmit = async (data) => {
+//   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
 //     setLoading(true);
 //     const payload = {
 //       ...data,
-//       vat: Number(data.vatPercent),
+//       vat: data.vatPercent,
 //       walletUseActivation: data.walletUserActivation,
-//       returnCharges: Number(data.returnCharge),
+//       returnCharges: data.returnCharge,
 //       codCharge: {
-//         insideCity: Number(data.insideCity),
-//         subCity: Number(data.subCity),
-//         outsideCity: Number(data.outsideCity),
+//         insideCity: data.insideCity,
+//         subCity: data.subCity,
+//         outsideCity: data.outsideCity,
 //       },
-//       openingBalance: Number(data.openingBalance),
-//       paymentPeriod: Number(data.paymentPeriod),
+//       openingBalance: data.openingBalance,
+//       paymentPeriod: data.paymentPeriod,
 //     };
 
 //     // Host tradeLicense
-//     if (data.tradeLicense[0]) {
+//     if (data.tradeLicense.length > 0) {
 //       const tradeLicensUrl = await hostImage(data.tradeLicense[0]);
 //       payload.tradeLicense = tradeLicensUrl;
 //     }
 //     // Host image
-//     if (data.image[0]) {
+//     if (data.image.length > 0) {
 //       const imageUrl = await hostImage(data.image[0]);
 //       payload.image = imageUrl;
 //     }
@@ -395,7 +418,6 @@
 // };
 
 // export default CreateMerchantsPage;
-
 import React, { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -473,7 +495,11 @@ const CreateMerchantsPage: React.FC = () => {
       }
     } catch (err) {
       console.error(err);
-      toast.error(err.message);
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("An unknown error occurred.");
+      }
     }
 
     setTimeout(() => {

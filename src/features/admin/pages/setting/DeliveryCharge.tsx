@@ -1,45 +1,38 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { Plus, Edit, Trash2 } from "lucide-react";
 
 // Define the shape of each delivery charge entry
 interface DeliveryCharge {
-  id: number;
+  _id: string;
   category: string;
   weight: number;
   position: number;
   status: "Active" | "Inactive";
-  sameDay: string;
-  nextDay: string;
-  subCity: string;
-  outsideCity: string;
+  sameDay: number;
+  nextDay: number;
+  subCity: number;
+  outsideCity: number;
 }
 
 const DeliveryChargePage = () => {
-  const [charges, setCharges] = useState<DeliveryCharge[]>([
-    {
-      id: 1,
-      category: "KG",
-      weight: 1,
-      position: 1,
-      status: "Active",
-      sameDay: "$50.00",
-      nextDay: "$60.00",
-      subCity: "$70.00",
-      outsideCity: "$80.00",
-    },
-    {
-      id: 2,
-      category: "KG",
-      weight: 2,
-      position: 2,
-      status: "Active",
-      sameDay: "$60.00",
-      nextDay: "$70.00",
-      subCity: "$80.00",
-      outsideCity: "$90.00",
-    },
-    // ... Add or remove items as needed
-  ]);
+  const [charges, setCharges] = useState<DeliveryCharge[]>([]);
+
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          "https://parcel-management-back-end.vercel.app/api/v1/deliveryCharge"
+        );
+        setCharges(response.data.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Handler for adding a new delivery charge
   const handleAdd = () => {
@@ -48,13 +41,13 @@ const DeliveryChargePage = () => {
   };
 
   // Handler for editing a delivery charge
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string) => {
     alert(`Edit delivery charge with ID: ${id}`);
     // Implement your logic here (e.g., open a modal)
   };
 
   // Handler for deleting a delivery charge
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     alert(`Delete delivery charge with ID: ${id}`);
     // Implement your logic here (e.g., show confirmation, then remove from state)
   };
@@ -96,10 +89,10 @@ const DeliveryChargePage = () => {
             <tbody>
               {charges.map((charge) => (
                 <tr
-                  key={charge.id}
+                  key={charge._id}
                   className="border-t border-gray-200 hover:bg-gray-50 transition-colors duration-200"
                 >
-                  <td className="p-3">{charge.id}</td>
+                  <td className="p-3">{charge.position}</td>
                   <td className="p-3">{charge.category}</td>
                   <td className="p-3">{charge.weight}</td>
                   <td className="p-3">{charge.position}</td>
@@ -114,22 +107,22 @@ const DeliveryChargePage = () => {
                       {charge.status}
                     </span>
                   </td>
-                  <td className="p-3">{charge.sameDay}</td>
-                  <td className="p-3">{charge.nextDay}</td>
-                  <td className="p-3">{charge.subCity}</td>
-                  <td className="p-3">{charge.outsideCity}</td>
+                  <td className="p-3">${charge.sameDay.toFixed(2)}</td>
+                  <td className="p-3">${charge.nextDay.toFixed(2)}</td>
+                  <td className="p-3">${charge.subCity.toFixed(2)}</td>
+                  <td className="p-3">${charge.outsideCity.toFixed(2)}</td>
                   <td className="p-3">
                     {/* Edit and Delete buttons */}
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => handleEdit(charge.id)}
+                        onClick={() => handleEdit(charge._id)}
                         className="flex items-center gap-1 px-2 py-1 text-sm text-white bg-blue-600 rounded hover:bg-blue-700"
                       >
                         <Edit className="h-4 w-4" />
                         <span>Edit</span>
                       </button>
                       <button
-                        onClick={() => handleDelete(charge.id)}
+                        onClick={() => handleDelete(charge._id)}
                         className="flex items-center gap-1 px-2 py-1 text-sm text-white bg-red-600 rounded hover:bg-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
