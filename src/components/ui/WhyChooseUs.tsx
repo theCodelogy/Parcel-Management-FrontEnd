@@ -1,68 +1,70 @@
+import {
+  FaClock,
+  FaTruck,
+  FaMoneyBillWave,
+  FaWallet,
+  FaShieldAlt,
+  FaMapMarkerAlt,
+} from "react-icons/fa";
+
 const services = [
   {
     id: 1,
     title: "Timely Delivery",
-    image:
-      "https://cte.fitspick.com/public/frontend/images/whycourier/timly-delivery.png",
+    icon: FaClock,
   },
   {
     id: 2,
     title: "Limitless Pickup",
-    image:
-      "https://cte.fitspick.com/public/frontend/images/whycourier/limitless-pickup.png",
+    icon: FaTruck,
   },
   {
     id: 3,
     title: "Cash on Delivery (COD)",
-    image:
-      "https://cte.fitspick.com/public/frontend/images/whycourier/cash-on-delivery.png",
+    icon: FaMoneyBillWave,
   },
   {
     id: 4,
     title: "Get Payment Any Time",
-    image:
-      "https://cte.fitspick.com/public/frontend/images/whycourier/payment.png",
+    icon: FaWallet,
   },
   {
     id: 5,
     title: "Secure Handling",
-    image:
-      "https://cte.fitspick.com/public/frontend/images/whycourier/handling.png",
+    icon: FaShieldAlt,
   },
   {
     id: 6,
     title: "Live Tracking Update",
-    image:
-      "https://cte.fitspick.com/public/frontend/images/whycourier/live-tracking.png",
+    icon: FaMapMarkerAlt,
   },
 ];
 
 export default function WhyChooseUs() {
   return (
-    <section className="py-12 ">
+    <section className="py-16 bg-gradient-to-r from-gray-100 to-gray-200">
       <div className="container mx-auto px-6">
-        <h3 className="text-3xl font-bold text-center mb-10">
-          <span className="border-b-4 border-[#A31621] pb-1">
-            Why City & Town Express
+        <h3 className="text-4xl font-extrabold text-center mb-12 text-gray-800">
+          <span className="inline-block border-b-4 border-red-600 pb-2">
+            Why City &amp; Town Express
           </span>
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {services.map((service) => (
-            <div
-              key={service.id}
-              className="bg-white p-5 rounded-lg shadow-md text-center transform transition duration-300 hover:scale-105 hover:shadow-lg hover:bg-[#A31621] hover:text-white"
-            >
-              <div className="flex justify-center">
-                <img
-                  src={service.image}
-                  alt={service.title}
-                  className="w-24 h-24 object-cover rounded-lg"
-                />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+          {services.map((service) => {
+            const Icon = service.icon;
+            return (
+              <div
+                key={service.id}
+                className="group bg-white p-6 rounded-xl shadow-lg text-center transform transition duration-500 hover:scale-105 hover:shadow-2xl hover:bg-red-600 hover:text-white"
+              >
+                <div className="flex justify-center mb-4">
+                  <Icon className="text-red-600 text-5xl transition duration-500 group-hover:text-white" />
+                </div>
+                <h5 className="text-xl font-bold">{service.title}</h5>
               </div>
-              <h5 className="mt-4 text-lg font-semibold">{service.title}</h5>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

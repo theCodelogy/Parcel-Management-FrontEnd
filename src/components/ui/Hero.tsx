@@ -18,23 +18,22 @@ const Hero = () => {
             quality.
           </p>
 
-          {/* Tracking Form */}
-          <form method="get" className="mt-6">
-            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-0 border border-gray-300 rounded-md overflow-hidden">
-              <input
-                type="text"
-                name="tracking_id"
-                placeholder="Enter tracking ID"
-                className="w-full px-4 py-2 outline-none text-gray-700"
-              />
-              <button
-                type="submit"
-                className="bg-[#A31621] hover:bg-red-400 text-white px-6 py-2 w-full sm:w-auto"
-              >
-                Track Now
-              </button>
-            </div>
-          </form>
+          {/* Tracking input + button */}
+          <div className="flex w-full mt-6">
+            <input
+              type="text"
+              placeholder="Enter tracking id"
+              className="border border-gray-300 px-3 py-2 focus:outline-none 
+                         focus:ring-2 focus:ring-red-500 flex-grow rounded-l-lg"
+            />
+            <button
+              className="bg-red-500 text-white px-4 py-2 hover:bg-red-600 
+                         focus:outline-none focus:ring-2 focus:ring-red-500 
+                         border border-red-500 border-l-0 rounded-r-lg"
+            >
+              Track Now
+            </button>
+          </div>
         </div>
 
         {/* Right Image */}

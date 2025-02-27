@@ -1,68 +1,45 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
-const Pricing = () => {
-  const [activeTab, setActiveTab] = useState("Same Day");
+interface Price {
+  weight: string;
+  price: number;
+}
 
-  const tabs = [
+interface Tab {
+  name: string;
+  prices: Price[];
+}
+
+const calculatePrices = (
+  base: number,
+  increment: number,
+  maxKg: number = 10
+): Price[] => {
+  return Array.from({ length: maxKg }, (_, i) => ({
+    weight: (i + 1).toString(),
+    price: base + i * increment,
+  }));
+};
+
+const Pricing: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<string>("Same Day");
+
+  const tabs: Tab[] = [
     {
       name: "Same Day",
-      prices: [
-        { weight: "1", price: 80 },
-        { weight: "2", price: 120 },
-        { weight: "3", price: 160 },
-        { weight: "4", price: 200 },
-        { weight: "5", price: 240 },
-        { weight: "6", price: 280 },
-        { weight: "7", price: 320 },
-        { weight: "8", price: 370 },
-        { weight: "9", price: 410 },
-        { weight: "10", price: 450 },
-      ],
+      prices: calculatePrices(60, 40),
     },
     {
       name: "Next Day",
-      prices: [
-        { weight: "1", price: 70 },
-        { weight: "2", price: 110 },
-        { weight: "3", price: 150 },
-        { weight: "4", price: 190 },
-        { weight: "5", price: 230 },
-        { weight: "6", price: 270 },
-        { weight: "7", price: 310 },
-        { weight: "8", price: 360 },
-        { weight: "9", price: 400 },
-        { weight: "10", price: 440 },
-      ],
+      prices: calculatePrices(70, 40),
     },
     {
       name: "Sub City",
-      prices: [
-        { weight: "1", price: 90 },
-        { weight: "2", price: 130 },
-        { weight: "3", price: 170 },
-        { weight: "4", price: 210 },
-        { weight: "5", price: 250 },
-        { weight: "6", price: 290 },
-        { weight: "7", price: 330 },
-        { weight: "8", price: 380 },
-        { weight: "9", price: 420 },
-        { weight: "10", price: 460 },
-      ],
+      prices: calculatePrices(100, 40),
     },
     {
       name: "Outside City",
-      prices: [
-        { weight: "1", price: 100 },
-        { weight: "2", price: 140 },
-        { weight: "3", price: 180 },
-        { weight: "4", price: 220 },
-        { weight: "5", price: 260 },
-        { weight: "6", price: 300 },
-        { weight: "7", price: 340 },
-        { weight: "8", price: 390 },
-        { weight: "9", price: 430 },
-        { weight: "10", price: 470 },
-      ],
+      prices: calculatePrices(130, 40),
     },
   ];
 
@@ -96,7 +73,7 @@ const Pricing = () => {
               key={weight}
               className="border border-[#A31621] p-4 rounded-lg shadow-md"
             >
-              <p className="text-lg font-semibold">Up To {weight} ( KG )</p>
+              <p className="text-lg font-semibold">Up To {weight} (KG)</p>
               <p className="text-2xl font-bold">৳ {price}.00</p>
             </div>
           ))}

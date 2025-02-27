@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { FaSignInAlt, FaEnvelope } from "react-icons/fa";
 import toast from "react-hot-toast";
+import Cookies from "js-cookie";
 
 interface FormData {
   emailORphone: string;
@@ -12,9 +13,7 @@ interface FormData {
 
 const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
-
   const {
     register,
     handleSubmit,
@@ -24,12 +23,10 @@ const LoginPage: React.FC = () => {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      // Prepare the payload to be sent in the request body
       const payload = {
         emailORphone: data.emailORphone,
         password: data.password,
       };
-      console.log("Sending payload:", payload);
 
       const response = await axios.post(
         "https://parcel-management-back-end.vercel.app/api/v1/auth/login",
@@ -40,29 +37,29 @@ const LoginPage: React.FC = () => {
           },
         }
       );
-      console.log("Login successful:", response.data);
 
-      // Check the response structure and user role
       if (
         response.data &&
         response.data.success &&
         response.data.data &&
         response.data.data.user
       ) {
-        const userRole = response.data.data.user.role;
+        const userData = response.data.data.user;
+        const token = response.data.data.token;
 
-        if (userRole === "Super Admin") {
+        // Set the token in a cookie
+        Cookies.set("token", token, { expires: 7 });
+
+        if (userData.role === "Super Admin") {
           navigate("/admin/dashboard");
-        } else if (userRole === "Merchant") {
+        } else if (userData.role === "Merchant") {
           navigate("/merchant/dashboard");
+        } else if (userData.role === "Delivery Man") {
+          navigate("/rider/assigned-parcels");
         }
-
-        // Show success notification
         toast.success("Login successful!");
       }
-      // You can handle other roles or cases here
     } catch (error: any) {
-      console.error("Error response:", error.response);
       if (
         error.response &&
         error.response.data &&

@@ -7,25 +7,12 @@ interface AuthState {
   name: string;
   email: string;
   phone: string;
-  openingBalance: string;
   password: string;
-  vatPercent: string;
-  hub: string;
-  nid: string;
   status: string;
-  tradeLicense: File | null;
-  image: File | null;
-  referenceName: string;
-  referencePhone: string;
-  paymentPeriod: number;
-  walletUserActivation: boolean;
   address: string;
-  returnCharge: number;
-  insideCity: string;
-  subCity: string;
-  outsideCity: string;
   showPassword: boolean;
   loading: boolean;
+  termsAccepted: boolean;
 }
 
 const Registration: React.FC = () => {
@@ -34,54 +21,22 @@ const Registration: React.FC = () => {
     name: "",
     email: "",
     phone: "",
-    openingBalance: "",
     password: "",
-    vatPercent: "",
-    hub: "",
-    nid: "",
     status: "",
-    tradeLicense: null,
-    image: null,
-    referenceName: "",
-    referencePhone: "",
-    paymentPeriod: 0,
-    walletUserActivation: false,
     address: "",
-    returnCharge: 100, // default value 100%
-    insideCity: "",
-    subCity: "",
-    outsideCity: "",
     showPassword: false,
     loading: false,
+    termsAccepted: false,
   });
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ): void => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
+    const { name, value, type } = e.target;
     setState({
       ...state,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : type === "number"
-          ? Number(value)
-          : value,
+      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    if (e.target.files) {
-      setState({ ...state, tradeLicense: e.target.files[0] });
-    }
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    if (e.target.files) {
-      setState({ ...state, image: e.target.files[0] });
-    }
   };
 
   const validateEmail = (email: string): boolean =>
@@ -91,30 +46,18 @@ const Registration: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
+    if (!state.termsAccepted) {
+      alert("You must accept the terms and conditions.");
+      return;
+    }
     setState({ ...state, loading: true });
 
-    // Log form values
     console.log("Business Name:", state.businessName);
     console.log("Name:", state.name);
     console.log("Email:", state.email);
     console.log("Phone:", state.phone);
-    console.log("Opening Balance:", state.openingBalance);
-    console.log("Password:", state.password);
-    console.log("VAT (%):", state.vatPercent);
-    console.log("Hub:", state.hub);
-    console.log("NID:", state.nid);
     console.log("Status:", state.status);
-    console.log("Trade License:", state.tradeLicense);
-    console.log("Image:", state.image);
-    console.log("Reference Name:", state.referenceName);
-    console.log("Reference Phone:", state.referencePhone);
-    console.log("Payment Period (Days):", state.paymentPeriod);
-    console.log("Wallet User Activation:", state.walletUserActivation);
     console.log("Address:", state.address);
-    console.log("Return Charge (%):", state.returnCharge);
-    console.log("Inside City:", state.insideCity);
-    console.log("Sub City:", state.subCity);
-    console.log("Outside City:", state.outsideCity);
 
     setTimeout(() => {
       setState({ ...state, loading: false });
@@ -183,7 +126,7 @@ const Registration: React.FC = () => {
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
                   placeholder="you@example.com"
                 />
-                <FaEnvelope className="absolute right-2 top-2 w-5 h-5 text-gray-400" />
+                <FaEnvelope className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
               </div>
               {state.email && !validateEmail(state.email) && (
                 <p className="mt-1 text-sm text-red-600">
@@ -208,22 +151,6 @@ const Registration: React.FC = () => {
               />
             </div>
 
-            {/* Opening Balance */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Opening Balance
-              </label>
-              <input
-                type="text"
-                name="openingBalance"
-                value={state.openingBalance}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="e.g., 1000"
-              />
-            </div>
-
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -241,16 +168,12 @@ const Registration: React.FC = () => {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-2 text-gray-400"
+                  className="absolute right-3 top-3 text-gray-400 cursor-pointer"
                   onClick={() =>
                     setState({ ...state, showPassword: !state.showPassword })
                   }
                 >
-                  {state.showPassword ? (
-                    <FaEyeSlash className="w-5 h-5" />
-                  ) : (
-                    <FaEye className="w-5 h-5" />
-                  )}
+                  {state.showPassword ? <FaEyeSlash className="w-5 h-5" /> : <FaEye className="w-5 h-5" />}
                 </button>
               </div>
               {state.password && !validatePassword(state.password) && (
@@ -260,166 +183,8 @@ const Registration: React.FC = () => {
               )}
             </div>
 
-            {/* VAT (%) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                VAT (%)
-              </label>
-              <input
-                type="text"
-                name="vatPercent"
-                value={state.vatPercent}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="e.g., 15"
-              />
-            </div>
-
-            {/* Hub */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hub
-              </label>
-              <input
-                type="text"
-                name="hub"
-                value={state.hub}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Hub Name"
-              />
-            </div>
-
-            {/* NID */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                NID
-              </label>
-              <input
-                type="text"
-                name="nid"
-                value={state.nid}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="National ID"
-              />
-            </div>
-
-            {/* Status */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <input
-                type="text"
-                name="status"
-                value={state.status}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Status"
-              />
-            </div>
-
-            {/* Trade License Image */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trade License Image
-              </label>
-              <input
-                type="file"
-                name="tradeLicense"
-                onChange={handleFileChange}
-                className="w-full"
-                accept="image/*"
-              />
-            </div>
-
-            {/* Image Field (after Trade License) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image
-              </label>
-              <input
-                type="file"
-                name="image"
-                onChange={handleImageChange}
-                className="w-full"
-                accept="image/*"
-              />
-            </div>
-
-            <h2 className="col-span-2 text-2xl font-semibold text-gray-800">
-              Reference
-            </h2>
-
-            {/* Reference Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Referencing Name
-              </label>
-              <input
-                type="text"
-                name="referenceName"
-                value={state.referenceName}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Reference Name"
-              />
-            </div>
-
-            {/* Reference Phone */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reference Phone
-              </label>
-              <input
-                type="text"
-                name="referencePhone"
-                value={state.referencePhone}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Reference Phone"
-              />
-            </div>
-
-            {/* Payment Period (Days) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment Period (Days)
-              </label>
-              <input
-                type="number"
-                name="paymentPeriod"
-                value={state.paymentPeriod}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Number of days"
-              />
-            </div>
-
-            {/* Wallet User Activation */}
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="walletUserActivation"
-                checked={state.walletUserActivation}
-                onChange={handleChange}
-                className="mr-2"
-              />
-              <label className="text-sm font-medium text-gray-700">
-                Wallet Use Activation
-              </label>
-            </div>
-
             {/* Address */}
-            <div className="col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Address
               </label>
@@ -433,74 +198,20 @@ const Registration: React.FC = () => {
                 placeholder="Your Address"
               />
             </div>
+          </div>
 
-            {/* Return Charge (%) */}
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Return Charge (%)
-              </label>
-              <input
-                type="number"
-                name="returnCharge"
-                value={state.returnCharge}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Return Charge Percentage"
-              />
-            </div>
-
-            <h2 className="col-span-2 text-2xl font-semibold text-gray-800">
-              COD Charge
-            </h2>
-
-            {/* Inside City */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Inside City
-              </label>
-              <input
-                type="text"
-                name="insideCity"
-                value={state.insideCity}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Inside City"
-              />
-            </div>
-
-            {/* Sub City */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sub City
-              </label>
-              <input
-                type="text"
-                name="subCity"
-                value={state.subCity}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Sub City"
-              />
-            </div>
-
-            {/* Outside City */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Outside City
-              </label>
-              <input
-                type="text"
-                name="outsideCity"
-                value={state.outsideCity}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Outside City"
-              />
-            </div>
+          {/* Terms & Conditions */}
+          <div className="flex items-center mt-4">
+            <input
+              type="checkbox"
+              name="termsAccepted"
+              checked={state.termsAccepted}
+              onChange={handleChange}
+              className="mr-2"
+            />
+            <label className="text-gray-700 text-sm">
+              I agree to City & Town Express Privacy Policy & Terms.
+            </label>
           </div>
 
           {/* Submit Button */}

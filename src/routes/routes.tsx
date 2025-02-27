@@ -9,6 +9,9 @@ import { riderRoutes } from "./Rider.Routes";
 import MerchantDashboardLayout from "../layouts/MerchantDashboardLayout";
 import Login from "../pages/auth/LoginPage";
 import Registration from "../pages/auth/Registration";
+import DeliveryManLayout from "../layouts/DeliveryManLayout";
+import ContactUs from "../pages/contect-us/ConteactUs";
+import About from "../pages/about-us/AboutUs";
 
 const router = createBrowserRouter([
   {
@@ -18,6 +21,14 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <Home />,
+      },
+      {
+        path: "contact-us",
+        element: <ContactUs />,
+      },
+      {
+        path: "about-us",
+        element: <About />,
       },
     ],
   },
@@ -36,16 +47,15 @@ const router = createBrowserRouter([
   },
   {
     path: "/merchant",
-    // element: <DashboardLayout />,
     element: <MerchantDashboardLayout />,
     children: routeGenerator(merchantRoutes),
   },
   {
     path: "/rider",
-    element: <DashboardLayout />,
+    // element: <DashboardLayout />,
+    element: <DeliveryManLayout />,
     children: routeGenerator(riderRoutes),
   },
-  
 ]);
 
 export default router;
