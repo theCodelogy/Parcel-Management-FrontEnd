@@ -1,10 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Edit, Plus, Trash2, Loader2 } from "lucide-react";
+import { Toaster, toast } from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
 
-// Define the shape of each delivery charge entry
+// Shadcn UI components
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+
 interface DeliveryCharge {
-  _id: string;
+  _id?: string;
   category: string;
   weight: number;
   position: number;
@@ -15,132 +35,467 @@ interface DeliveryCharge {
   outsideCity: number;
 }
 
-const DeliveryChargePage = () => {
-  const [charges, setCharges] = useState<DeliveryCharge[]>([]);
+const API_URL =
+  "https://parcel-management-back-end.vercel.app/api/v1/deliveryCharge";
 
-  useEffect(() => {
-    // Fetch data from the API
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          "https://parcel-management-back-end.vercel.app/api/v1/deliveryCharge"
-        );
-        setCharges(response.data.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
+// Fetch function for charges
+const fetchCharges = async (): Promise<DeliveryCharge[]> => {
+  const { data } = await axios.get(API_URL);
+  return data.data;
+};
 
-    fetchData();
-  }, []);
+const DeliveryChargePage: React.FC = () => {
+  // Modal & form state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentCharge, setCurrentCharge] = useState<DeliveryCharge | null>(
+    null
+  );
+  const [formData, setFormData] = useState<DeliveryCharge>({
+    category: "",
+    weight: 0,
+    position: 0,
+    status: "Active",
+    sameDay: 0,
+    nextDay: 0,
+    subCity: 0,
+    outsideCity: 0,
+  });
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Handler for adding a new delivery charge
-  const handleAdd = () => {
-    alert("Add new delivery charge");
-    // Implement your logic here
+  // TanStack Query: fetch charges using object syntax
+  const {
+    data: charges,
+    isLoading: isFetching,
+    refetch,
+  } = useQuery<DeliveryCharge[]>({
+    queryKey: ["charges"],
+    queryFn: fetchCharges,
+  });
+
+  // Handle input changes
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        name === "position" ||
+        name === "weight" ||
+        name === "sameDay" ||
+        name === "nextDay" ||
+        name === "subCity" ||
+        name === "outsideCity"
+          ? Number(value)
+          : value,
+    }));
   };
 
-  // Handler for editing a delivery charge
-  const handleEdit = (id: string) => {
-    alert(`Edit delivery charge with ID: ${id}`);
-    // Implement your logic here (e.g., open a modal)
+  // Form submit handlers
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      await axios.post(API_URL, formData);
+      refetch();
+      toast.success("Charge created successfully");
+      setIsCreateModalOpen(false);
+      setFormData({
+        category: "",
+        weight: 0,
+        position: 0,
+        status: "Active",
+        sameDay: 0,
+        nextDay: 0,
+        subCity: 0,
+        outsideCity: 0,
+      });
+    } catch (error) {
+      toast.error("Failed to create charge");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Handler for deleting a delivery charge
-  const handleDelete = (id: string) => {
-    alert(`Delete delivery charge with ID: ${id}`);
-    // Implement your logic here (e.g., show confirmation, then remove from state)
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentCharge?._id) return;
+    setIsLoading(true);
+    try {
+      await axios.patch(`${API_URL}/${currentCharge._id}`, formData);
+      refetch();
+      toast.success("Charge updated successfully");
+      setIsEditModalOpen(false);
+      setCurrentCharge(null);
+    } catch (error) {
+      toast.error("Failed to update charge");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Open edit modal
+  const openEditModal = (charge: DeliveryCharge) => {
+    setCurrentCharge(charge);
+    setFormData({
+      category: charge.category,
+      weight: charge.weight,
+      position: charge.position,
+      status: charge.status,
+      sameDay: charge.sameDay,
+      nextDay: charge.nextDay,
+      subCity: charge.subCity,
+      outsideCity: charge.outsideCity,
+    });
+    setIsEditModalOpen(true);
+  };
+
+  // Delete handler with per-row loading indicator
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    setIsLoading(true);
+    try {
+      await axios.delete(`${API_URL}/${id}`);
+      refetch();
+      toast.success("Charge deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete charge");
+    } finally {
+      setDeletingId(null);
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="container mx-auto p-4">
-      <div className="bg-white p-6 rounded-lg shadow-lg">
-        {/* Header section */}
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-semibold text-gray-800">
-            Delivery Charge
-          </h1>
-          {/* Floating Add Button */}
-          <button
-            className="flex items-center justify-center rounded-full bg-purple-600 p-3 text-white hover:bg-purple-700"
-            onClick={handleAdd}
-          >
-            <Plus className="h-5 w-5" />
-          </button>
-        </div>
+      {/* React Hot Toast */}
+      <Toaster />
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full border border-gray-200 text-gray-900">
-            <thead className="bg-gray-100 text-gray-600">
-              <tr>
-                <th className="p-3 text-left">#</th>
-                <th className="p-3 text-left">Category</th>
-                <th className="p-3 text-left">Weight</th>
-                <th className="p-3 text-left">Position</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-left">Same Day</th>
-                <th className="p-3 text-left">Next Day</th>
-                <th className="p-3 text-left">Sub City</th>
-                <th className="p-3 text-left">Outside City</th>
-                <th className="p-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {charges.map((charge) => (
-                <tr
-                  key={charge._id}
-                  className="border-t border-gray-200 hover:bg-gray-50 transition-colors duration-200"
-                >
-                  <td className="p-3">{charge.position}</td>
-                  <td className="p-3">{charge.category}</td>
-                  <td className="p-3">{charge.weight}</td>
-                  <td className="p-3">{charge.position}</td>
-                  <td className="p-3">
-                    <span
-                      className={`px-3 py-1 text-xs font-medium rounded-full ${
-                        charge.status === "Active"
-                          ? "bg-green-200 text-green-800"
-                          : "bg-red-200 text-red-800"
-                      }`}
-                    >
-                      {charge.status}
-                    </span>
-                  </td>
-                  <td className="p-3">${charge.sameDay.toFixed(2)}</td>
-                  <td className="p-3">${charge.nextDay.toFixed(2)}</td>
-                  <td className="p-3">${charge.subCity.toFixed(2)}</td>
-                  <td className="p-3">${charge.outsideCity.toFixed(2)}</td>
-                  <td className="p-3">
-                    {/* Edit and Delete buttons */}
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleEdit(charge._id)}
-                        className="flex items-center gap-1 px-2 py-1 text-sm text-white bg-blue-600 rounded hover:bg-blue-700"
-                      >
-                        <Edit className="h-4 w-4" />
-                        <span>Edit</span>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(charge._id)}
-                        className="flex items-center gap-1 px-2 py-1 text-sm text-white bg-red-600 rounded hover:bg-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span>Delete</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Spinner when fetching data */}
+      {isFetching ? (
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="animate-spin h-8 w-8" />
         </div>
+      ) : (
+        <div className="border rounded-lg p-4 bg-white w-full">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-semibold">Delivery Charge</h2>
+            <Button
+              variant="default"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-2"
+              disabled={isLoading}
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Charge</span>
+            </Button>
+          </div>
+          <div className="w-full overflow-x-auto">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>#</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Weight</TableHead>
+                  <TableHead>Position</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Same Day</TableHead>
+                  <TableHead>Next Day</TableHead>
+                  <TableHead>Sub City</TableHead>
+                  <TableHead>Outside City</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isFetching && (
+                  <TableRow>
+                    <TableCell colSpan={10} className="text-center py-4">
+                      <Loader2 className="animate-spin h-4 w-4 mr-1" />
+                      Data is coming...
+                    </TableCell>
+                  </TableRow>
+                )}
+                {!isFetching && charges && charges.length > 0
+                  ? charges.map((charge, index) => (
+                      <TableRow
+                        key={charge._id}
+                        className="hover:bg-gray-50 transition-colors duration-200"
+                      >
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{charge.category}</TableCell>
+                        <TableCell>{charge.weight}</TableCell>
+                        <TableCell>{charge.position}</TableCell>
+                        <TableCell>
+                          <span
+                            className={`px-3 py-1 text-xs font-medium rounded-full ${
+                              charge.status === "Active"
+                                ? "bg-green-200 text-green-800"
+                                : "bg-red-200 text-red-800"
+                            }`}
+                          >
+                            {charge.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>৳{charge.sameDay.toFixed(2)}</TableCell>
+                        <TableCell>৳{charge.nextDay.toFixed(2)}</TableCell>
+                        <TableCell>৳{charge.subCity.toFixed(2)}</TableCell>
+                        <TableCell>৳{charge.outsideCity.toFixed(2)}</TableCell>
+                        <TableCell className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            onClick={() => openEditModal(charge)}
+                            className="flex items-center gap-1"
+                            disabled={isLoading}
+                          >
+                            {isLoading && currentCharge?._id === charge._id ? (
+                              <Loader2 className="animate-spin h-4 w-4 mr-1" />
+                            ) : (
+                              <Edit className="h-4 w-4" />
+                            )}
+                            <span>Edit</span>
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={() =>
+                              charge._id && handleDelete(charge._id)
+                            }
+                            className="flex items-center gap-1"
+                            disabled={isLoading && deletingId === charge._id}
+                          >
+                            {isLoading && deletingId === charge._id ? (
+                              <Loader2 className="animate-spin h-4 w-4 mr-1" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                            <span>Delete</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  : !isFetching && (
+                      <TableRow>
+                        <TableCell colSpan={10} className="text-center py-4">
+                          No data found
+                        </TableCell>
+                      </TableRow>
+                    )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
 
-        {/* Pagination or Footer Info */}
-        <div className="mt-4 text-sm text-gray-600">
-          Showing 1 to {charges.length} of {charges.length} entries
-        </div>
-      </div>
+      {/* Create Charge Modal */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Charge</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium">Category</label>
+              <Input
+                name="category"
+                placeholder="Category"
+                value={formData.category}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Weight</label>
+              <Input
+                type="number"
+                name="weight"
+                placeholder="Weight"
+                value={formData.weight}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Position</label>
+              <Input
+                type="number"
+                name="position"
+                placeholder="Position"
+                value={formData.position}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Same Day</label>
+              <Input
+                type="number"
+                name="sameDay"
+                placeholder="Same Day"
+                value={formData.sameDay}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Next Day</label>
+              <Input
+                type="number"
+                name="nextDay"
+                placeholder="Next Day"
+                value={formData.nextDay}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Sub City</label>
+              <Input
+                type="number"
+                name="subCity"
+                placeholder="Sub City"
+                value={formData.subCity}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Outside City</label>
+              <Input
+                type="number"
+                name="outsideCity"
+                placeholder="Outside City"
+                value={formData.outsideCity}
+                onChange={handleInputChange}
+              />
+            </div>
+            <DialogFooter className="flex justify-end space-x-2">
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="animate-spin h-4 w-4 mr-1" />}
+                Create
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsCreateModalOpen(false)}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Charge Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Charge</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium">Category</label>
+              <Input
+                name="category"
+                placeholder="Category"
+                value={formData.category}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Weight</label>
+              <Input
+                type="number"
+                name="weight"
+                placeholder="Weight"
+                value={formData.weight}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Position</label>
+              <Input
+                type="number"
+                name="position"
+                placeholder="Position"
+                value={formData.position}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Same Day</label>
+              <Input
+                type="number"
+                name="sameDay"
+                placeholder="Same Day"
+                value={formData.sameDay}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Next Day</label>
+              <Input
+                type="number"
+                name="nextDay"
+                placeholder="Next Day"
+                value={formData.nextDay}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Sub City</label>
+              <Input
+                type="number"
+                name="subCity"
+                placeholder="Sub City"
+                value={formData.subCity}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Outside City</label>
+              <Input
+                type="number"
+                name="outsideCity"
+                placeholder="Outside City"
+                value={formData.outsideCity}
+                onChange={handleInputChange}
+              />
+            </div>
+            <DialogFooter className="flex justify-end space-x-2">
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="animate-spin h-4 w-4 mr-1" />}
+                Save Changes
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditModalOpen(false)}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

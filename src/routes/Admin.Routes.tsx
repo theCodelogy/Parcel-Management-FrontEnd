@@ -1081,18 +1081,18 @@ export const adminRoutes: RouteItem[] = [
         element: <DeliveryCategory />,
         icon: Tag,
       },
-      {
-        label: "Create Category",
-        path: "create-category",
-        element: <CreateCategoryPage />,
-        icon: Tag,
-      },
-      {
-        label: "Edit Category",
-        path: "edit-category", // updated path for edit
-        element: <CreateCategoryPage />,
-        icon: Edit, // using Edit icon here
-      },
+      // {
+      //   label: "Create Category",
+      //   path: "create-category",
+      //   element: <CreateCategoryPage />,
+      //   icon: Tag,
+      // },
+      // {
+      //   label: "Edit Category",
+      //   path: "edit-category", // updated path for edit
+      //   element: <CreateCategoryPage />,
+      //   icon: Edit, // using Edit icon here
+      // },
       {
         label: "Delivery Charge",
         path: "delivery-charge",

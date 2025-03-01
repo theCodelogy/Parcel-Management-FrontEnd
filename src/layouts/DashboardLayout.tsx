@@ -35,7 +35,7 @@ const DashboardLayout = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Sticky header */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm">
+      <header className="sticky top-0 z-[999] bg-white shadow-sm">
         <DashboardNavbar />
       </header>
 
