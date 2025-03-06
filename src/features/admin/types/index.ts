@@ -13,7 +13,7 @@ export interface DeliveryManData {
 }
 
 export interface BranchData {
-  id: number;
+  _id: number;
   name: string;
   phone: string;
   address: string;

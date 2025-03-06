@@ -1,21 +1,10 @@
 import axios from "axios";
 import { BranchData } from "../types";
 
-// Option 1: Simulate demo data using Axios with a delay
+// Option 2: Fetch from your API using Axios
 export const fetchBranchApi = async (): Promise<BranchData[]> => {
-  // Fetch the demo data from the public folder
-  const response = await axios.get<BranchData[]>("/branchData.json");
-
-  // Simulate a delay of 1 second (1000ms)
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
+  const response = await axios.get<BranchData[]>(
+    "https://parcel-management-back-end.vercel.app/api/v1/branch"
+  );
   return response.data;
 };
-
-// // Option 2: Fetch from your API using Axios
-// export const fetchReturns = async (): Promise<TableData[]> => {
-//   const response = await axios.get<TableData[]>(
-//     "https://your-backend.com/api/returns"
-//   );
-//   return response.data;
-// };

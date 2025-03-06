@@ -75,7 +75,11 @@
 //       }
 //     } catch (err) {
 //       console.error(err);
-//       toast.error(err.message);
+//       if (err instanceof Error) {
+//         toast.error(err.message);
+//       } else {
+//         toast.error("An unknown error occurred.");
+//       }
 //     }
 
 //     setTimeout(() => {
@@ -418,12 +422,14 @@
 // };
 
 // export default CreateMerchantsPage;
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { hostImage } from "../../../../utils/hostImageOnIMGBB";
 import toast from "react-hot-toast";
-import useAxiosSecure from "../../../../Hoocks/useAxiosSecure";
+import axios from "axios"; // Import axios directly
+import { useLocation, useNavigate } from "react-router-dom";
 
 // Define the form input types
 interface IFormInput {
@@ -451,14 +457,41 @@ interface IFormInput {
 }
 
 const CreateMerchantsPage: React.FC = () => {
-  const axiosSecure = useAxiosSecure();
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<IFormInput>();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate(); // Get the navigate function
+  const merchantToEdit = location.state?.merchant;
+
+  useEffect(() => {
+    if (merchantToEdit) {
+      // Pre-fill the form fields with the merchant data
+      setValue("businessName", merchantToEdit.businessName);
+      setValue("name", merchantToEdit.name);
+      setValue("email", merchantToEdit.email);
+      setValue("phone", merchantToEdit.phone);
+      setValue("openingBalance", merchantToEdit.openingBalance);
+      setValue("vatPercent", merchantToEdit.vatPercent);
+      setValue("hub", merchantToEdit.hub);
+      setValue("nid", merchantToEdit.nid);
+      setValue("status", merchantToEdit.status);
+      setValue("referenceName", merchantToEdit.referenceName);
+      setValue("referencePhone", merchantToEdit.referencePhone);
+      setValue("paymentPeriod", merchantToEdit.paymentPeriod);
+      setValue("walletUserActivation", merchantToEdit.walletUserActivation);
+      setValue("address", merchantToEdit.address);
+      setValue("returnCharge", merchantToEdit.returnCharge);
+      setValue("insideCity", merchantToEdit.codCharge.insideCity);
+      setValue("subCity", merchantToEdit.codCharge.subCity);
+      setValue("outsideCity", merchantToEdit.codCharge.outsideCity);
+    }
+  }, [merchantToEdit, setValue]);
 
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
     setLoading(true);
@@ -474,31 +507,58 @@ const CreateMerchantsPage: React.FC = () => {
       },
       openingBalance: data.openingBalance,
       paymentPeriod: data.paymentPeriod,
+      tradeLicense: "", // Initialize as an empty string
+      image: "", // Initialize as an empty string
     };
 
-    // Host tradeLicense
+    // Host tradeLicense if provided
     if (data.tradeLicense.length > 0) {
       const tradeLicensUrl = await hostImage(data.tradeLicense[0]);
       payload.tradeLicense = tradeLicensUrl;
     }
-    // Host image
+
+    // Host image if provided
     if (data.image.length > 0) {
       const imageUrl = await hostImage(data.image[0]);
       payload.image = imageUrl;
     }
 
     try {
-      const res = await axiosSecure.post("/merchant", payload);
-      const responseData = await res.data;
-      if (responseData.success) {
-        toast.success("Successfully Merchant add!");
-      }
-    } catch (err) {
-      console.error(err);
-      if (err instanceof Error) {
-        toast.error(err.message);
+      if (merchantToEdit) {
+        // Update merchant using PATCH method
+        const res = await axios.patch(
+          `https://parcel-management-back-end.vercel.app/api/v1/merchant/${merchantToEdit._id}`,
+          payload
+        );
+        const responseData = res.data;
+        if (responseData.success) {
+          toast.success("Successfully updated merchant!");
+          navigate("/admin/merchants"); // Navigate to the merchants page
+        }
       } else {
-        toast.error("An unknown error occurred.");
+        // Create merchant
+        const res = await axios.post(
+          "https://parcel-management-back-end.vercel.app/api/v1/merchant",
+          payload
+        );
+        const responseData = res.data;
+        if (responseData.success) {
+          toast.success("Successfully created merchant!");
+          navigate("/admin/merchants"); // Navigate to the merchants page
+        }
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response) {
+        // Check if the error is an Axios error and has a response
+        const errorData = err.response.data as {
+          errorSource: Array<{ message: string }>;
+        };
+        errorData.errorSource.forEach((error) => {
+          console.log(error.message);
+        });
+      } else {
+        // Handle other types of errors
+        console.error("An unexpected error occurred:", err);
       }
     }
 
@@ -511,7 +571,9 @@ const CreateMerchantsPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full bg-white rounded-2xl shadow-xl overflow-auto p-8">
         <div className="col-span-2 mb-6 text-center">
-          <h2 className="text-2xl font-bold text-gray-800">Create Merchants</h2>
+          <h2 className="text-2xl font-bold text-gray-800">
+            {merchantToEdit ? "Edit Merchant" : "Create Merchant"}
+          </h2>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -832,7 +894,11 @@ const CreateMerchantsPage: React.FC = () => {
               disabled={loading}
               className="w-full bg-[#d63384] text-white py-2 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-300"
             >
-              {loading ? "Processing..." : "Register"}
+              {loading
+                ? "Processing..."
+                : merchantToEdit
+                ? "Update"
+                : "Register"}
             </button>
           </div>
         </form>

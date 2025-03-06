@@ -1,53 +1,127 @@
 // import { useState } from "react";
 // import { useQuery } from "@tanstack/react-query";
-// import {
-//   FaEllipsisV,
-//   FaEdit,
-//   FaTrash,
-//   FaPlus,
-//   FaSearch,
-//   FaFileInvoice,
-// } from "react-icons/fa";
-// import { fetchMerchantsApi } from "../../services/merchantsApi";
+// import { FaEdit, FaPlus, FaSearch, FaFileInvoice, FaEye } from "react-icons/fa";
+// import axios from "axios";
 // import TablePaginationInfo from "../../../../components/ui/TablePaginationInfo";
 // import TablePagination from "../../../../components/ui/TablePagination";
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow,
+// } from "@/components/ui/table";
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuTrigger,
+// } from "@/components/ui/dropdown-menu";
+// import { Button } from "@/components/ui/button";
+// import { toast } from "react-hot-toast";
+// import { MoreVerticalIcon, Trash } from "lucide-react";
+// import { useNavigate } from "react-router-dom"; // Import useNavigate
+
+// interface Merchant {
+//   _id: string;
+//   businessName: string;
+//   details: string;
+//   phone: string;
+//   status: string;
+//   currentBalance: number;
+//   image: string;
+//   name: string;
+//   email: string;
+//   hub: string;
+// }
+
+// const fetchMerchantsApi = async () => {
+//   try {
+//     const response = await axios.get(
+//       "https://parcel-management-back-end.vercel.app/api/v1/merchant"
+//     );
+//     console.log("API Response:", response.data); // Debugging: Log API response
+//     return response.data.data;
+//   } catch (error) {
+//     console.error("Error fetching merchants:", error); // Debugging: Log API error
+//     throw error;
+//   }
+// };
+
+// const deleteMerchantApi = async (merchantId: string) => {
+//   try {
+//     const response = await axios.delete(
+//       `https://parcel-management-back-end.vercel.app/api/v1/merchant/${merchantId}`
+//     );
+//     console.log("Delete API Response:", response.data); // Debugging: Log delete API response
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error deleting merchant:", error); // Debugging: Log delete API error
+//     throw error;
+//   }
+// };
 
 // const MerchantsPage = () => {
-//   // Fetch merchants using TanStack Query
 //   const {
 //     data: merchants = [],
 //     isLoading,
 //     isError,
+//     refetch,
 //   } = useQuery({
 //     queryKey: ["merchants"],
 //     queryFn: fetchMerchantsApi,
 //   });
 
-//   // State for dropdown actions, search term, and pagination (1-based page numbering)
-//   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-//   const [searchTerm, setSearchTerm] = useState<string>("");
-//   const [currentPage, setCurrentPage] = useState<number>(1);
-//   const pageSize = 10; // Adjust the page size as needed
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [currentPage, setCurrentPage] = useState(1);
+//   const [isLoadingForm, setIsLoadingForm] = useState(false);
+//   const pageSize = 10;
 
-//   // Filter merchants based on the search term
+//   const navigate = useNavigate(); // Get the navigate function
+
 //   const filteredMerchants = merchants.filter(
-//     (merchant) =>
+//     (merchant: Merchant) =>
 //       merchant.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
 //       merchant.details.toLowerCase().includes(searchTerm.toLowerCase()) ||
 //       merchant.phone.includes(searchTerm)
 //   );
 
-//   // Calculate total pages
 //   const totalPages = Math.ceil(filteredMerchants.length / pageSize) || 1;
-//   // Determine current page data using 1-based page numbering
 //   const startIndex = (currentPage - 1) * pageSize;
 //   const currentData = filteredMerchants.slice(
 //     startIndex,
 //     startIndex + pageSize
 //   );
 
-//   const handleCreateMerchant = () => {
-//     alert("Create Merchant button clicked!");
+//   const handleDelete = async (merchantId: string) => {
+//     setIsLoadingForm(true);
+//     try {
+//       await deleteMerchantApi(merchantId);
+//       toast.success("Merchant deleted successfully");
+//       refetch();
+//     } catch (error) {
+//       console.error("Delete Merchant Error:", error); // Debugging: Log delete error
+//       toast.error("Failed to delete merchant");
+//     } finally {
+//       setIsLoadingForm(false);
+//     }
+//   };
+
+//   const handleEdit = (merchant) => {
+//     navigate("/admin/create-merchants", { state: { merchant } });
+//   };
+
+//   const handleGenerateInvoice = (merchant) => {
+//     // Implement generate invoice logic here
+//     console.log("Generate Invoice for:", merchant.businessName); // Debugging: Log invoice generation
+//     toast.success(`Invoice generated for ${merchant.businessName}`);
+//   };
+
+//   const handleView = (merchant) => {
+//     // Implement view logic here
+//     console.log("View Details for:", merchant.businessName); // Debugging: Log view details
+//     toast.info(`Viewing details for ${merchant.businessName}`);
 //   };
 
 //   if (isLoading) {
@@ -59,11 +133,10 @@
 //   }
 
 //   return (
-//     <div className="p-6 bg-white rounded-lg shadow-lg">
-//       {/* Header, search and create merchant button */}
-//       <div className="flex justify-between items-center mb-4">
-//         <h2 className="text-xl font-semibold text-gray-900">Merchant List</h2>
-//         <div className="flex justify-center">
+//     <div className="container mx-auto p-4">
+//       <div className="bg-white p-6 rounded-lg shadow-md">
+//         <div className="flex justify-between items-center mb-4">
+//           <h2 className="text-xl font-semibold text-gray-900">Merchant List</h2>
 //           <div className="relative w-80% max-w-md">
 //             <input
 //               type="text"
@@ -71,118 +144,134 @@
 //               value={searchTerm}
 //               onChange={(e) => {
 //                 setSearchTerm(e.target.value);
-//                 // Reset to first page on search change
 //                 setCurrentPage(1);
 //               }}
 //               className="p-2 pl-10 pr-4 border rounded-md bg-gray-50 w-full"
 //             />
 //             <FaSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500" />
 //           </div>
+//           <Button
+//             variant="default"
+//             onClick={() => navigate("/admin/create-merchants")} // Navigate to the create merchant page
+//             className="flex items-center gap-2"
+//             disabled={isLoadingForm}
+//           >
+//             <FaPlus className="h-4 w-4" />
+//             <span>Create Merchant</span>
+//           </Button>
 //         </div>
-//         <button
-//           onClick={handleCreateMerchant}
-//           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-//         >
-//           <FaPlus className="mr-2" /> Create Merchant
-//         </button>
-//       </div>
 
-//       {/* Merchants table */}
-//       <div className="overflow-x-auto">
-//         <table className="w-full border border-gray-200">
-//           <thead className="bg-gray-100 text-gray-600">
-//             <tr>
-//               <th className="p-3 text-left">SL</th>
-//               <th className="p-3 text-left">Details</th>
-//               <th className="p-3 text-left">Hub</th>
-//               <th className="p-3 text-left">Business Name</th>
-//               <th className="p-3 text-left">Unique ID</th>
-//               <th className="p-3 text-left">Phone</th>
-//               <th className="p-3 text-left">Status</th>
-//               <th className="p-3 text-left">Current Balance</th>
-//               <th className="p-3 text-left">Actions</th>
-//             </tr>
-//           </thead>
-//           <tbody className="text-gray-900">
-//             {currentData.map((merchant, index) => (
-//               <tr key={merchant.id} className="border-t border-gray-200">
-//                 <td className="p-3">{startIndex + index + 1}</td>
-//                 <td className="p-3 flex items-center">
-//                   <img
-//                     src={merchant.avatar}
-//                     alt="Avatar"
-//                     className="w-8 h-8 rounded-full mr-3"
-//                   />
-//                   {merchant.details}
-//                 </td>
-//                 <td className="p-3">{merchant.hub}</td>
-//                 <td className="p-3">{merchant.businessName}</td>
-//                 <td className="p-3">{merchant.uniqueId}</td>
-//                 <td className="p-3">{merchant.phone}</td>
-//                 <td className="p-3">
-//                   <span
-//                     className={`px-3 py-1 text-xs font-semibold rounded-full ${
-//                       merchant.status === "Active"
-//                         ? "bg-green-200 text-green-800"
-//                         : "bg-red-200 text-red-800"
-//                     }`}
-//                   >
-//                     {merchant.status}
-//                   </span>
-//                 </td>
-//                 <td className="p-3">{merchant.currentBalance}</td>
-//                 <td className="p-3 relative">
-//                   <button
-//                     className="p-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
-//                     onClick={() =>
-//                       setOpenDropdown(
-//                         openDropdown === merchant.id ? null : merchant.id
-//                       )
-//                     }
-//                   >
-//                     <FaEllipsisV />
-//                   </button>
-//                   {openDropdown === merchant.id && (
-//                     <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-//                       <button className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100">
-//                         <FaFileInvoice className="mr-2" /> Generate Invoice
-//                       </button>
-//                       <button className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100">
-//                         <FaSearch className="mr-2" /> View
-//                       </button>
-//                       <button className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100">
-//                         <FaEdit className="mr-2" /> Edit
-//                       </button>
-//                       <button className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-100">
-//                         <FaTrash className="mr-2" /> Delete
-//                       </button>
+//         <div className="overflow-x-auto">
+//           <Table>
+//             <TableHeader>
+//               <TableRow>
+//                 <TableHead className="p-3 text-left">SL</TableHead>
+//                 <TableHead className="p-3 text-left">Details</TableHead>
+//                 <TableHead className="p-3 text-left">Hub</TableHead>
+//                 <TableHead className="p-3 text-left">Business Name</TableHead>
+//                 <TableHead className="p-3 text-left">Unique ID</TableHead>
+//                 <TableHead className="p-3 text-left">Phone</TableHead>
+//                 <TableHead className="p-3 text-left">Status</TableHead>
+//                 <TableHead className="p-3 text-left">Current Balance</TableHead>
+//                 <TableHead className="p-3 text-left">Actions</TableHead>
+//               </TableRow>
+//             </TableHeader>
+//             <TableBody>
+//               {currentData.map((merchant, index) => (
+//                 <TableRow
+//                   key={merchant._id}
+//                   className="border-t border-gray-200"
+//                 >
+//                   <TableCell className="p-3">
+//                     {startIndex + index + 1}
+//                   </TableCell>
+//                   <TableCell className="p-3 flex items-center">
+//                     <div>
+//                       <img
+//                         src={merchant.image}
+//                         alt="Avatar"
+//                         className="w-8 h-8 rounded-full mr-3"
+//                       />
+//                       <p className="font-semibold text-xs">{merchant.name}</p>
+//                       <p className="text-xs">{merchant.email}</p>
 //                     </div>
-//                   )}
-//                 </td>
-//               </tr>
-//             ))}
-//           </tbody>
-//         </table>
-//       </div>
+//                   </TableCell>
+//                   <TableCell className="p-3">{merchant.hub}</TableCell>
+//                   <TableCell className="p-3">{merchant.businessName}</TableCell>
+//                   <TableCell className="p-3">{merchant._id}</TableCell>
+//                   <TableCell className="p-3">{merchant.phone}</TableCell>
+//                   <TableCell className="p-3">
+//                     <span
+//                       className={`px-3 py-1 text-xs font-semibold rounded-full ${
+//                         merchant.status === "Active"
+//                           ? "bg-green-200 text-green-800"
+//                           : "bg-red-200 text-red-800"
+//                       }`}
+//                     >
+//                       {merchant.status}
+//                     </span>
+//                   </TableCell>
+//                   <TableCell className="p-3">
+//                     {merchant.currentBalance}
+//                   </TableCell>
+//                   <TableCell className="p-3 relative">
+//                     <DropdownMenu>
+//                       <DropdownMenuTrigger asChild>
+//                         <button className="p-1 bg-gray-200 text-white rounded-full">
+//                           <MoreVerticalIcon className="h-4 w-4 text-gray-800" />
+//                         </button>
+//                       </DropdownMenuTrigger>
+//                       <DropdownMenuContent className="w-32">
+//                         <DropdownMenuItem
+//                           className="flex items-center text-sm hover:bg-gray-100"
+//                           onClick={() => handleGenerateInvoice(merchant)}
+//                         >
+//                           <FaFileInvoice className="mr-2" /> Generate Invoice
+//                         </DropdownMenuItem>
+//                         <DropdownMenuItem
+//                           className="flex items-center text-sm hover:bg-gray-100"
+//                           onClick={() => handleView(merchant)}
+//                         >
+//                           <FaEye className="mr-2" /> View
+//                         </DropdownMenuItem>
+//                         <DropdownMenuItem
+//                           className="flex items-center text-sm hover:bg-gray-100"
+//                           onClick={() => handleEdit(merchant)}
+//                         >
+//                           <FaEdit className="mr-2" /> Edit
+//                         </DropdownMenuItem>
+//                         <DropdownMenuItem
+//                           className="focus:text-white focus:bg-red-500 flex items-center text-sm text-red-600 hover:bg-gray-100"
+//                           onClick={() => handleDelete(merchant._id)}
+//                         >
+//                           <Trash className="mr-2 focus:text-red-500" /> Delete
+//                         </DropdownMenuItem>
+//                       </DropdownMenuContent>
+//                     </DropdownMenu>
+//                   </TableCell>
+//                 </TableRow>
+//               ))}
+//             </TableBody>
+//           </Table>
+//         </div>
 
-//       {/* Pagination controls and information */}
-//       <div className="flex flex-col md:flex-row justify-between items-center mt-4 space-y-2 md:space-y-0">
-//         <TablePaginationInfo
-//           startIndex={startIndex}
-//           pageSize={pageSize}
-//           totalEntries={filteredMerchants.length}
-//           currentDataLength={currentData.length}
-//         />
-
-//         <TablePagination
-//           currentPage={currentPage}
-//           totalPages={totalPages}
-//           onPageChange={(page) => setCurrentPage(page)}
-//           onPrevPage={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-//           onNextPage={() =>
-//             setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-//           }
-//         />
+//         <div className="flex flex-col sm:flex-row justify-between items-center mt-6 space-y-4 sm:space-y-0">
+//           <TablePaginationInfo
+//             startIndex={startIndex}
+//             pageSize={pageSize}
+//             totalEntries={filteredMerchants.length}
+//             currentDataLength={currentData.length}
+//           />
+//           <TablePagination
+//             currentPage={currentPage}
+//             totalPages={totalPages}
+//             onPageChange={(page) => setCurrentPage(page)}
+//             onPrevPage={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+//             onNextPage={() =>
+//               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+//             }
+//           />
+//         </div>
 //       </div>
 //     </div>
 //   );
@@ -191,52 +280,129 @@
 // export default MerchantsPage;
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
-import {
-  FaEllipsisV,
-  FaEdit,
-  FaTrash,
-  FaPlus,
-  FaSearch,
-  FaFileInvoice,
-} from "react-icons/fa";
-import { fetchMerchantsApi } from "../../services/merchantsApi";
+import { FaEdit, FaPlus, FaSearch, FaFileInvoice, FaEye } from "react-icons/fa";
+import axios from "axios";
 import TablePaginationInfo from "../../../../components/ui/TablePaginationInfo";
 import TablePagination from "../../../../components/ui/TablePagination";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { toast } from "react-hot-toast";
+import { MoreVerticalIcon, Trash } from "lucide-react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+
+interface Merchant {
+  _id: string;
+  businessName: string;
+  details: string;
+  phone: string;
+  status: string;
+  currentBalance: number;
+  image: string;
+  name: string;
+  email: string;
+  hub: string;
+}
+
+const fetchMerchantsApi = async (): Promise<Merchant[]> => {
+  try {
+    const response = await axios.get(
+      "https://parcel-management-back-end.vercel.app/api/v1/merchant"
+    );
+    console.log("API Response:", response.data); // Debugging: Log API response
+    return response.data.data;
+  } catch (error) {
+    console.error("Error fetching merchants:", error); // Debugging: Log API error
+    throw error;
+  }
+};
+
+const deleteMerchantApi = async (merchantId: string) => {
+  try {
+    const response = await axios.delete(
+      `https://parcel-management-back-end.vercel.app/api/v1/merchant/${merchantId}`
+    );
+    console.log("Delete API Response:", response.data); // Debugging: Log delete API response
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting merchant:", error); // Debugging: Log delete API error
+    throw error;
+  }
+};
 
 const MerchantsPage = () => {
-  // Fetch merchants using TanStack Query
   const {
     data: merchants = [],
     isLoading,
     isError,
-  } = useQuery({
+    refetch,
+  } = useQuery<Merchant[]>({
     queryKey: ["merchants"],
     queryFn: fetchMerchantsApi,
   });
 
-  // State for dropdown actions, search term, and pagination (1-based page numbering)
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 10; // Adjust the page size as needed
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingForm, setIsLoadingForm] = useState(false);
+  const pageSize = 10;
 
-  // Filter merchants based on the search term
+  const navigate = useNavigate(); // Get the navigate function
+
   const filteredMerchants = merchants.filter(
-    (merchant) =>
+    (merchant: Merchant) =>
       merchant.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       merchant.details.toLowerCase().includes(searchTerm.toLowerCase()) ||
       merchant.phone.includes(searchTerm)
   );
 
-  // Calculate total pages
   const totalPages = Math.ceil(filteredMerchants.length / pageSize) || 1;
-  // Determine current page data using 1-based page numbering
   const startIndex = (currentPage - 1) * pageSize;
   const currentData = filteredMerchants.slice(
     startIndex,
     startIndex + pageSize
   );
+
+  const handleDelete = async (merchantId: string) => {
+    setIsLoadingForm(true);
+    try {
+      await deleteMerchantApi(merchantId);
+      toast.success("Merchant deleted successfully");
+      refetch();
+    } catch (error) {
+      console.error("Delete Merchant Error:", error); // Debugging: Log delete error
+      toast.error("Failed to delete merchant");
+    } finally {
+      setIsLoadingForm(false);
+    }
+  };
+
+  const handleEdit = (merchant: Merchant) => {
+    navigate("/admin/create-merchants", { state: { merchant } });
+  };
+
+  const handleGenerateInvoice = (merchant: Merchant) => {
+    // Implement generate invoice logic here
+    console.log("Generate Invoice for:", merchant.businessName); // Debugging: Log invoice generation
+    toast.success(`Invoice generated for ${merchant.businessName}`);
+  };
+
+  const handleView = (merchant: Merchant) => {
+    // Implement view logic here
+    console.log("View Details for:", merchant.businessName); // Debugging: Log view details
+    // toast.info(`Viewing details for ${merchant.businessName}`);
+  };
 
   if (isLoading) {
     return <div className="p-6">Loading merchants...</div>;
@@ -247,11 +413,10 @@ const MerchantsPage = () => {
   }
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-lg">
-      {/* Header, search and create merchant link */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">Merchant List</h2>
-        <div className="flex justify-center">
+    <div className="container mx-auto p-4">
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-900">Merchant List</h2>
           <div className="relative w-80% max-w-md">
             <input
               type="text"
@@ -259,118 +424,134 @@ const MerchantsPage = () => {
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                // Reset to first page on search change
                 setCurrentPage(1);
               }}
               className="p-2 pl-10 pr-4 border rounded-md bg-gray-50 w-full"
             />
             <FaSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500" />
           </div>
+          <Button
+            variant="default"
+            onClick={() => navigate("/admin/create-merchants")} // Navigate to the create merchant page
+            className="flex items-center gap-2"
+            disabled={isLoadingForm}
+          >
+            <FaPlus className="h-4 w-4" />
+            <span>Create Merchant</span>
+          </Button>
         </div>
-        <Link
-          to="/admin/create-merchant"
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-        >
-          <FaPlus className="mr-2" /> Create Merchant
-        </Link>
-      </div>
 
-      {/* Merchants table */}
-      <div className="overflow-x-auto">
-        <table className="w-full border border-gray-200">
-          <thead className="bg-gray-100 text-gray-600">
-            <tr>
-              <th className="p-3 text-left">SL</th>
-              <th className="p-3 text-left">Details</th>
-              <th className="p-3 text-left">Hub</th>
-              <th className="p-3 text-left">Business Name</th>
-              <th className="p-3 text-left">Unique ID</th>
-              <th className="p-3 text-left">Phone</th>
-              <th className="p-3 text-left">Status</th>
-              <th className="p-3 text-left">Current Balance</th>
-              <th className="p-3 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="text-gray-900">
-            {currentData.map((merchant, index) => (
-              <tr key={merchant.id} className="border-t border-gray-200">
-                <td className="p-3">{startIndex + index + 1}</td>
-                <td className="p-3 flex items-center">
-                  <img
-                    src={merchant.avatar}
-                    alt="Avatar"
-                    className="w-8 h-8 rounded-full mr-3"
-                  />
-                  {merchant.details}
-                </td>
-                <td className="p-3">{merchant.hub}</td>
-                <td className="p-3">{merchant.businessName}</td>
-                <td className="p-3">{merchant.uniqueId}</td>
-                <td className="p-3">{merchant.phone}</td>
-                <td className="p-3">
-                  <span
-                    className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                      merchant.status === "Active"
-                        ? "bg-green-200 text-green-800"
-                        : "bg-red-200 text-red-800"
-                    }`}
-                  >
-                    {merchant.status}
-                  </span>
-                </td>
-                <td className="p-3">{merchant.currentBalance}</td>
-                <td className="p-3 relative">
-                  <button
-                    className="p-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
-                    onClick={() =>
-                      setOpenDropdown(
-                        openDropdown === merchant.id ? null : merchant.id
-                      )
-                    }
-                  >
-                    <FaEllipsisV />
-                  </button>
-                  {openDropdown === merchant.id && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                      <button className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100">
-                        <FaFileInvoice className="mr-2" /> Generate Invoice
-                      </button>
-                      <button className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100">
-                        <FaSearch className="mr-2" /> View
-                      </button>
-                      <button className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100">
-                        <FaEdit className="mr-2" /> Edit
-                      </button>
-                      <button className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-100">
-                        <FaTrash className="mr-2" /> Delete
-                      </button>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="p-3 text-left">SL</TableHead>
+                <TableHead className="p-3 text-left">Details</TableHead>
+                <TableHead className="p-3 text-left">Hub</TableHead>
+                <TableHead className="p-3 text-left">Business Name</TableHead>
+                <TableHead className="p-3 text-left">Unique ID</TableHead>
+                <TableHead className="p-3 text-left">Phone</TableHead>
+                <TableHead className="p-3 text-left">Status</TableHead>
+                <TableHead className="p-3 text-left">Current Balance</TableHead>
+                <TableHead className="p-3 text-left">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {currentData.map((merchant, index) => (
+                <TableRow
+                  key={merchant._id}
+                  className="border-t border-gray-200"
+                >
+                  <TableCell className="p-3">
+                    {startIndex + index + 1}
+                  </TableCell>
+                  <TableCell className="p-3 flex items-center">
+                    <div>
+                      <img
+                        src={merchant.image}
+                        alt="Avatar"
+                        className="w-8 h-8 rounded-full mr-3"
+                      />
+                      <p className="font-semibold text-xs">{merchant.name}</p>
+                      <p className="text-xs">{merchant.email}</p>
                     </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  </TableCell>
+                  <TableCell className="p-3">{merchant.hub}</TableCell>
+                  <TableCell className="p-3">{merchant.businessName}</TableCell>
+                  <TableCell className="p-3">{merchant._id}</TableCell>
+                  <TableCell className="p-3">{merchant.phone}</TableCell>
+                  <TableCell className="p-3">
+                    <span
+                      className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                        merchant.status === "Active"
+                          ? "bg-green-200 text-green-800"
+                          : "bg-red-200 text-red-800"
+                      }`}
+                    >
+                      {merchant.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="p-3">
+                    {merchant.currentBalance}
+                  </TableCell>
+                  <TableCell className="p-3 relative">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="p-1 bg-gray-200 text-white rounded-full">
+                          <MoreVerticalIcon className="h-4 w-4 text-gray-800" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-32">
+                        <DropdownMenuItem
+                          className="flex items-center text-sm hover:bg-gray-100"
+                          onClick={() => handleGenerateInvoice(merchant)}
+                        >
+                          <FaFileInvoice className="mr-2" /> Generate Invoice
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="flex items-center text-sm hover:bg-gray-100"
+                          onClick={() => handleView(merchant)}
+                        >
+                          <FaEye className="mr-2" /> View
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="flex items-center text-sm hover:bg-gray-100"
+                          onClick={() => handleEdit(merchant)}
+                        >
+                          <FaEdit className="mr-2" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="focus:text-white focus:bg-red-500 flex items-center text-sm text-red-600 hover:bg-gray-100"
+                          onClick={() => handleDelete(merchant._id)}
+                        >
+                          <Trash className="mr-2 focus:text-red-500" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
 
-      {/* Pagination controls and information */}
-      <div className="flex flex-col md:flex-row justify-between items-center mt-4 space-y-2 md:space-y-0">
-        <TablePaginationInfo
-          startIndex={startIndex}
-          pageSize={pageSize}
-          totalEntries={filteredMerchants.length}
-          currentDataLength={currentData.length}
-        />
-
-        <TablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={(page) => setCurrentPage(page)}
-          onPrevPage={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          onNextPage={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
-        />
+        <div className="flex flex-col sm:flex-row justify-between items-center mt-6 space-y-4 sm:space-y-0">
+          <TablePaginationInfo
+            startIndex={startIndex}
+            pageSize={pageSize}
+            totalEntries={filteredMerchants.length}
+            currentDataLength={currentData.length}
+          />
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+            onPrevPage={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            onNextPage={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+          />
+        </div>
       </div>
     </div>
   );

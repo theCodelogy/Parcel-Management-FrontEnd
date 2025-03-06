@@ -34,11 +34,14 @@
 //   Currency,
 //   DatabaseBackup,
 //   Link,
+//   ChevronDown, // used for dropdown indication
+//   Edit, // used for edit actions
+//   Plus, // used for create actions
 // } from "lucide-react";
 
-// import Branch from "../features/admin/pages/branch-manage/Branch";
+// import Branch from "../features/admin/pages/branch-manage/BranchPage";
 // import BranchPayments from "../features/admin/pages/branch-manage/BranchPaymentsListPage";
-// import DeliveryMan from "../features/admin/pages/DeliveryMan";
+// import DeliveryMan from "../features/admin/pages/DeliveryManPage";
 // import Merchants from "../features/admin/pages/merchant-manage/MerchantsPage";
 // import Payment from "../features/admin/pages/merchant-manage/Payment";
 // import TodoList from "../features/admin/pages/TodoListPage";
@@ -97,7 +100,6 @@
 // import LogsDashboard from "../features/admin/components/LogsDashboard";
 // import CreateDeliveryMan from "../features/admin/pages/CreateDeliveryManPage";
 // import CreateMerchantsPage from "../features/admin/pages/merchant-manage/CreateMerchantsPage";
-// import CreateCategoryPage from "../features/admin/pages/setting/CreateCategoryPage";
 
 // export interface RouteItem {
 //   label: string;
@@ -105,6 +107,8 @@
 //   element?: React.ReactNode;
 //   children?: RouteItem[];
 //   icon?: React.FC<React.SVGProps<SVGSVGElement>>;
+//   // New property for an extra or related icon (e.g. dropdown indicator)
+//   relatedIcon?: React.FC<React.SVGProps<SVGSVGElement>>;
 // }
 
 // export const adminRoutes: RouteItem[] = [
@@ -118,6 +122,7 @@
 //     label: "Delivery Man",
 //     path: "delivery-man",
 //     icon: Truck,
+//     relatedIcon: ChevronDown,
 //     children: [
 //       {
 //         label: "Delivery Man",
@@ -137,6 +142,7 @@
 //     label: "Branch Manage",
 //     path: "branch-manage",
 //     icon: Building2,
+//     relatedIcon: ChevronDown,
 //     children: [
 //       {
 //         label: "Branch",
@@ -152,11 +158,11 @@
 //       },
 //     ],
 //   },
-
 //   {
 //     label: "Merchant Manage",
 //     path: "merchant-manage",
 //     icon: Users,
+//     relatedIcon: ChevronDown,
 //     children: [
 //       {
 //         label: "Merchants",
@@ -224,18 +230,19 @@
 //     label: "Pickup Request",
 //     path: "pickup-request",
 //     icon: PackagePlus,
+//     relatedIcon: ChevronDown,
 //     children: [
 //       {
 //         label: "Regular",
 //         path: "regular",
 //         element: <PickupRegular />,
-//         icon: Clock, // scheduled pickup
+//         icon: Clock,
 //       },
 //       {
 //         label: "Express",
 //         path: "express",
 //         element: <PickupExpress />,
-//         icon: Truck, // express service indicated by truck icon
+//         icon: Truck,
 //       },
 //     ],
 //   },
@@ -267,6 +274,7 @@
 //     label: "Accounts",
 //     path: "accounts",
 //     icon: Folder,
+//     relatedIcon: ChevronDown,
 //     children: [
 //       {
 //         label: "Account Heads",
@@ -310,6 +318,7 @@
 //     label: "Users & Roles",
 //     path: "users-roles",
 //     icon: UserCheck,
+//     relatedIcon: ChevronDown,
 //     children: [
 //       {
 //         label: "Roles",
@@ -341,6 +350,7 @@
 //     label: "Payroll",
 //     path: "payroll",
 //     icon: ClipboardCheck,
+//     relatedIcon: ChevronDown,
 //     children: [
 //       {
 //         label: "Salary Generate",
@@ -360,6 +370,7 @@
 //     label: "Reports",
 //     path: "reports",
 //     icon: BarChart2,
+//     relatedIcon: ChevronDown,
 //     children: [
 //       {
 //         label: "Parcel Status Reports",
@@ -409,12 +420,13 @@
 //     label: "Front Web",
 //     path: "front-web",
 //     icon: Globe,
+//     relatedIcon: ChevronDown,
 //     children: [
 //       {
 //         label: "Social Link",
 //         path: "social-link",
 //         element: <SocialLink />,
-//         icon: Link, // using Link for social connections
+//         icon: Link,
 //       },
 //       {
 //         label: "Service",
@@ -464,6 +476,7 @@
 //     label: "Setting",
 //     path: "setting",
 //     icon: Settings,
+//     relatedIcon: ChevronDown,
 //     children: [
 //       {
 //         label: "General Settings",
@@ -477,18 +490,7 @@
 //         element: <DeliveryCategory />,
 //         icon: Tag,
 //       },
-//       {
-//         label: "Create Category",
-//         path: "create-category",
-//         element: <CreateCategoryPage />,
-//         icon: Tag,
-//       },
-//       {
-//         label: "Edit Category",
-//         path: "create-category",
-//         element: <CreateCategoryPage />,
-//         icon: Tag,
-//       },
+
 //       {
 //         label: "Delivery Charge",
 //         path: "delivery-charge",
@@ -497,15 +499,15 @@
 //       },
 //       {
 //         label: "Create Delivery Charge",
-//         path: "delivery-charge",
+//         path: "create-delivery-charge", // updated path
 //         element: <DeliveryCharge />,
-//         icon: DollarSign,
+//         icon: Plus, // using Plus icon for creation
 //       },
 //       {
 //         label: "Edit Delivery Charge",
-//         path: "delivery-charge",
+//         path: "edit-delivery-charge", // updated path for editing
 //         element: <DeliveryCharge />,
-//         icon: DollarSign,
+//         icon: Edit, // using Edit icon here
 //       },
 //       {
 //         label: "Delivery Type",
@@ -588,48 +590,9 @@
 //     ],
 //   },
 // ];
-import React from "react";
-import {
-  Home,
-  Truck,
-  Building2,
-  Building,
-  CreditCard,
-  ListTodo,
-  Users,
-  UserPlus,
-  MessageSquare,
-  Package,
-  Tag,
-  Clock,
-  ShieldAlert,
-  Bell,
-  PackagePlus,
-  Database,
-  Wallet,
-  DollarSign,
-  ArrowDownRight,
-  ArrowUpRight,
-  Send,
-  Folder,
-  FileBox,
-  Puzzle,
-  BellRing,
-  UserCheck,
-  ClipboardCheck,
-  BarChart2,
-  Globe,
-  Section,
-  Settings,
-  Currency,
-  DatabaseBackup,
-  Link,
-  ChevronDown, // used for dropdown indication
-  Edit,        // used for edit actions
-  Plus,        // used for create actions
-} from "lucide-react";
 
-import Branch from "../features/admin/pages/branch-manage/Branch";
+import React from "react";
+import Branch from "../features/admin/pages/branch-manage/BranchPage";
 import BranchPayments from "../features/admin/pages/branch-manage/BranchPaymentsListPage";
 import DeliveryMan from "../features/admin/pages/DeliveryManPage";
 import Merchants from "../features/admin/pages/merchant-manage/MerchantsPage";
@@ -690,504 +653,325 @@ import InvoiceGenerate from "../features/admin/pages/setting/InvoiceGenerate";
 import LogsDashboard from "../features/admin/components/LogsDashboard";
 import CreateDeliveryMan from "../features/admin/pages/CreateDeliveryManPage";
 import CreateMerchantsPage from "../features/admin/pages/merchant-manage/CreateMerchantsPage";
-import CreateCategoryPage from "../features/admin/pages/setting/CreateCategoryPage";
 
 export interface RouteItem {
-  label: string;
   path: string;
   element?: React.ReactNode;
   children?: RouteItem[];
-  icon?: React.FC<React.SVGProps<SVGSVGElement>>;
-  // New property for an extra or related icon (e.g. dropdown indicator)
-  relatedIcon?: React.FC<React.SVGProps<SVGSVGElement>>;
 }
 
 export const adminRoutes: RouteItem[] = [
   {
-    label: "Dashboard",
     path: "dashboard",
     element: <AdminDashboard />,
-    icon: Home,
   },
   {
-    label: "Delivery Man",
     path: "delivery-man",
-    icon: Truck,
-    relatedIcon: ChevronDown,
     children: [
       {
-        label: "Delivery Man",
         path: "delivery-man",
         element: <DeliveryMan />,
-        icon: Truck,
       },
       {
-        label: "Create Delivery Man",
         path: "create-delivery-man",
         element: <CreateDeliveryMan />,
-        icon: CreditCard,
       },
     ],
   },
   {
-    label: "Branch Manage",
     path: "branch-manage",
-    icon: Building2,
-    relatedIcon: ChevronDown,
     children: [
       {
-        label: "Branch",
         path: "branch",
         element: <Branch />,
-        icon: Building,
       },
       {
-        label: "Payments",
         path: "payments",
         element: <BranchPayments />,
-        icon: CreditCard,
       },
     ],
   },
   {
-    label: "Merchant Manage",
     path: "merchant-manage",
-    icon: Users,
-    relatedIcon: ChevronDown,
     children: [
       {
-        label: "Merchants",
         path: "merchants",
         element: <Merchants />,
-        icon: UserPlus,
       },
       {
-        label: "Create Merchants",
         path: "create-merchants",
         element: <CreateMerchantsPage />,
-        icon: UserPlus,
       },
       {
-        label: "Payments",
         path: "merchant-payment",
         element: <Payment />,
-        icon: CreditCard,
       },
     ],
   },
   {
-    label: "Todo List",
     path: "todo-list",
     element: <TodoList />,
-    icon: ListTodo,
   },
   {
-    label: "Ticket",
     path: "ticket",
     element: <Ticket />,
-    icon: MessageSquare,
   },
   {
-    label: "Parcels",
     path: "parcels",
     element: <Parcels />,
-    icon: Package,
   },
   {
-    label: "Offers",
     path: "offers",
     element: <Offers />,
-    icon: Tag,
   },
   {
-    label: "Active Logs",
     path: "active-logs",
     element: <LogsDashboard />,
-    icon: Clock,
   },
   {
-    label: "Deception Check",
     path: "deception-check",
     element: <DeceptionCheck />,
-    icon: ShieldAlert,
   },
   {
-    label: "Subscribe",
     path: "subscribe",
     element: <Subscribe />,
-    icon: Bell,
   },
   {
-    label: "Pickup Request",
     path: "pickup-request",
-    icon: PackagePlus,
-    relatedIcon: ChevronDown,
     children: [
       {
-        label: "Regular",
         path: "regular",
         element: <PickupRegular />,
-        icon: Clock,
       },
       {
-        label: "Express",
         path: "express",
         element: <PickupExpress />,
-        icon: Truck,
       },
     ],
   },
   {
-    label: "Assets",
     path: "assets",
     element: <Assets />,
-    icon: Database,
   },
   {
-    label: "Wallet Request",
     path: "wallet-request",
     element: <WalletRequest />,
-    icon: Wallet,
   },
   {
-    label: "Payment Received",
     path: "payment-received",
     element: <PaymentReceived />,
-    icon: DollarSign,
   },
   {
-    label: "Payout",
     path: "payout",
     element: <Payout />,
-    icon: DollarSign,
   },
   {
-    label: "Accounts",
     path: "accounts",
-    icon: Folder,
-    relatedIcon: ChevronDown,
     children: [
       {
-        label: "Account Heads",
         path: "account-heads",
         element: <AccountHeads />,
-        icon: FileBox,
       },
       {
-        label: "Accounts",
         path: "accounts-list",
         element: <AccountsList />,
-        icon: Folder,
       },
       {
-        label: "Fund Transfer",
         path: "fund-transfer",
         element: <FundTransfer />,
-        icon: Send,
       },
       {
-        label: "Income",
         path: "income",
         element: <Income />,
-        icon: ArrowUpRight,
       },
       {
-        label: "Expense",
         path: "expense",
         element: <Expense />,
-        icon: ArrowDownRight,
       },
       {
-        label: "Paid Invoice",
         path: "paid-invoice",
         element: <PaidInvoice />,
-        icon: ArrowDownRight,
       },
     ],
   },
   {
-    label: "Users & Roles",
     path: "users-roles",
-    icon: UserCheck,
-    relatedIcon: ChevronDown,
     children: [
       {
-        label: "Roles",
         path: "roles",
         element: <Roles />,
-        icon: ShieldAlert,
       },
       {
-        label: "Designations",
         path: "designations",
         element: <Designations />,
-        icon: UserPlus,
       },
       {
-        label: "Departments",
         path: "departments",
         element: <Departments />,
-        icon: Building2,
       },
       {
-        label: "Users",
         path: "users",
         element: <UsersRole />,
-        icon: Users,
       },
     ],
   },
   {
-    label: "Payroll",
     path: "payroll",
-    icon: ClipboardCheck,
-    relatedIcon: ChevronDown,
     children: [
       {
-        label: "Salary Generate",
         path: "salary-generate",
         element: <SalaryGenerate />,
-        icon: DollarSign,
       },
       {
-        label: "Salary",
         path: "salary",
         element: <Salary />,
-        icon: Wallet,
       },
     ],
   },
   {
-    label: "Reports",
     path: "reports",
-    icon: BarChart2,
-    relatedIcon: ChevronDown,
     children: [
       {
-        label: "Parcel Status Reports",
         path: "parcel-status-reports",
         element: <ParcelStatusReports />,
-        icon: Package,
       },
       {
-        label: "Parcel Wise Profit",
         path: "parcel-wise-profit",
         element: <ParcelWiseProfit />,
-        icon: DollarSign,
       },
       {
-        label: "Salary Reports",
         path: "salary-reports",
         element: <SalaryReports />,
-        icon: ClipboardCheck,
       },
       {
-        label: "Merchant/Branch/deliveryman",
         path: "merchant-branch-deliveryman",
         element: <MerchantBranchDeliveryman />,
-        icon: Users,
       },
       {
-        label: "Total summery",
         path: "total-summery",
         element: <TotalSummery />,
-        icon: BarChart2,
       },
     ],
   },
   {
-    label: "Push Notification",
     path: "push-notification",
     element: <PushNotification />,
-    icon: BellRing,
   },
   {
-    label: "Addons",
     path: "addons",
     element: <Addons />,
-    icon: Puzzle,
   },
   {
-    label: "Front Web",
     path: "front-web",
-    icon: Globe,
-    relatedIcon: ChevronDown,
     children: [
       {
-        label: "Social Link",
         path: "social-link",
         element: <SocialLink />,
-        icon: Link,
       },
       {
-        label: "Service",
         path: "service",
         element: <Service />,
-        icon: Settings,
       },
       {
-        label: "Why Courier",
         path: "why-courier",
         element: <WhyCourier />,
-        icon: Truck,
       },
       {
-        label: "FAQ",
         path: "faq",
         element: <Faq />,
-        icon: MessageSquare,
       },
       {
-        label: "Partner",
         path: "partner",
         element: <Partner />,
-        icon: Users,
       },
       {
-        label: "Blogs",
         path: "blogs",
         element: <Blogs />,
-        icon: FileBox,
       },
       {
-        label: "Pages",
         path: "pages",
         element: <Pages />,
-        icon: Folder,
       },
       {
-        label: "Section",
         path: "section",
-        element: <Section />,
-        icon: Section,
+        // element: <Section />,
       },
     ],
   },
   {
-    label: "Setting",
     path: "setting",
-    icon: Settings,
-    relatedIcon: ChevronDown,
     children: [
       {
-        label: "General Settings",
         path: "general-settings",
         element: <GeneralSettings />,
-        icon: Settings,
       },
       {
-        label: "Delivery Category",
         path: "delivery-category",
         element: <DeliveryCategory />,
-        icon: Tag,
       },
-      // {
-      //   label: "Create Category",
-      //   path: "create-category",
-      //   element: <CreateCategoryPage />,
-      //   icon: Tag,
-      // },
-      // {
-      //   label: "Edit Category",
-      //   path: "edit-category", // updated path for edit
-      //   element: <CreateCategoryPage />,
-      //   icon: Edit, // using Edit icon here
-      // },
       {
-        label: "Delivery Charge",
         path: "delivery-charge",
         element: <DeliveryCharge />,
-        icon: DollarSign,
       },
       {
-        label: "Create Delivery Charge",
-        path: "create-delivery-charge", // updated path
+        path: "create-delivery-charge",
         element: <DeliveryCharge />,
-        icon: Plus, // using Plus icon for creation
       },
       {
-        label: "Edit Delivery Charge",
-        path: "edit-delivery-charge", // updated path for editing
+        path: "edit-delivery-charge",
         element: <DeliveryCharge />,
-        icon: Edit, // using Edit icon here
       },
       {
-        label: "Delivery Type",
         path: "delivery-type",
         element: <DeliveryType />,
-        icon: Truck,
       },
       {
-        label: "Liquid/Fragile",
         path: "liquid-fragile",
         element: <LiquidFragile />,
-        icon: Package,
       },
       {
-        label: "SMS Setting",
         path: "sms-setting",
         element: <SmsSetting />,
-        icon: MessageSquare,
       },
       {
-        label: "SMS Send Setting",
         path: "sms-send-setting",
         element: <SmsSendSetting />,
-        icon: Send,
       },
       {
-        label: "Notification Settings",
         path: "notification-settings",
         element: <NotificationSettings />,
-        icon: Bell,
       },
       {
-        label: "GoogleMap Setting",
         path: "google-map-setting",
         element: <GoogleMapSetting />,
-        icon: Globe,
       },
       {
-        label: "Social login settings",
         path: "social-login-settings",
         element: <SocialLoginSettings />,
-        icon: UserCheck,
       },
       {
-        label: "Online Payment Setup",
         path: "online-payment-setup",
         element: <OnlinePaymentSetup />,
-        icon: CreditCard,
       },
       {
-        label: "Packaging",
         path: "packaging",
         element: <Packaging />,
-        icon: Package,
       },
       {
-        label: "Currency",
         path: "currency",
-        element: <Currency />,
-        icon: Currency,
+        // element: <Currency />,
       },
       {
-        label: "Assets Category",
         path: "assets-category",
         element: <AssetsCategory />,
-        icon: Database,
       },
       {
-        label: "Database Backup",
         path: "database-backup",
-        element: <DatabaseBackup />,
-        icon: DatabaseBackup,
+        // element: <DatabaseBackup />,
       },
       {
-        label: "Invoice Generate",
         path: "invoice-generate",
         element: <InvoiceGenerate />,
-        icon: FileBox,
       },
     ],
   },

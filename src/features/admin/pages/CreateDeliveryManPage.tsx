@@ -4,6 +4,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { hostImage } from "../../../utils/hostImageOnIMGBB";
 import toast from "react-hot-toast";
 import useAxiosSecure from "../../../Hoocks/useAxiosSecure";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 interface AuthState {
   name: string;
@@ -44,6 +45,7 @@ export type TDeliveryMan = {
 
 const CreateDeliveryManPage: React.FC = () => {
   const axiosSecure = useAxiosSecure();
+  const navigate = useNavigate(); // Initialize useNavigate
   const {
     register,
     handleSubmit,
@@ -123,6 +125,7 @@ const CreateDeliveryManPage: React.FC = () => {
       if (responseData.success) {
         console.log(responseData);
         toast.success("Successfully Delivery Man added!");
+        navigate("/admin/delivery-man"); // Redirect to the delivery man page
       }
     } catch (err) {
       console.error(err);

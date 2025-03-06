@@ -13,7 +13,7 @@ const useAxiosSecure = () => {
         return res;
       },
       (error) => {
-        console.log("axios error", error.response);
+        console.log("axios error", error.response.data);
       }
     );
   }, []);
