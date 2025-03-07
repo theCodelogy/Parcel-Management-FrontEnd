@@ -1,10 +1,12 @@
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import React, { useState, useRef } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { hostImage } from "../../../utils/hostImageOnIMGBB";
 import toast from "react-hot-toast";
-import useAxiosSecure from "../../../Hoocks/useAxiosSecure";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface AuthState {
   name: string;
@@ -44,12 +46,13 @@ export type TDeliveryMan = {
 };
 
 const CreateDeliveryManPage: React.FC = () => {
-  const axiosSecure = useAxiosSecure();
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors },
+    control,
+    setError,
   } = useForm<AuthState>();
   const [state, setState] = useState<AuthState>({
     name: "",
@@ -69,26 +72,6 @@ const CreateDeliveryManPage: React.FC = () => {
     showPassword: false,
     loading: false,
   });
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const files = e.target.files;
-    if (files && files.length > 0 && e.target.name === "drivingLicense") {
-      setState((prevState) => ({
-        ...prevState,
-        drivingLicense: files[0],
-      }));
-    }
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      setState((prevState) => ({
-        ...prevState,
-        image: files[0],
-      }));
-    }
-  };
 
   const onSubmit = async (data: AuthState): Promise<void> => {
     setState((prevState) => ({ ...prevState, loading: true }));
@@ -120,16 +103,33 @@ const CreateDeliveryManPage: React.FC = () => {
     }
 
     try {
-      const res = await axiosSecure.post("/deliveryMan", payload);
+      const res = await axios.post(
+        "https://parcel-management-back-end.vercel.app/api/v1/deliveryMan",
+        payload,
+        {
+          withCredentials: true,
+        }
+      );
       const responseData = res.data;
       if (responseData.success) {
         console.log(responseData);
         toast.success("Successfully Delivery Man added!");
-        navigate("/admin/delivery-man"); // Redirect to the delivery man page
+        navigate("/admin/deliveryman");
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error adding Delivery Man");
+    } catch (err: any) {
+      console.log(err.response.data);
+      if (err.response.data.message === "Duplicate Key Error") {
+        err.response.data.errorSource.forEach(
+          (error: { path: string; message: string }) => {
+            setError(error.path as keyof AuthState, {
+              type: "manual",
+              message: error.message,
+            });
+          }
+        );
+      } else {
+        toast.error("Error adding Delivery Man");
+      }
     } finally {
       setState((prevState) => ({ ...prevState, loading: false }));
     }
@@ -196,7 +196,7 @@ const CreateDeliveryManPage: React.FC = () => {
               </div>
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">
-                  Please enter a valid email address
+                  {errors.email.message || "Please enter a valid email address"}
                 </p>
               )}
             </div>
@@ -345,42 +345,46 @@ const CreateDeliveryManPage: React.FC = () => {
             </div>
 
             {/* Driving License */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Driving License
-              </label>
-              <label className="block w-full py-2 px-3 border border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 text-center cursor-pointer">
-                {state.drivingLicense
-                  ? state.drivingLicense.name
-                  : "Choose Driving License File"}
-                <input
-                  type="file"
-                  name="drivingLicense"
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className="hidden"
-                  required
+            <Controller
+              name="drivingLicense"
+              control={control}
+              render={({ field }) => (
+                <FileUpload
+                  id="drivingLicense"
+                  label="Driving License"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(file) => {
+                    field.onChange(file);
+                    setState((prevState) => ({
+                      ...prevState,
+                      drivingLicense: file,
+                    }));
+                  }}
+                  error={errors.drivingLicense?.message}
                 />
-              </label>
-            </div>
+              )}
+            />
 
             {/* Image */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image
-              </label>
-              <label className="block w-full py-2 px-3 border border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 text-center cursor-pointer">
-                {state.image ? state.image.name : "Choose Image File"}
-                <input
-                  type="file"
-                  name="image"
-                  onChange={handleImageChange}
+            <Controller
+              name="image"
+              control={control}
+              render={({ field }) => (
+                <FileUpload
+                  id="image"
+                  label="Profile Image"
                   accept="image/*"
-                  className="hidden"
-                  required
+                  onChange={(file) => {
+                    field.onChange(file);
+                    setState((prevState) => ({
+                      ...prevState,
+                      image: file,
+                    }));
+                  }}
+                  error={errors.image?.message}
                 />
-              </label>
-            </div>
+              )}
+            />
 
             {/* Address */}
             <div className="col-span-2">
@@ -416,3 +420,139 @@ const CreateDeliveryManPage: React.FC = () => {
 };
 
 export default CreateDeliveryManPage;
+
+interface FileUploadProps {
+  id: string;
+  label: string;
+  accept?: string;
+  required?: boolean;
+  onChange: (file: File | null) => void;
+  error?: string;
+  className?: string;
+}
+
+const FileUpload: React.FC<FileUploadProps> = ({
+  id,
+  label,
+  accept = "image/*",
+  required = false,
+  onChange,
+  error,
+  className,
+}) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState<string>("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    onChange(file);
+
+    if (file) {
+      setFileName(file.name);
+
+      // Create preview for images
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          setPreviewUrl(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPreviewUrl(null);
+      }
+    } else {
+      setFileName("");
+      setPreviewUrl(null);
+    }
+  };
+
+  const triggerFileInput = () => {
+    inputRef.current?.click();
+  };
+
+  const removeFile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange(null);
+    setFileName("");
+    setPreviewUrl(null);
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className={cn("space-y-2", className)}>
+      <div className="flex items-center justify-between">
+        <label htmlFor={id} className="text-sm font-medium">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+      </div>
+
+      <div
+        onClick={triggerFileInput}
+        className={cn(
+          "border-2 border-dashed rounded-lg p-4 transition-colors duration-200 cursor-pointer",
+          "flex flex-col items-center justify-center space-y-2 hover:border-primary/50",
+          error ? "border-red-500" : "border-border",
+          className
+        )}
+      >
+        <input
+          ref={inputRef}
+          id={id}
+          type="file"
+          accept={accept}
+          onChange={handleFileChange}
+          className="hidden"
+        />
+
+        {previewUrl ? (
+          <div className="relative w-full max-h-48 overflow-hidden rounded-md">
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="w-full h-auto object-contain"
+            />
+            <Button
+              onClick={removeFile}
+              variant="destructive"
+              size="sm"
+              className="absolute top-2 right-2 rounded-full w-6 h-6 p-0 flex items-center justify-center"
+            >
+              ×
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="text-3xl text-muted-foreground">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {fileName ? fileName : "Click to upload or drag and drop"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {accept.split(",").join(", ")}
+            </p>
+          </>
+        )}
+      </div>
+
+      {error && <p className="text-sm text-red-500">{error}</p>}
+    </div>
+  );
+};

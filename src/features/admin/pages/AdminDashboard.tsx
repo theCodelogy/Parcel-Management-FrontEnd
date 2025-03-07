@@ -232,7 +232,7 @@ const Dashboard: React.FC = () => {
       value: deliveryMen ? deliveryMen.length : 0,
       change: 0,
       icon: <Truck className="h-5 w-5" />,
-      path: "/admin/delivery-man", // Add a path for navigation
+      path: "/admin/deliveryman",
     },
     {
       title: "Total Branches",

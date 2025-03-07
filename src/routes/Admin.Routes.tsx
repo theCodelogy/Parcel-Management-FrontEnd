@@ -666,14 +666,18 @@ export const adminRoutes: RouteItem[] = [
     element: <AdminDashboard />,
   },
   {
-    path: "delivery-man",
+    path: "deliveryman",
     children: [
       {
-        path: "delivery-man",
+        path: "",
         element: <DeliveryMan />,
       },
       {
-        path: "create-delivery-man",
+        path: "create",
+        element: <CreateDeliveryMan />,
+      },
+      {
+        path: "edit",
         element: <CreateDeliveryMan />,
       },
     ],
