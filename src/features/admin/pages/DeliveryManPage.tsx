@@ -113,15 +113,11 @@ const DeliveryManPage = () => {
   };
 
   const [isLoadingForm, setIsLoadingForm] = useState(false);
-  // const [deliveryManToEdit, setDeliveryManToEdit] =
-  //   useState<DeliveryManData | null>(null);
 
   // Form submit handler for editing a delivery man
-  // const handleEdit = (deliveryMan: DeliveryManData) => {
-  //   setDeliveryManToEdit(deliveryMan);
-  //   // Open the edit modal or navigate to the edit page
-  //   console.log("Edit delivery man:", deliveryMan);
-  // };
+  const handleEdit = (deliveryMan: DeliveryManData) => {
+    navigate("/admin/deliveryman/edit", { state: { deliveryMan } });
+  };
 
   // Delete handler for deleting a delivery man
   const handleDelete = async (deliveryManId: string) => {
@@ -327,7 +323,7 @@ const DeliveryManPage = () => {
                           <DropdownMenuContent className="w-32">
                             <DropdownMenuItem
                               className="flex items-center text-sm hover:bg-gray-100"
-                              // onClick={() => handleEdit(man)}
+                              onClick={() => handleEdit(man)}
                             >
                               <Edit className="mr-2" /> Edit
                             </DropdownMenuItem>

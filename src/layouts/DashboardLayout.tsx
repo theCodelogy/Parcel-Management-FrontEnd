@@ -929,11 +929,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           label: "Merchants",
           path: "/admin/merchant-manage/merchants",
         },
-        {
-          id: "Create Merchants",
-          label: "Create Merchants",
-          path: "/admin/merchant-manage/create-merchants",
-        },
+        // {
+        //   id: "Create Merchants",
+        //   label: "Create Merchants",
+        //   path: "/admin/merchant-manage/create-merchants",
+        // },
         {
           id: "Merchant Payment",
           label: "Merchant Payment",

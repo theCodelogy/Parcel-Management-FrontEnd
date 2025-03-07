@@ -592,7 +592,6 @@
 // ];
 
 import React from "react";
-import Branch from "../features/admin/pages/branch-manage/BranchPage";
 import BranchPayments from "../features/admin/pages/branch-manage/BranchPaymentsListPage";
 import DeliveryMan from "../features/admin/pages/DeliveryManPage";
 import Merchants from "../features/admin/pages/merchant-manage/MerchantsPage";
@@ -653,6 +652,9 @@ import InvoiceGenerate from "../features/admin/pages/setting/InvoiceGenerate";
 import LogsDashboard from "../features/admin/components/LogsDashboard";
 import CreateDeliveryMan from "../features/admin/pages/CreateDeliveryManPage";
 import CreateMerchantsPage from "../features/admin/pages/merchant-manage/CreateMerchantsPage";
+import EditDeliveryManPage from "@/features/admin/pages/EditDeliveryManPage";
+import BranchPage from "../features/admin/pages/branch-manage/BranchPage";
+import EditMerchantPage from "@/features/admin/pages/merchant-manage/EditMerchantPage";
 
 export interface RouteItem {
   path: string;
@@ -678,7 +680,7 @@ export const adminRoutes: RouteItem[] = [
       },
       {
         path: "edit",
-        element: <CreateDeliveryMan />,
+        element: <EditDeliveryManPage />,
       },
     ],
   },
@@ -687,7 +689,7 @@ export const adminRoutes: RouteItem[] = [
     children: [
       {
         path: "branch",
-        element: <Branch />,
+        element: <BranchPage />,
       },
       {
         path: "payments",
@@ -703,8 +705,12 @@ export const adminRoutes: RouteItem[] = [
         element: <Merchants />,
       },
       {
-        path: "create-merchants",
+        path: "create",
         element: <CreateMerchantsPage />,
+      },
+      {
+        path: "edit",
+        element: <EditMerchantPage />,
       },
       {
         path: "merchant-payment",

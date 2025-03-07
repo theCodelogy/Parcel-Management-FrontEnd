@@ -36,7 +36,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
 
 // Fetch branch data from API using Axios
@@ -146,8 +145,8 @@ const BranchPage = () => {
       toast.success("Branch created successfully");
       setIsCreateModalOpen(false);
       resetCreate();
-    } catch (error) {
-      console.error("Error creating branch:", error);
+    } catch (error: any) {
+      console.error("Error creating branch:", error.response.data);
       toast.error("Failed to create branch");
     } finally {
       setIsLoadingForm(false);
@@ -413,19 +412,31 @@ const BranchPage = () => {
             <label className="block text-sm font-medium">
               Name <span className="text-red-500">*</span>
             </label>
-            <Input {...registerCreate("name")} placeholder="Branch Name" />
+            <input
+              {...registerCreate("name")}
+              placeholder="Branch Name"
+              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium">
               Phone <span className="text-red-500">*</span>
             </label>
-            <Input {...registerCreate("phone")} placeholder="Phone" />
+            <input
+              {...registerCreate("phone")}
+              placeholder="Phone"
+              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium">
               Address <span className="text-red-500">*</span>
             </label>
-            <Input {...registerCreate("address")} placeholder="Address" />
+            <input
+              {...registerCreate("address")}
+              placeholder="Address"
+              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium">
@@ -495,19 +506,31 @@ const BranchPage = () => {
             <label className="block text-sm font-medium">
               Name <span className="text-red-500">*</span>
             </label>
-            <Input {...registerEdit("name")} placeholder="Branch Name" />
+            <input
+              {...registerEdit("name")}
+              placeholder="Branch Name"
+              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium">
               Phone <span className="text-red-500">*</span>
             </label>
-            <Input {...registerEdit("phone")} placeholder="Phone" />
+            <input
+              {...registerEdit("phone")}
+              placeholder="Phone"
+              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium">
               Address <span className="text-red-500">*</span>
             </label>
-            <Input {...registerEdit("address")} placeholder="Address" />
+            <input
+              {...registerEdit("address")}
+              placeholder="Address"
+              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium">

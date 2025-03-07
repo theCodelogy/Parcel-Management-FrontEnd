@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { hostImage } from "../../../../utils/hostImageOnIMGBB";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 // Define the form input types
 interface IFormInput {
@@ -31,16 +31,43 @@ interface IFormInput {
   outsideCity: number;
 }
 
-const CreateMerchantsPage: React.FC = () => {
+const UpdateMerchantsPage: React.FC = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     setError,
     formState: { errors },
   } = useForm<IFormInput>();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
+  const merchantToEdit = location.state?.merchant;
+
+  useEffect(() => {
+    if (merchantToEdit) {
+      // Pre-fill the form fields with the merchant data
+      setValue("businessName", merchantToEdit.businessName);
+      setValue("name", merchantToEdit.name);
+      setValue("email", merchantToEdit.email);
+      setValue("phone", merchantToEdit.phone);
+      setValue("openingBalance", merchantToEdit.openingBalance);
+      setValue("vatPercent", merchantToEdit.vatPercent);
+      setValue("hub", merchantToEdit.hub);
+      setValue("nid", merchantToEdit.nid);
+      setValue("status", merchantToEdit.status);
+      setValue("referenceName", merchantToEdit.referenceName);
+      setValue("referencePhone", merchantToEdit.referencePhone);
+      setValue("paymentPeriod", merchantToEdit.paymentPeriod);
+      setValue("walletUserActivation", merchantToEdit.walletUserActivation);
+      setValue("address", merchantToEdit.address);
+      setValue("returnCharge", merchantToEdit.returnCharge);
+      setValue("insideCity", merchantToEdit.codCharge.insideCity);
+      setValue("subCity", merchantToEdit.codCharge.subCity);
+      setValue("outsideCity", merchantToEdit.codCharge.outsideCity);
+    }
+  }, [merchantToEdit, setValue]);
 
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
     setLoading(true);
@@ -73,16 +100,20 @@ const CreateMerchantsPage: React.FC = () => {
     }
 
     try {
-      const res = await axios.post(
-        "https://parcel-management-back-end.vercel.app/api/v1/merchant",
-        payload
-      );
-      const responseData = res.data;
-      if (responseData.success) {
-        toast.success("Successfully created merchant!");
-        navigate("/admin/merchant-manage/merchants");
+      if (merchantToEdit) {
+        // Update merchant using PATCH method
+        const res = await axios.patch(
+          `https://parcel-management-back-end.vercel.app/api/v1/merchant/${merchantToEdit._id}`,
+          payload
+        );
+        const responseData = res.data;
+        if (responseData.success) {
+          toast.success("Successfully updated merchant!");
+          navigate("/admin/merchant-manage/merchants"); // Navigate to the merchants page
+        }
       }
     } catch (err: any) {
+      console.log(err.response.data);
       if (err.response && err.response.data && err.response.data.errorSource) {
         err.response.data.errorSource.forEach((error: any) => {
           setError(error.path, { type: "manual", message: error.message });
@@ -101,7 +132,7 @@ const CreateMerchantsPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full bg-white rounded-2xl shadow-xl overflow-auto p-8">
         <div className="col-span-2 mb-6 text-center">
-          <h2 className="text-2xl font-bold text-gray-800">Create Merchant</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Edit Merchant</h2>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -422,7 +453,7 @@ const CreateMerchantsPage: React.FC = () => {
               disabled={loading}
               className="w-full bg-[#d63384] text-white py-2 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-300"
             >
-              {loading ? "Processing..." : "Register"}
+              {loading ? "Processing..." : "Update"}
             </button>
           </div>
         </form>
@@ -431,4 +462,4 @@ const CreateMerchantsPage: React.FC = () => {
   );
 };
 
-export default CreateMerchantsPage;
+export default UpdateMerchantsPage;

@@ -389,7 +389,7 @@ const MerchantsPage = () => {
   };
 
   const handleEdit = (merchant: Merchant) => {
-    navigate("/admin/create-merchants", { state: { merchant } });
+    navigate("/admin/merchant-manage/edit", { state: { merchant } });
   };
 
   const handleGenerateInvoice = (merchant: Merchant) => {
@@ -432,7 +432,7 @@ const MerchantsPage = () => {
           </div>
           <Button
             variant="default"
-            onClick={() => navigate("/admin/create-merchants")} // Navigate to the create merchant page
+            onClick={() => navigate("/admin/merchant-manage/create")} // Navigate to the create merchant page
             className="flex items-center gap-2"
             disabled={isLoadingForm}
           >
