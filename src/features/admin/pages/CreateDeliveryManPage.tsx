@@ -101,7 +101,7 @@ const CreateDeliveryManPage: React.FC = () => {
       const imageUrl = await hostImage(state.image);
       payload.image = imageUrl;
     }
-
+    console.log("Payload being sent:", payload);
     try {
       const res = await axios.post(
         "https://parcel-management-back-end.vercel.app/api/v1/deliveryMan",
@@ -136,7 +136,7 @@ const CreateDeliveryManPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="flex items-center justify-center">
       <div className="w-full bg-white rounded-2xl shadow-xl overflow-auto p-8">
         <div className="col-span-2 mb-6 text-center">
           <h2 className="text-2xl font-bold text-gray-800">

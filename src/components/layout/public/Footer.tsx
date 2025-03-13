@@ -1,24 +1,25 @@
+import React from "react";
 import {
   FaFacebookSquare,
   FaInstagram,
   FaTwitter,
   FaPaperPlane,
 } from "react-icons/fa";
+import logo from "../../../assets/logo.png";
 
-const Footer = () => {
+const Footer: React.FC = () => {
   return (
-    <footer className="bg-primary text-black py-10">
+    <footer className="bg-gray-100 text-gray-800 py-10">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Logo & Description */}
           <div>
-            <a href="/">
-              <img
-                className="w-20"
-                src="https://upload.wikimedia.org/wikipedia/en/thumb/b/bd/Reddit_Logo_Icon.svg/220px-Reddit_Logo_Icon.svg.png"
-                alt="Logo"
-              />
-            </a>
+            <div>
+              <a href="/">
+                <img className="w-20 rounded-full" src={logo} alt="Logo" />
+              </a>
+              <h2 className="text-2xl font-bold">ClassicCourierBD</h2>
+            </div>
             <p className="mt-3 font-semibold">01624581062</p>
             <p>Classiccourier2025@gmail.com</p>
             <p className="mt-3">
@@ -68,7 +69,7 @@ const Footer = () => {
 
           {/* Subscription & Social Media */}
           <div>
-            <h4 className="font-bold text-lg">Subscribe Us</h4>
+            <h4 className="font-bold text-lg">Subscribe</h4>
             <p className="mt-3">
               Get business news, tips, and solutions to your problems from our
               experts.
@@ -77,12 +78,12 @@ const Footer = () => {
               <input
                 type="email"
                 placeholder="Enter Email"
-                className="p-2 rounded-l w-full text-black border border-gray-300"
+                className="p-2 rounded-l w-full text-gray-800 border border-gray-300"
                 required
               />
               <button
                 type="submit"
-                className="bg-black text-white px-4 rounded-r hover:bg-gray-800"
+                className="bg-gray-800 text-white px-4 rounded-r hover:bg-gray-700"
               >
                 <FaPaperPlane />
               </button>
@@ -101,7 +102,7 @@ const Footer = () => {
                 <a
                   key={index}
                   href={link}
-                  className="text-black hover:text-gray-600"
+                  className="text-gray-800 hover:text-gray-600"
                 >
                   {icon}
                 </a>

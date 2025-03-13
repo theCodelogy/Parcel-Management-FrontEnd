@@ -1,69 +1,53 @@
-import React, { useState } from "react";
+import React from "react";
+import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { FaUserPlus, FaEye, FaEyeSlash, FaEnvelope } from "react-icons/fa";
+import { FaUserPlus, FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-interface AuthState {
+interface FormData {
   businessName: string;
   name: string;
-  email: string;
   phone: string;
   password: string;
-  status: string;
   address: string;
-  showPassword: boolean;
-  loading: boolean;
-  termsAccepted: boolean;
+  selectedHub: string;
 }
 
 const Registration: React.FC = () => {
-  const [state, setState] = useState<AuthState>({
-    businessName: "",
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-    status: "",
-    address: "",
-    showPassword: false,
-    loading: false,
-    termsAccepted: false,
-  });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<FormData>();
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ): void => {
-    const { name, value, type } = e.target;
-    setState({
-      ...state,
-      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
-    });
-  };
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [termsAccepted, setTermsAccepted] = React.useState(false);
 
-  const validateEmail = (email: string): boolean =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-  const validatePassword = (password: string): boolean => password.length >= 8;
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    if (!state.termsAccepted) {
+  const onSubmit = (data: FormData) => {
+    if (!termsAccepted) {
       alert("You must accept the terms and conditions.");
       return;
     }
-    setState({ ...state, loading: true });
+    setLoading(true);
 
-    console.log("Business Name:", state.businessName);
-    console.log("Name:", state.name);
-    console.log("Email:", state.email);
-    console.log("Phone:", state.phone);
-    console.log("Status:", state.status);
-    console.log("Address:", state.address);
+    console.log("Form Data:", data);
 
     setTimeout(() => {
-      setState({ ...state, loading: false });
+      setLoading(false);
       alert("Registered successfully!");
     }, 1500);
   };
+
+  const validatePassword = (password: string) => password.length >= 8;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
@@ -77,7 +61,7 @@ const Registration: React.FC = () => {
           <p className="text-gray-600 mt-2">Get started with your account</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Business Name */}
             <div>
@@ -86,13 +70,15 @@ const Registration: React.FC = () => {
               </label>
               <input
                 type="text"
-                name="businessName"
-                value={state.businessName}
-                onChange={handleChange}
-                required
+                {...register("businessName", { required: true })}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
                 placeholder="Your Business Name"
               />
+              {errors.businessName && (
+                <p className="mt-1 text-sm text-red-600">
+                  This field is required
+                </p>
+              )}
             </div>
 
             {/* Name */}
@@ -102,35 +88,13 @@ const Registration: React.FC = () => {
               </label>
               <input
                 type="text"
-                name="name"
-                value={state.name}
-                onChange={handleChange}
-                required
+                {...register("name", { required: true })}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
                 placeholder="Your Name"
               />
-            </div>
-
-            {/* Email Address */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  name="email"
-                  value={state.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                  placeholder="you@example.com"
-                />
-                <FaEnvelope className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
-              </div>
-              {state.email && !validateEmail(state.email) && (
+              {errors.name && (
                 <p className="mt-1 text-sm text-red-600">
-                  Please enter a valid email address
+                  This field is required
                 </p>
               )}
             </div>
@@ -142,13 +106,15 @@ const Registration: React.FC = () => {
               </label>
               <input
                 type="text"
-                name="phone"
-                value={state.phone}
-                onChange={handleChange}
-                required
+                {...register("phone", { required: true })}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
                 placeholder="Your Phone Number"
               />
+              {errors.phone && (
+                <p className="mt-1 text-sm text-red-600">
+                  This field is required
+                </p>
+              )}
             </div>
 
             {/* Password */}
@@ -158,25 +124,27 @@ const Registration: React.FC = () => {
               </label>
               <div className="relative">
                 <input
-                  type={state.showPassword ? "text" : "password"}
-                  name="password"
-                  value={state.password}
-                  onChange={handleChange}
-                  required
+                  type={showPassword ? "text" : "password"}
+                  {...register("password", {
+                    required: true,
+                    validate: validatePassword,
+                  })}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   className="absolute right-3 top-3 text-gray-400 cursor-pointer"
-                  onClick={() =>
-                    setState({ ...state, showPassword: !state.showPassword })
-                  }
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  {state.showPassword ? <FaEyeSlash className="w-5 h-5" /> : <FaEye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <FaEyeSlash className="w-5 h-5" />
+                  ) : (
+                    <FaEye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
-              {state.password && !validatePassword(state.password) && (
+              {errors.password && errors.password.type === "validate" && (
                 <p className="mt-1 text-sm text-red-600">
                   Password must be at least 8 characters
                 </p>
@@ -190,13 +158,40 @@ const Registration: React.FC = () => {
               </label>
               <input
                 type="text"
-                name="address"
-                value={state.address}
-                onChange={handleChange}
-                required
+                {...register("address", { required: true })}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
                 placeholder="Your Address"
               />
+              {errors.address && (
+                <p className="mt-1 text-sm text-red-600">
+                  This field is required
+                </p>
+              )}
+            </div>
+
+            {/* Select Hub */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Select Hub
+              </label>
+              <Select
+                value={watch("selectedHub")}
+                onValueChange={(value) => setValue("selectedHub", value)}
+              >
+                <SelectTrigger className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600">
+                  <SelectValue placeholder="Select a Hub" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Hub1">Hub 1</SelectItem>
+                  <SelectItem value="Hub2">Hub 2</SelectItem>
+                  <SelectItem value="Hub3">Hub 3</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.selectedHub && (
+                <p className="mt-1 text-sm text-red-600">
+                  This field is required
+                </p>
+              )}
             </div>
           </div>
 
@@ -204,9 +199,8 @@ const Registration: React.FC = () => {
           <div className="flex items-center mt-4">
             <input
               type="checkbox"
-              name="termsAccepted"
-              checked={state.termsAccepted}
-              onChange={handleChange}
+              checked={termsAccepted}
+              onChange={() => setTermsAccepted(!termsAccepted)}
               className="mr-2"
             />
             <label className="text-gray-700 text-sm">
@@ -218,10 +212,10 @@ const Registration: React.FC = () => {
           <div className="mt-6">
             <button
               type="submit"
-              disabled={state.loading}
+              disabled={loading}
               className="w-full bg-[#d63384] text-white py-2 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-300"
             >
-              {state.loading ? "Processing..." : "Register"}
+              {loading ? "Processing..." : "Register"}
             </button>
           </div>
         </form>

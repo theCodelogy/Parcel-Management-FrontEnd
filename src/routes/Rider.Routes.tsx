@@ -1,7 +1,6 @@
 import RiderDashboard from "../features/rider/pages/RiderDashboard";
 import AssignedParcels from "../features/rider/pages/AssignedParcels";
-import DeliveryLogs from "../features/rider/pages/DeliveryLogs";
-import DeliverSchedule from "../features/rider/pages/DeliverSchedule";
+import DeliverdParcels from "@/features/rider/pages/DeliverdParcels";
 
 export const riderRoutes = [
   {
@@ -13,11 +12,7 @@ export const riderRoutes = [
     element: <AssignedParcels />,
   },
   {
-    path: "delivery-logs",
-    element: <DeliveryLogs />,
-  },
-  {
-    path: "delivery-schedule",
-    element: <DeliverSchedule />,
+    path: "deliverd-parcels",
+    element: <DeliverdParcels />,
   },
 ];

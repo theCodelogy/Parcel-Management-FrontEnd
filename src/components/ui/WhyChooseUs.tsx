@@ -46,7 +46,7 @@ export default function WhyChooseUs() {
       <div className="container mx-auto px-6">
         <h3 className="text-4xl font-extrabold text-center mb-12 text-gray-800">
           <span className="inline-block border-b-4 border-red-600 pb-2">
-            Why City &amp; Town Express
+            Why Classic Courier BD
           </span>
         </h3>
 

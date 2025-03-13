@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { useForm } from "react-hook-form";
-import { Eraser, Filter, ChevronDown } from "lucide-react";
+import { Eraser, Filter, Plus, Clock, ChevronDown } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -15,9 +15,12 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import TablePagination from "@/components/ui/TablePagination";
 import TablePaginationInfo from "@/components/ui/TablePaginationInfo";
-import StatusUpdateModal from "@/features/admin/pages/parcel/StatusUpdateModal";
+import { Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import StatusUpdateModal from "./StatusUpdateModal";
 
 type TrackerStatus =
   | "Pending"
@@ -139,6 +142,58 @@ const formatCurrency = (amount: number): string => {
   return `৳${amount.toFixed(2)}`;
 };
 
+const formatTimestamp = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  return date.toLocaleString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const StatusBadge = ({ status }: { status: TrackerStatus }) => {
+  let bgColor = "";
+
+  switch (status) {
+    case "Pending":
+    case "Pickup Assigned":
+    case "Pickup Re-Schedule":
+      bgColor = "bg-yellow-500";
+      break;
+    case "In Transit":
+    case "Received By Pickup Man":
+    case "Received By Hub":
+    case "Delivery Man Assigned":
+    case "Received Warehouse":
+    case "Transfer to hub":
+    case "Received by hub":
+      bgColor = "bg-blue-500";
+      break;
+    case "Delivered":
+    case "Partial Delivered":
+      bgColor = "bg-green-500";
+      break;
+    case "Returned":
+    case "Return to Courier":
+    case "Return assigned to merchant":
+    case "Return received by merchant":
+      bgColor = "bg-red-500";
+      break;
+    default:
+      bgColor = "bg-gray-500";
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${bgColor}`}
+    >
+      {status}
+    </span>
+  );
+};
+
 const PaymentStatusBadge = ({ status }: { status: PaymentStatus }) => {
   let bgColor = "";
 
@@ -172,6 +227,7 @@ interface Filters {
 }
 
 const TrackerManagementPage = () => {
+  const navigate = useNavigate();
   const { register, handleSubmit, reset } = useForm<Filters>({
     defaultValues: {
       trackerId: "",
@@ -432,9 +488,15 @@ const TrackerManagementPage = () => {
       <div className="mt-8">
         <div className="p-6 bg-white rounded-lg shadow-lg">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Assigned Parcels
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900">Parcels</h2>
+            <Button
+              variant="default"
+              onClick={() => navigate("/admin/parcels/create")}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Parcel</span>
+            </Button>
           </div>
 
           <div className="overflow-x-auto">
@@ -445,10 +507,12 @@ const TrackerManagementPage = () => {
                   <TableHead className="p-3 text-left">Tracker ID</TableHead>
                   <TableHead className="p-3 text-left">Recipient</TableHead>
                   <TableHead className="p-3 text-left">Merchant</TableHead>
+                  <TableHead className="p-3 text-left">Status</TableHead>
                   <TableHead className="p-3 text-left">Status Update</TableHead>
                   <TableHead className="p-3 text-left">Amount</TableHead>
                   <TableHead className="p-3 text-left">Payment</TableHead>
                   <TableHead className="p-3 text-left">Weight</TableHead>
+                  <TableHead className="p-3 text-left">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -529,7 +593,64 @@ const TrackerManagementPage = () => {
                           </div>
                         </div>
                       </TableCell>
-
+                      <TableCell className="p-3">
+                        <div className="flex items-center">
+                          <StatusBadge status={tracker.status} />
+                          {tracker.statusUpdates.length > 0 && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                  <Clock className="h-4 w-4" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="start"
+                                className="w-80 p-2 bg-white shadow-lg rounded-md"
+                              >
+                                <div className="space-y-3 max-h-60 overflow-y-auto">
+                                  <p className="text-sm font-medium px-2 py-1.5 text-gray-500">
+                                    Status History
+                                  </p>
+                                  {tracker.statusUpdates
+                                    .sort(
+                                      (a, b) =>
+                                        new Date(b.date).getTime() -
+                                        new Date(a.date).getTime()
+                                    )
+                                    .map((update, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="px-2 py-1.5 hover:bg-gray-50 rounded-md"
+                                      >
+                                        <div className="flex items-start space-x-2">
+                                          <StatusBadge
+                                            status={
+                                              update.title as TrackerStatus
+                                            }
+                                          />
+                                          <div className="flex-1">
+                                            <p className="text-xs text-gray-500">
+                                              {formatTimestamp(update.date)}
+                                            </p>
+                                            <p className="text-sm">
+                                              {update.note}
+                                            </p>
+                                            {update.deliveryMan && (
+                                              <p className="text-xs text-gray-500 mt-1">
+                                                Delivery Man:{" "}
+                                                {update.deliveryMan}
+                                              </p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                </div>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="p-3">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -546,9 +667,19 @@ const TrackerManagementPage = () => {
                                 Update Status
                               </p>
                               {[
+                                "Pickup Assigned",
+                                "Pickup Re-Schedule",
+                                "Received By Pickup Man",
+                                "Received By Hub",
+                                "Delivery Man Assigned",
+                                "Received Warehouse",
+                                "Transfer to hub",
+                                "Received by hub",
                                 "Return to Courier",
                                 "Partial Delivered",
                                 "Delivered",
+                                "Return assigned to merchant",
+                                "Return received by merchant",
                               ].map((status) => (
                                 <button
                                   key={status}
@@ -600,6 +731,17 @@ const TrackerManagementPage = () => {
                       </TableCell>
 
                       <TableCell className="p-3">{tracker.weight} kg</TableCell>
+                      <TableCell className="p-3 text-right text-sm font-medium">
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 px-2 text-gray-700 hover:text-red-600 hover:border-red-600 transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

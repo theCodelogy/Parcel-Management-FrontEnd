@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect } from "react";
-
+import { useState } from "react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { TableData } from "../types";
@@ -11,23 +10,6 @@ import TablePagination from "../../../components/ui/TablePagination";
 const OrderHistory = () => {
   const pageSize: number = 10;
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [visibleColumns, setVisibleColumns] = useState({
-    trackingId: true,
-    invoiceNo: true,
-    date: true,
-    customer: true,
-    phone: true,
-    addressDetails: true,
-    collectionAmount: true,
-    charge: true,
-    payableAmount: true,
-    createdDate: true,
-    status: true,
-    paymentStatus: true,
-    more: true,
-  });
-  const [showColumnVisibility, setShowColumnVisibility] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Use React Query to fetch order history data
   const {
@@ -38,19 +20,6 @@ const OrderHistory = () => {
     queryKey: ["orderHistory"],
     queryFn: fetchOrderHistory,
   });
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowColumnVisibility(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const totalPages: number = Math.ceil(data.length / pageSize);
   const startIndex: number = (currentPage - 1) * pageSize;
@@ -64,46 +33,44 @@ const OrderHistory = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-  const toggleColumn = (columnKey: keyof typeof visibleColumns) => {
-    setVisibleColumns((prev) => ({ ...prev, [columnKey]: !prev[columnKey] }));
-  };
-
   // Copy to clipboard function
   const handleCopy = async () => {
-    const headers: string[] = ["SL"];
-    if (visibleColumns.trackingId) headers.push("Tracking ID");
-    if (visibleColumns.invoiceNo) headers.push("Invoice No");
-    if (visibleColumns.date) headers.push("Date");
-    if (visibleColumns.customer) headers.push("Customer");
-    if (visibleColumns.phone) headers.push("Phone");
-    if (visibleColumns.addressDetails) headers.push("Address Details");
-    if (visibleColumns.collectionAmount) headers.push("Collection Amount");
-    if (visibleColumns.charge) headers.push("Charge");
-    if (visibleColumns.payableAmount) headers.push("Payable Amount");
-    if (visibleColumns.createdDate) headers.push("Created Date");
-    if (visibleColumns.status) headers.push("Status");
-    if (visibleColumns.paymentStatus) headers.push("Payment Status");
-    if (visibleColumns.more) headers.push("More");
+    const headers: string[] = [
+      "SL",
+      "Tracking ID",
+      "Invoice No",
+      "Date",
+      "Customer",
+      "Phone",
+      "Address Details",
+      "Collection Amount",
+      "Charge",
+      "Payable Amount",
+      "Created Date",
+      "Status",
+      "Payment Status",
+      "More",
+    ];
 
     const rows: string[] = [headers.join("\t")];
 
     currentData.forEach((row, index) => {
-      const rowData: string[] = [];
-      rowData.push(String(startIndex + index + 1));
-      if (visibleColumns.trackingId) rowData.push(row.trackingId);
-      if (visibleColumns.invoiceNo) rowData.push(row.invoiceNo);
-      if (visibleColumns.date) rowData.push(row.date);
-      if (visibleColumns.customer) rowData.push(row.customer);
-      if (visibleColumns.phone) rowData.push(row.phone);
-      if (visibleColumns.addressDetails) rowData.push(row.addressDetails);
-      if (visibleColumns.collectionAmount)
-        rowData.push(String(row.collectionAmount));
-      if (visibleColumns.charge) rowData.push(String(row.charge));
-      if (visibleColumns.payableAmount) rowData.push(String(row.payableAmount));
-      if (visibleColumns.createdDate) rowData.push(row.createdDate);
-      if (visibleColumns.status) rowData.push(row.status);
-      if (visibleColumns.paymentStatus) rowData.push(row.paymentStatus);
-      if (visibleColumns.more) rowData.push("...");
+      const rowData: string[] = [
+        String(startIndex + index + 1),
+        row.trackingId,
+        row.invoiceNo,
+        row.date,
+        row.customer,
+        row.phone,
+        row.addressDetails,
+        String(row.collectionAmount),
+        String(row.charge),
+        String(row.payableAmount),
+        row.createdDate,
+        row.status,
+        row.paymentStatus,
+        "...",
+      ];
       rows.push(rowData.join("\t"));
     });
 
@@ -117,42 +84,39 @@ const OrderHistory = () => {
 
   // Excel download function using SheetJS and file-saver
   const handleExcelDownload = () => {
-    const headers: string[] = ["SL"];
-    if (visibleColumns.trackingId) headers.push("Tracking ID");
-    if (visibleColumns.invoiceNo) headers.push("Invoice No");
-    if (visibleColumns.date) headers.push("Date");
-    if (visibleColumns.customer) headers.push("Customer");
-    if (visibleColumns.phone) headers.push("Phone");
-    if (visibleColumns.addressDetails) headers.push("Address Details");
-    if (visibleColumns.collectionAmount) headers.push("Collection Amount");
-    if (visibleColumns.charge) headers.push("Charge");
-    if (visibleColumns.payableAmount) headers.push("Payable Amount");
-    if (visibleColumns.createdDate) headers.push("Created Date");
-    if (visibleColumns.status) headers.push("Status");
-    if (visibleColumns.paymentStatus) headers.push("Payment Status");
-    if (visibleColumns.more) headers.push("More");
+    const headers: string[] = [
+      "SL",
+      "Tracking ID",
+      "Invoice No",
+      "Date",
+      "Customer",
+      "Phone",
+      "Address Details",
+      "Collection Amount",
+      "Charge",
+      "Payable Amount",
+      "Created Date",
+      "Status",
+      "Payment Status",
+      "More",
+    ];
 
-    const rows = currentData.map((row, index) => {
-      const rowData: any = { SL: startIndex + index + 1 };
-      if (visibleColumns.trackingId) rowData["Tracking ID"] = row.trackingId;
-      if (visibleColumns.invoiceNo) rowData["Invoice No"] = row.invoiceNo;
-      if (visibleColumns.date) rowData["Date"] = row.date;
-      if (visibleColumns.customer) rowData["Customer"] = row.customer;
-      if (visibleColumns.phone) rowData["Phone"] = row.phone;
-      if (visibleColumns.addressDetails)
-        rowData["Address Details"] = row.addressDetails;
-      if (visibleColumns.collectionAmount)
-        rowData["Collection Amount"] = row.collectionAmount;
-      if (visibleColumns.charge) rowData["Charge"] = row.charge;
-      if (visibleColumns.payableAmount)
-        rowData["Payable Amount"] = row.payableAmount;
-      if (visibleColumns.createdDate) rowData["Created Date"] = row.createdDate;
-      if (visibleColumns.status) rowData["Status"] = row.status;
-      if (visibleColumns.paymentStatus)
-        rowData["Payment Status"] = row.paymentStatus;
-      if (visibleColumns.more) rowData["More"] = "...";
-      return rowData;
-    });
+    const rows = currentData.map((row, index) => ({
+      SL: startIndex + index + 1,
+      "Tracking ID": row.trackingId,
+      "Invoice No": row.invoiceNo,
+      Date: row.date,
+      Customer: row.customer,
+      Phone: row.phone,
+      "Address Details": row.addressDetails,
+      "Collection Amount": row.collectionAmount,
+      Charge: row.charge,
+      "Payable Amount": row.payableAmount,
+      "Created Date": row.createdDate,
+      Status: row.status,
+      "Payment Status": row.paymentStatus,
+      More: "...",
+    }));
 
     const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
     const wb = XLSX.utils.book_new();
@@ -165,20 +129,22 @@ const OrderHistory = () => {
 
   // CSV download function
   const handleCsvDownload = () => {
-    const headers: string[] = ["SL"];
-    if (visibleColumns.trackingId) headers.push("Tracking ID");
-    if (visibleColumns.invoiceNo) headers.push("Invoice No");
-    if (visibleColumns.date) headers.push("Date");
-    if (visibleColumns.customer) headers.push("Customer");
-    if (visibleColumns.phone) headers.push("Phone");
-    if (visibleColumns.addressDetails) headers.push("Address Details");
-    if (visibleColumns.collectionAmount) headers.push("Collection Amount");
-    if (visibleColumns.charge) headers.push("Charge");
-    if (visibleColumns.payableAmount) headers.push("Payable Amount");
-    if (visibleColumns.createdDate) headers.push("Created Date");
-    if (visibleColumns.status) headers.push("Status");
-    if (visibleColumns.paymentStatus) headers.push("Payment Status");
-    if (visibleColumns.more) headers.push("More");
+    const headers: string[] = [
+      "SL",
+      "Tracking ID",
+      "Invoice No",
+      "Date",
+      "Customer",
+      "Phone",
+      "Address Details",
+      "Collection Amount",
+      "Charge",
+      "Payable Amount",
+      "Created Date",
+      "Status",
+      "Payment Status",
+      "More",
+    ];
 
     const escapeCsv = (value: string | number): string => {
       const str = String(value);
@@ -190,25 +156,22 @@ const OrderHistory = () => {
 
     const csvRows = [headers.map(escapeCsv).join(",")];
     currentData.forEach((row, index) => {
-      const rowArray: string[] = [];
-      rowArray.push(escapeCsv(startIndex + index + 1));
-      if (visibleColumns.trackingId) rowArray.push(escapeCsv(row.trackingId));
-      if (visibleColumns.invoiceNo) rowArray.push(escapeCsv(row.invoiceNo));
-      if (visibleColumns.date) rowArray.push(escapeCsv(row.date));
-      if (visibleColumns.customer) rowArray.push(escapeCsv(row.customer));
-      if (visibleColumns.phone) rowArray.push(escapeCsv(row.phone));
-      if (visibleColumns.addressDetails)
-        rowArray.push(escapeCsv(row.addressDetails));
-      if (visibleColumns.collectionAmount)
-        rowArray.push(escapeCsv(row.collectionAmount));
-      if (visibleColumns.charge) rowArray.push(escapeCsv(row.charge));
-      if (visibleColumns.payableAmount)
-        rowArray.push(escapeCsv(row.payableAmount));
-      if (visibleColumns.createdDate) rowArray.push(escapeCsv(row.createdDate));
-      if (visibleColumns.status) rowArray.push(escapeCsv(row.status));
-      if (visibleColumns.paymentStatus)
-        rowArray.push(escapeCsv(row.paymentStatus));
-      if (visibleColumns.more) rowArray.push(escapeCsv("..."));
+      const rowArray: string[] = [
+        escapeCsv(startIndex + index + 1),
+        escapeCsv(row.trackingId),
+        escapeCsv(row.invoiceNo),
+        escapeCsv(row.date),
+        escapeCsv(row.customer),
+        escapeCsv(row.phone),
+        escapeCsv(row.addressDetails),
+        escapeCsv(row.collectionAmount),
+        escapeCsv(row.charge),
+        escapeCsv(row.payableAmount),
+        escapeCsv(row.createdDate),
+        escapeCsv(row.status),
+        escapeCsv(row.paymentStatus),
+        escapeCsv("..."),
+      ];
       csvRows.push(rowArray.join(","));
     });
 
@@ -303,37 +266,6 @@ const OrderHistory = () => {
         <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700">
           Print all
         </button>
-        {/* Column Visibility Dropdown */}
-        <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setShowColumnVisibility((prev) => !prev)}
-            className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700"
-          >
-            Column visibility
-          </button>
-          {showColumnVisibility && (
-            <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-gray-200 rounded z-10">
-              <div className="p-2">
-                {Object.keys(visibleColumns).map((key) => (
-                  <div key={key} className="flex items-center mb-1">
-                    <input
-                      type="checkbox"
-                      id={key}
-                      checked={(visibleColumns as any)[key]}
-                      onChange={() =>
-                        toggleColumn(key as keyof typeof visibleColumns)
-                      }
-                      className="mr-2"
-                    />
-                    <label htmlFor={key} className="text-sm text-gray-700">
-                      {key.charAt(0).toUpperCase() + key.slice(1)}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
         <input
           className="ml-auto p-2 border border-gray-300 rounded text-sm"
           placeholder="Search"
@@ -348,71 +280,45 @@ const OrderHistory = () => {
               <th className="p-4 text-left text-sm font-semibold text-gray-700">
                 SL
               </th>
-              {visibleColumns.trackingId && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  Tracking ID
-                </th>
-              )}
-              {visibleColumns.invoiceNo && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  Invoice No
-                </th>
-              )}
-              {visibleColumns.date && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  Date
-                </th>
-              )}
-              {visibleColumns.customer && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  Customer
-                </th>
-              )}
-              {visibleColumns.phone && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  Phone
-                </th>
-              )}
-              {visibleColumns.addressDetails && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  Address Details
-                </th>
-              )}
-              {visibleColumns.collectionAmount && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  Collection Amount
-                </th>
-              )}
-              {visibleColumns.charge && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  Charge
-                </th>
-              )}
-              {visibleColumns.payableAmount && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  Payable Amount
-                </th>
-              )}
-              {visibleColumns.createdDate && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  Created Date
-                </th>
-              )}
-              {visibleColumns.status && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  Status
-                </th>
-              )}
-              {visibleColumns.paymentStatus && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  Payment Status
-                </th>
-              )}
-              {visibleColumns.more && (
-                <th className="p-4 text-left text-sm font-semibold text-gray-700">
-                  More
-                </th>
-              )}
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                Tracking ID
+              </th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                Invoice No
+              </th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                Date
+              </th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                Customer
+              </th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                Phone
+              </th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                Address Details
+              </th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                Collection Amount
+              </th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                Charge
+              </th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                Payable Amount
+              </th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                Created Date
+              </th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                Status
+              </th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                Payment Status
+              </th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700">
+                More
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -441,47 +347,27 @@ const OrderHistory = () => {
                   className="border-b hover:bg-gray-50 transition duration-300"
                 >
                   <td className="p-4">{startIndex + index + 1}</td>
-                  {visibleColumns.trackingId && (
-                    <td className="p-4">{row.trackingId}</td>
-                  )}
-                  {visibleColumns.invoiceNo && (
-                    <td className="p-4">{row.invoiceNo}</td>
-                  )}
-                  {visibleColumns.date && <td className="p-4">{row.date}</td>}
-                  {visibleColumns.customer && (
-                    <td className="p-4">{row.customer}</td>
-                  )}
-                  {visibleColumns.phone && <td className="p-4">{row.phone}</td>}
-                  {visibleColumns.addressDetails && (
-                    <td className="p-4">{row.addressDetails}</td>
-                  )}
-                  {visibleColumns.collectionAmount && (
-                    <td className="p-4">{row.collectionAmount}</td>
-                  )}
-                  {visibleColumns.charge && (
-                    <td className="p-4">{row.charge}</td>
-                  )}
-                  {visibleColumns.payableAmount && (
-                    <td className="p-4">{row.payableAmount}</td>
-                  )}
-                  {visibleColumns.createdDate && (
-                    <td className="p-4">{row.createdDate}</td>
-                  )}
-                  {visibleColumns.status && (
-                    <td className="p-4">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
-                          row.status
-                        )}`}
-                      >
-                        {row.status}
-                      </span>
-                    </td>
-                  )}
-                  {visibleColumns.paymentStatus && (
-                    <td className="p-4">{row.paymentStatus}</td>
-                  )}
-                  {visibleColumns.more && <td className="p-4">...</td>}
+                  <td className="p-4">{row.trackingId}</td>
+                  <td className="p-4">{row.invoiceNo}</td>
+                  <td className="p-4">{row.date}</td>
+                  <td className="p-4">{row.customer}</td>
+                  <td className="p-4">{row.phone}</td>
+                  <td className="p-4">{row.addressDetails}</td>
+                  <td className="p-4">{row.collectionAmount}</td>
+                  <td className="p-4">{row.charge}</td>
+                  <td className="p-4">{row.payableAmount}</td>
+                  <td className="p-4">{row.createdDate}</td>
+                  <td className="p-4">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
+                        row.status
+                      )}`}
+                    >
+                      {row.status}
+                    </span>
+                  </td>
+                  <td className="p-4">{row.paymentStatus}</td>
+                  <td className="p-4">...</td>
                 </tr>
               ))
             )}

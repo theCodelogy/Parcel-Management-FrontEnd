@@ -225,7 +225,7 @@ const Dashboard: React.FC = () => {
       value: merchants ? merchants.length : 0,
       change: 2,
       icon: <ShoppingBag className="h-5 w-5" />,
-      path: "/admin/merchants", // Add a path for navigation
+      path: "/admin/merchant-manage/merchants",
     },
     {
       title: "Total Delivery Mans",
@@ -239,7 +239,7 @@ const Dashboard: React.FC = () => {
       value: branches ? branches.length : 0, // static example
       change: 1,
       icon: <MapPin className="h-5 w-5" />,
-      path: "/admin/branch", // Add a path for navigation
+      path: "/admin/branch-manage/branch",
     },
     {
       title: "Total Accounts",

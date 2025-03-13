@@ -1,5 +1,5 @@
 export interface DeliveryManData {
-  id: number;
+  _id: number;
   name: string;
   email: string;
   hub: string;

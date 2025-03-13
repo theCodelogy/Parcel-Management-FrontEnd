@@ -9,9 +9,7 @@ import {
   ChevronsUpDown,
   X,
   FileText,
-  LayoutDashboard,
   Package,
-  Calendar,
 } from "lucide-react";
 import { Outlet, NavLink } from "react-router-dom";
 import {
@@ -91,29 +89,17 @@ const Sidebar: React.FC<SidebarProps> = ({
   // Navigation items with explicit paths for rider.
   const navItems = [
     {
-      id: "Dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      path: "/rider/dashboard",
-      active: true,
-    },
-    {
       id: "Assigned Parcels",
       label: "Assigned Parcels",
       icon: Package,
       path: "/rider/assigned-parcels",
+      active: true,
     },
     {
-      id: "Delivery Logs",
-      label: "Delivery Logs",
+      id: "Deliverd Parcels",
+      label: "Deliverd Parcels",
       icon: FileText,
-      path: "/rider/delivery-logs",
-    },
-    {
-      id: "Delivery Schedule",
-      label: "Delivery Schedule",
-      icon: Calendar,
-      path: "/rider/delivery-schedule",
+      path: "/rider/deliverd-parcels",
     },
   ];
 
@@ -370,14 +356,6 @@ const DeliveryManLayout: React.FC = () => {
       >
         <div className="p-4 md:p-6">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-6">
-              <h1 className="text-xl md:text-2xl font-bold mb-1">
-                Welcome back, Rider
-              </h1>
-              <p className="text-sm md:text-base text-gray-600">
-                Here's your Rider dashboard overview
-              </p>
-            </div>
             <Outlet />
           </div>
         </div>

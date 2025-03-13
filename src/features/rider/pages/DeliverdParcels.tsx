@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { useForm } from "react-hook-form";
-import { Eraser, Filter, ChevronDown } from "lucide-react";
+import { Eraser, Filter, Clock } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import TablePagination from "@/components/ui/TablePagination";
 import TablePaginationInfo from "@/components/ui/TablePaginationInfo";
-import StatusUpdateModal from "@/features/admin/pages/parcel/StatusUpdateModal";
+
 
 type TrackerStatus =
   | "Pending"
@@ -139,6 +139,58 @@ const formatCurrency = (amount: number): string => {
   return `৳${amount.toFixed(2)}`;
 };
 
+const formatTimestamp = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  return date.toLocaleString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const StatusBadge = ({ status }: { status: TrackerStatus }) => {
+  let bgColor = "";
+
+  switch (status) {
+    case "Pending":
+    case "Pickup Assigned":
+    case "Pickup Re-Schedule":
+      bgColor = "bg-yellow-500";
+      break;
+    case "In Transit":
+    case "Received By Pickup Man":
+    case "Received By Hub":
+    case "Delivery Man Assigned":
+    case "Received Warehouse":
+    case "Transfer to hub":
+    case "Received by hub":
+      bgColor = "bg-blue-500";
+      break;
+    case "Delivered":
+    case "Partial Delivered":
+      bgColor = "bg-green-500";
+      break;
+    case "Returned":
+    case "Return to Courier":
+    case "Return assigned to merchant":
+    case "Return received by merchant":
+      bgColor = "bg-red-500";
+      break;
+    default:
+      bgColor = "bg-gray-500";
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${bgColor}`}
+    >
+      {status}
+    </span>
+  );
+};
+
 const PaymentStatusBadge = ({ status }: { status: PaymentStatus }) => {
   let bgColor = "";
 
@@ -194,15 +246,6 @@ const TrackerManagementPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-
-  // State for modal management
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<TrackerStatus | null>(
-    null
-  );
-  const [selectedTrackerId, setSelectedTrackerId] = useState<string | null>(
-    null
-  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -320,12 +363,6 @@ const TrackerManagementPage = () => {
   const startIndex = (currentPage - 1) * pageSize;
   const currentData = filteredTrackers.slice(startIndex, startIndex + pageSize);
 
-  const handleStatusUpdate = (trackerId: string, status: TrackerStatus) => {
-    setSelectedTrackerId(trackerId);
-    setSelectedStatus(status);
-    setIsModalOpen(true);
-  };
-
   return (
     <div className="container mx-auto p-4">
       <div className="bg-white p-6 rounded-lg shadow-md">
@@ -433,7 +470,7 @@ const TrackerManagementPage = () => {
         <div className="p-6 bg-white rounded-lg shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-900">
-              Assigned Parcels
+              Delivered Parcels
             </h2>
           </div>
 
@@ -445,7 +482,7 @@ const TrackerManagementPage = () => {
                   <TableHead className="p-3 text-left">Tracker ID</TableHead>
                   <TableHead className="p-3 text-left">Recipient</TableHead>
                   <TableHead className="p-3 text-left">Merchant</TableHead>
-                  <TableHead className="p-3 text-left">Status Update</TableHead>
+                  <TableHead className="p-3 text-left">Status</TableHead>
                   <TableHead className="p-3 text-left">Amount</TableHead>
                   <TableHead className="p-3 text-left">Payment</TableHead>
                   <TableHead className="p-3 text-left">Weight</TableHead>
@@ -529,43 +566,63 @@ const TrackerManagementPage = () => {
                           </div>
                         </div>
                       </TableCell>
-
                       <TableCell className="p-3">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="h-8 px-2 p-2 bg-gray-200 rounded-lg text-gray-700 hover:text-blue-600 hover:border-blue-600 transition-colors">
-                              <ChevronDown className="h-3.5 w-3.5" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="start"
-                            className=" p-2 bg-white shadow-lg rounded-md"
-                          >
-                            <div className="space-y-2 max-h-60 overflow-y-auto">
-                              <p className="text-sm font-medium px-2 py-1.5 text-gray-500">
-                                Update Status
-                              </p>
-                              {[
-                                "Return to Courier",
-                                "Partial Delivered",
-                                "Delivered",
-                              ].map((status) => (
-                                <button
-                                  key={status}
-                                  className="w-full px-2 py-1.5 text-left hover:bg-gray-50 rounded-md flex items-center space-x-2"
-                                  onClick={() =>
-                                    handleStatusUpdate(
-                                      tracker.id,
-                                      status as TrackerStatus
-                                    )
-                                  }
-                                >
-                                  {status}
+                        <div className="flex items-center">
+                          <StatusBadge status={tracker.status} />
+                          {tracker.statusUpdates.length > 0 && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                  <Clock className="h-4 w-4" />
                                 </button>
-                              ))}
-                            </div>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="start"
+                                className="w-80 p-2 bg-white shadow-lg rounded-md"
+                              >
+                                <div className="space-y-3 max-h-60 overflow-y-auto">
+                                  <p className="text-sm font-medium px-2 py-1.5 text-gray-500">
+                                    Status History
+                                  </p>
+                                  {tracker.statusUpdates
+                                    .sort(
+                                      (a, b) =>
+                                        new Date(b.date).getTime() -
+                                        new Date(a.date).getTime()
+                                    )
+                                    .map((update, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="px-2 py-1.5 hover:bg-gray-50 rounded-md"
+                                      >
+                                        <div className="flex items-start space-x-2">
+                                          <StatusBadge
+                                            status={
+                                              update.title as TrackerStatus
+                                            }
+                                          />
+                                          <div className="flex-1">
+                                            <p className="text-xs text-gray-500">
+                                              {formatTimestamp(update.date)}
+                                            </p>
+                                            <p className="text-sm">
+                                              {update.note}
+                                            </p>
+                                            {update.deliveryMan && (
+                                              <p className="text-xs text-gray-500 mt-1">
+                                                Delivery Man:{" "}
+                                                {update.deliveryMan}
+                                              </p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                </div>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="p-3">
                         <div className="flex flex-col space-y-1 text-sm">
@@ -628,16 +685,6 @@ const TrackerManagementPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Render the StatusUpdateModal */}
-      {selectedStatus && selectedTrackerId && (
-        <StatusUpdateModal
-          parcelId={selectedTrackerId}
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          selectedStatus={selectedStatus}
-        />
-      )}
     </div>
   );
 };

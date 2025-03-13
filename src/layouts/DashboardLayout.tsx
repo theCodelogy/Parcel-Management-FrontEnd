@@ -929,17 +929,19 @@ const Sidebar: React.FC<SidebarProps> = ({
           label: "Merchants",
           path: "/admin/merchant-manage/merchants",
         },
-        // {
-        //   id: "Create Merchants",
-        //   label: "Create Merchants",
-        //   path: "/admin/merchant-manage/create-merchants",
-        // },
+
         {
           id: "Merchant Payment",
           label: "Merchant Payment",
           path: "/admin/merchant-manage/merchant-payment",
         },
       ],
+    },
+    {
+      id: "Parcel",
+      label: "Parcel",
+      icon: Package,
+      path: "/admin/parcels",
     },
     {
       id: "Setting",
@@ -963,16 +965,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           path: "/admin/setting/delivery-charge",
         },
         {
-          id: "Create Delivery Charge",
-          label: "Create Delivery Charge",
-          path: "/admin/setting/create-delivery-charge",
-        },
-        {
-          id: "Edit Delivery Charge",
-          label: "Edit Delivery Charge",
-          path: "/admin/setting/edit-delivery-charge",
-        },
-        {
           id: "Delivery Type",
           label: "Delivery Type",
           path: "/admin/setting/delivery-type",
@@ -983,55 +975,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           path: "/admin/setting/liquid-fragile",
         },
         {
-          id: "SMS Setting",
-          label: "SMS Setting",
-          path: "/admin/setting/sms-setting",
-        },
-        {
-          id: "SMS Send Setting",
-          label: "SMS Send Setting",
-          path: "/admin/setting/sms-send-setting",
-        },
-        {
-          id: "Notification Settings",
-          label: "Notification Settings",
-          path: "/admin/setting/notification-settings",
-        },
-        {
-          id: "Google Map Setting",
-          label: "Google Map Setting",
-          path: "/admin/setting/google-map-setting",
-        },
-        {
-          id: "Social Login Settings",
-          label: "Social Login Settings",
-          path: "/admin/setting/social-login-settings",
-        },
-        {
-          id: "Online Payment Setup",
-          label: "Online Payment Setup",
-          path: "/admin/setting/online-payment-setup",
-        },
-        {
           id: "Packaging",
           label: "Packaging",
           path: "/admin/setting/packaging",
-        },
-        { id: "Currency", label: "Currency", path: "/admin/setting/currency" },
-        {
-          id: "Assets Category",
-          label: "Assets Category",
-          path: "/admin/setting/assets-category",
         },
         {
           id: "Database Backup",
           label: "Database Backup",
           path: "/admin/setting/database-backup",
-        },
-        {
-          id: "Invoice Generate",
-          label: "Invoice Generate",
-          path: "/admin/setting/invoice-generate",
         },
       ],
     },
@@ -1258,7 +1209,7 @@ const DashboardLayout: React.FC = () => {
         }`}
       >
         <div className="p-4 md:p-6">
-          <div className="max-w-7xl mx-auto">
+          <div className="">
             <div className="mb-6">
               <Breadcrumb>
                 <BreadcrumbList>

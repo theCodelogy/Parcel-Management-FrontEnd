@@ -595,11 +595,10 @@ import React from "react";
 import BranchPayments from "../features/admin/pages/branch-manage/BranchPaymentsListPage";
 import DeliveryMan from "../features/admin/pages/DeliveryManPage";
 import Merchants from "../features/admin/pages/merchant-manage/MerchantsPage";
-import Payment from "../features/admin/pages/merchant-manage/Payment";
 import TodoList from "../features/admin/pages/TodoListPage";
 import AdminDashboard from "../features/admin/pages/AdminDashboard";
 import Ticket from "../features/admin/pages/Ticket";
-import Parcels from "../features/admin/pages/Parcels";
+import Parcels from "../features/admin/pages/parcel/ParcelPage";
 import Offers from "../features/admin/pages/Offers";
 import DeceptionCheck from "../features/admin/pages/DeceptionCheck";
 import Subscribe from "../features/admin/pages/Subscribe";
@@ -655,6 +654,10 @@ import CreateMerchantsPage from "../features/admin/pages/merchant-manage/CreateM
 import EditDeliveryManPage from "@/features/admin/pages/EditDeliveryManPage";
 import BranchPage from "../features/admin/pages/branch-manage/BranchPage";
 import EditMerchantPage from "@/features/admin/pages/merchant-manage/EditMerchantPage";
+import MerchantPaymentPage from "../features/admin/pages/merchant-manage/MerchantPaymentPage";
+import CreateParcel from "@/features/merchant/pages/CreateParcel";
+import EditParcelPage from "@/features/admin/pages/EditParcelPage";
+import ProfilePage from "@/pages/profile/ProfilePage";
 
 export interface RouteItem {
   path: string;
@@ -666,6 +669,10 @@ export const adminRoutes: RouteItem[] = [
   {
     path: "dashboard",
     element: <AdminDashboard />,
+  },
+  {
+    path: "profile",
+    element: <ProfilePage />,
   },
   {
     path: "deliveryman",
@@ -714,7 +721,7 @@ export const adminRoutes: RouteItem[] = [
       },
       {
         path: "merchant-payment",
-        element: <Payment />,
+        element: <MerchantPaymentPage />,
       },
     ],
   },
@@ -728,7 +735,20 @@ export const adminRoutes: RouteItem[] = [
   },
   {
     path: "parcels",
-    element: <Parcels />,
+    children: [
+      {
+        path: "",
+        element: <Parcels />,
+      },
+      {
+        path: "create",
+        element: <CreateParcel />,
+      },
+      {
+        path: "edit",
+        element: <EditParcelPage />,
+      },
+    ],
   },
   {
     path: "offers",
@@ -923,10 +943,10 @@ export const adminRoutes: RouteItem[] = [
         path: "delivery-charge",
         element: <DeliveryCharge />,
       },
-      {
-        path: "create-delivery-charge",
-        element: <DeliveryCharge />,
-      },
+      // {
+      //   path: "create-delivery-charge",
+      //   element: <DeliveryCharge />,
+      // },
       {
         path: "edit-delivery-charge",
         element: <DeliveryCharge />,

@@ -46,7 +46,7 @@ const Pricing: React.FC = () => {
   return (
     <div className="p-6 text-center bg-white">
       <h1 className="text-3xl font-bold text-gray-800 border-b-2 border-[#A31621] inline-block mb-6">
-        City & Town Express Pricing
+        Classic Courier BD Pricing
       </h1>
 
       <div className="flex justify-center space-x-4 mb-6">

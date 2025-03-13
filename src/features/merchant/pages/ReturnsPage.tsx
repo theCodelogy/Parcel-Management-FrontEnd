@@ -5,7 +5,7 @@ import { TableData } from "../types";
 import TablePaginationInfo from "../../../components/ui/TablePaginationInfo";
 import TablePagination from "../../../components/ui/TablePagination";
 
-const Returns = () => {
+const ReturnsPage = () => {
   // Use TanStack Query to fetch data using Axios
   const { data, isLoading, error } = useQuery<TableData[]>({
     queryKey: ["returns"],
@@ -232,4 +232,4 @@ const Returns = () => {
   );
 };
 
-export default Returns;
+export default ReturnsPage;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
@@ -18,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +27,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
 import TablePagination from "@/components/ui/TablePagination";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 interface DeliveryManData {
   _id: string;
@@ -83,7 +82,7 @@ const TablePaginationInfo: React.FC<TablePaginationInfoProps> = ({
 };
 
 const DeliveryManPage = () => {
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   // react-hook-form for filter form
   const { register, handleSubmit, reset } = useForm<Filters>({
@@ -102,9 +101,14 @@ const DeliveryManPage = () => {
   });
 
   // Filter handlers
-  const onSubmit = (data: Filters) => {
-    console.log("Filter data submitted:", data);
-    // Implement filtering logic here using the form data
+  const onSubmit = async (data: Filters) => {
+    setIsLoadingForm(true);
+    try {
+      console.log("Filter data submitted:", data);
+      // Implement filtering logic here using the form data
+    } finally {
+      setIsLoadingForm(false);
+    }
   };
 
   const onClear = () => {
@@ -113,6 +117,11 @@ const DeliveryManPage = () => {
   };
 
   const [isLoadingForm, setIsLoadingForm] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deliveryManToDelete, setDeliveryManToDelete] = useState<string | null>(
+    null
+  );
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form submit handler for editing a delivery man
   const handleEdit = (deliveryMan: DeliveryManData) => {
@@ -121,20 +130,34 @@ const DeliveryManPage = () => {
 
   // Delete handler for deleting a delivery man
   const handleDelete = async (deliveryManId: string) => {
-    setIsLoadingForm(true);
-    try {
-      const response = await axios.delete(
-        `https://parcel-management-back-end.vercel.app/api/v1/deliveryMan/${deliveryManId}`
-      );
-      console.log("Delivery man deleted successfully:", response.data);
-      refetch();
-      toast.success("Delivery man deleted successfully");
-    } catch (error) {
-      console.error("Error deleting delivery man:", error);
-      toast.error("Failed to delete delivery man");
-    } finally {
-      setIsLoadingForm(false);
+    setDeliveryManToDelete(deliveryManId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deliveryManToDelete) {
+      setIsDeleting(true);
+      try {
+        const response = await axios.delete(
+          `https://parcel-management-back-end.vercel.app/api/v1/deliveryMan/${deliveryManToDelete}`
+        );
+        console.log("Delivery man deleted successfully:", response.data);
+        refetch();
+        toast.success("Delivery man deleted successfully");
+      } catch (error) {
+        console.error("Error deleting delivery man:", error);
+        toast.error("Failed to delete delivery man");
+      } finally {
+        setIsDeleting(false);
+        setIsDeleteModalOpen(false);
+        setDeliveryManToDelete(null);
+      }
     }
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setDeliveryManToDelete(null);
   };
 
   // Pagination logic
@@ -154,7 +177,7 @@ const DeliveryManPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="p-4">
       {/* Filter Form */}
       <div className="bg-white p-6 rounded-lg shadow-md">
         <form
@@ -228,7 +251,7 @@ const DeliveryManPage = () => {
             </h2>
             <Button
               variant="default"
-              onClick={() => navigate("/admin/deliveryman/create")} // Navigate to the create delivery man page
+              onClick={() => navigate("/admin/deliveryman/create")}
               className="flex items-center gap-2"
               disabled={isLoadingForm}
             >
@@ -278,11 +301,11 @@ const DeliveryManPage = () => {
                         {startIndex + index + 1}
                       </TableCell>
                       <TableCell className="p-3 flex items-center space-x-2">
-                        <div>
+                        <div className="flex gap-2">
                           <img
                             src={man.image}
                             alt={man.name}
-                            className="w-8 h-8 rounded-full"
+                            className="w-10 h-10 rounded-full"
                           />
                           <div>
                             <p className="font-semibold">{man.name}</p>
@@ -330,9 +353,18 @@ const DeliveryManPage = () => {
                             <DropdownMenuItem
                               className="focus:text-white focus:bg-red-500 flex items-center text-sm text-red-600 hover:bg-gray-100"
                               onClick={() => handleDelete(String(man._id))}
+                              disabled={isDeleting}
                             >
-                              <Trash className="mr-2 focus:text-red-500" />{" "}
-                              Delete
+                              {isDeleting ? (
+                                <>
+                                  <span className="mr-2">Deleting...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Trash className="mr-2 focus:text-red-500" />{" "}
+                                  Delete
+                                </>
+                              )}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -362,6 +394,32 @@ const DeliveryManPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+            <h2 className="text-lg font-semibold mb-4">Confirm Deletion</h2>
+            <p>Are you sure you want to delete this delivery man?</p>
+            <div className="flex justify-end mt-6 space-x-4">
+              <button
+                onClick={cancelDelete}
+                className="px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

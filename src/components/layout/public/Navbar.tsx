@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
+import logo from "../../../assets/logo.png";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -34,12 +35,9 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           {/* Logo Section */}
           <div className="flex items-center">
-            <Link to="/">
-              <img
-                className="w-10 h-10"
-                src="https://upload.wikimedia.org/wikipedia/en/thumb/b/bd/Reddit_Logo_Icon.svg/220px-Reddit_Logo_Icon.svg.png"
-                alt="Logo"
-              />
+            <Link className="flex items-center gap-1" to="/">
+              <img className="w-10 h-10 rounded-full" src={logo} alt="Logo" />
+              <h2>ClassicCourierBD</h2>
             </Link>
           </div>
 
