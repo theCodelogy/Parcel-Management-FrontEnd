@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { useForm } from "react-hook-form";
-import { Eraser, Filter, Clock } from "lucide-react";
+import { Eraser, Filter, Plus, Clock, ChevronDown } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -15,9 +15,14 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import TablePagination from "@/components/ui/TablePagination";
 import TablePaginationInfo from "@/components/ui/TablePaginationInfo";
-
+import { Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import StatusUpdateModal from "@/features/admin/pages/parcel/StatusUpdateModal";
 
 type TrackerStatus =
   | "Pending"
@@ -223,7 +228,8 @@ interface Filters {
   status: string;
 }
 
-const TrackerManagementPage = () => {
+const OrderHistory = () => {
+  const navigate = useNavigate();
   const { register, handleSubmit, reset } = useForm<Filters>({
     defaultValues: {
       trackerId: "",
@@ -247,13 +253,21 @@ const TrackerManagementPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
+  // State for modal management
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<TrackerStatus | null>(
+    null
+  );
+  const [selectedTrackerId, setSelectedTrackerId] = useState<string | null>(
+    null
+  );
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get<{ data: ApiResponse[] }>(
-          // "https://parcel-management-back-end-peach.vercel.app/api/v1/parcel"
-          // "https://parcel-management-back-end-peach.vercel.app/api/v1/parcel?currentStatus=Delivered"
-          "https://parcel-management-back-end-peach.vercel.app/api/v1/parcel?currentStatus=Delivered&parcelStatus.deliveryManEmail=example@gmail.com"
+          // "https://parcel-management-back-end.vercel.app/api/v1/parcel"
+          "https://parcel-management-back-end-peach.vercel.app/api/v1/parcel"
         );
         const trackers = response.data.data.map((item: ApiResponse) => ({
           id: item._id,
@@ -365,6 +379,151 @@ const TrackerManagementPage = () => {
   const startIndex = (currentPage - 1) * pageSize;
   const currentData = filteredTrackers.slice(startIndex, startIndex + pageSize);
 
+  const handleStatusUpdate = (trackerId: string, status: TrackerStatus) => {
+    setSelectedTrackerId(trackerId);
+    setSelectedStatus(status);
+    setIsModalOpen(true);
+  };
+
+  // Copy to clipboard function
+  const handleCopy = async () => {
+    const headers: string[] = [
+      "SL",
+      "Tracker ID",
+      "Recipient",
+      "Merchant",
+      "Status",
+      "Status Update",
+      "Amount",
+      "Payment",
+      "Weight",
+    ];
+
+    const rows: string[] = [headers.join("\t")];
+
+    currentData.forEach((row, index) => {
+      const rowData: string[] = [
+        String(startIndex + index + 1),
+        row.trackingId,
+        row.pickup.point,
+        row.merchant.name,
+        row.status,
+        row.statusUpdates.map((update) => update.note).join(", "),
+        `COD: ${formatCurrency(
+          row.financial.codAmount
+        )}, Total Charge: ${formatCurrency(
+          row.financial.charges
+        )}, Vat: ${formatCurrency(
+          row.financial.vat
+        )}, Current Payable: ${formatCurrency(row.financial.currentPayable)}`,
+        row.payment.status,
+        String(row.weight),
+      ];
+      rows.push(rowData.join("\t"));
+    });
+
+    try {
+      await navigator.clipboard.writeText(rows.join("\n"));
+      alert("Copied to clipboard!");
+    } catch (error) {
+      alert("Failed to copy to clipboard!");
+    }
+  };
+
+  // Excel download function using SheetJS and file-saver
+  const handleExcelDownload = () => {
+    const headers: string[] = [
+      "SL",
+      "Tracker ID",
+      "Recipient",
+      "Merchant",
+      "Status",
+      "Status Update",
+      "Amount",
+      "Payment",
+      "Weight",
+    ];
+
+    const rows = currentData.map((row, index) => ({
+      SL: startIndex + index + 1,
+      "Tracker ID": row.trackingId,
+      Recipient: row.pickup.point,
+      Merchant: row.merchant.name,
+      Status: row.status,
+      "Status Update": row.statusUpdates
+        .map((update) => update.note)
+        .join(", "),
+      Amount: `COD: ${formatCurrency(
+        row.financial.codAmount
+      )}, Total Charge: ${formatCurrency(
+        row.financial.charges
+      )}, Vat: ${formatCurrency(
+        row.financial.vat
+      )}, Current Payable: ${formatCurrency(row.financial.currentPayable)}`,
+      Payment: row.payment.status,
+      Weight: row.weight,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Trackers");
+
+    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([wbout], { type: "application/octet-stream" });
+    saveAs(blob, "tracker_management.xlsx");
+  };
+
+  // CSV download function
+  const handleCsvDownload = () => {
+    const headers: string[] = [
+      "SL",
+      "Tracker ID",
+      "Recipient",
+      "Merchant",
+      "Status",
+      "Status Update",
+      "Amount",
+      "Payment",
+      "Weight",
+    ];
+
+    const escapeCsv = (value: string | number): string => {
+      const str = String(value);
+      if (str.search(/("|,|\n)/g) !== -1) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const csvRows = [headers.map(escapeCsv).join(",")];
+    currentData.forEach((row, index) => {
+      const rowArray: string[] = [
+        escapeCsv(startIndex + index + 1),
+        escapeCsv(row.trackingId),
+        escapeCsv(row.pickup.point),
+        escapeCsv(row.merchant.name),
+        escapeCsv(row.status),
+        escapeCsv(row.statusUpdates.map((update) => update.note).join(", ")),
+        escapeCsv(
+          `COD: ${formatCurrency(
+            row.financial.codAmount
+          )}, Total Charge: ${formatCurrency(
+            row.financial.charges
+          )}, Vat: ${formatCurrency(
+            row.financial.vat
+          )}, Current Payable: ${formatCurrency(row.financial.currentPayable)}`
+        ),
+        escapeCsv(row.payment.status),
+        escapeCsv(row.weight),
+      ];
+      csvRows.push(rowArray.join(","));
+    });
+
+    const csvString = csvRows.join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8" });
+    saveAs(blob, "tracker_management.csv");
+  };
+
   return (
     <div className="container mx-auto p-4">
       <div className="bg-white p-6 rounded-lg shadow-md">
@@ -471,9 +630,46 @@ const TrackerManagementPage = () => {
       <div className="mt-8">
         <div className="p-6 bg-white rounded-lg shadow-lg">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Delivered Parcels
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900">Parcels</h2>
+            <Button
+              variant="default"
+              onClick={() => navigate("/admin/parcels/create")}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Parcel</span>
+            </Button>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center mb-5 gap-2">
+            <button
+              onClick={handleCopy}
+              className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700"
+            >
+              Copy
+            </button>
+            <button
+              onClick={handleExcelDownload}
+              className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700"
+            >
+              Excel
+            </button>
+            <button
+              onClick={handleCsvDownload}
+              className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700"
+            >
+              Csv
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700">
+              PDF
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700">
+              Print
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700">
+              Print all
+            </button>
           </div>
 
           <div className="overflow-x-auto">
@@ -485,9 +681,11 @@ const TrackerManagementPage = () => {
                   <TableHead className="p-3 text-left">Recipient</TableHead>
                   <TableHead className="p-3 text-left">Merchant</TableHead>
                   <TableHead className="p-3 text-left">Status</TableHead>
+                  <TableHead className="p-3 text-left">Status Update</TableHead>
                   <TableHead className="p-3 text-left">Amount</TableHead>
                   <TableHead className="p-3 text-left">Payment</TableHead>
                   <TableHead className="p-3 text-left">Weight</TableHead>
+                  <TableHead className="p-3 text-left">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -627,6 +825,53 @@ const TrackerManagementPage = () => {
                         </div>
                       </TableCell>
                       <TableCell className="p-3">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="h-8 px-2 p-2 bg-gray-200 rounded-lg text-gray-700 hover:text-blue-600 hover:border-blue-600 transition-colors">
+                              <ChevronDown className="h-3.5 w-3.5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="start"
+                            className=" p-2 bg-white shadow-lg rounded-md"
+                          >
+                            <div className="space-y-2 max-h-60 overflow-y-auto">
+                              <p className="text-sm font-medium px-2 py-1.5 text-gray-500">
+                                Update Status
+                              </p>
+                              {[
+                                "Pickup Assigned",
+                                "Pickup Re-Schedule",
+                                "Received By Pickup Man",
+                                "Received By Hub",
+                                "Delivery Man Assigned",
+                                "Received Warehouse",
+                                "Transfer to hub",
+                                "Received by hub",
+                                "Return to Courier",
+                                "Partial Delivered",
+                                "Delivered",
+                                "Return assigned to merchant",
+                                "Return received by merchant",
+                              ].map((status) => (
+                                <button
+                                  key={status}
+                                  className="w-full px-2 py-1.5 text-left hover:bg-gray-50 rounded-md flex items-center space-x-2"
+                                  onClick={() =>
+                                    handleStatusUpdate(
+                                      tracker.id,
+                                      status as TrackerStatus
+                                    )
+                                  }
+                                >
+                                  {status}
+                                </button>
+                              ))}
+                            </div>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                      <TableCell className="p-3">
                         <div className="flex flex-col space-y-1 text-sm">
                           <div className="text-gray-500">
                             COD:{" "}
@@ -659,6 +904,17 @@ const TrackerManagementPage = () => {
                       </TableCell>
 
                       <TableCell className="p-3">{tracker.weight} kg</TableCell>
+                      <TableCell className="p-3 text-right text-sm font-medium">
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 px-2 text-gray-700 hover:text-red-600 hover:border-red-600 transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -687,8 +943,18 @@ const TrackerManagementPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Render the StatusUpdateModal */}
+      {selectedStatus && selectedTrackerId && (
+        <StatusUpdateModal
+          parcelId={selectedTrackerId}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          selectedStatus={selectedStatus}
+        />
+      )}
     </div>
   );
 };
 
-export default TrackerManagementPage;
+export default OrderHistory;

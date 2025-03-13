@@ -47,7 +47,8 @@ interface DeliveryManData {
 // Fetch delivery man data from API using Axios
 export const fetchDeliveryManApi = async (): Promise<DeliveryManData[]> => {
   const response = await axios.get<{ data: DeliveryManData[] }>(
-    "https://parcel-management-back-end.vercel.app/api/v1/deliveryMan"
+    // "https://parcel-management-back-end.vercel.app/api/v1/deliveryMan"
+    "https://parcel-management-back-end-peach.vercel.app/api/v1/deliveryMan"
   );
   return response.data.data;
 };

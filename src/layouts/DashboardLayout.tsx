@@ -653,7 +653,7 @@ import {
   Package,
   ChevronDown,
 } from "lucide-react";
-import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1007,6 +1007,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     e.stopPropagation();
     setShowProfileMenu(!showProfileMenu);
   };
+  const navigate = useNavigate();
 
   return (
     <>
@@ -1095,7 +1096,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
               <DropdownMenuSeparator className="my-2" />
-              <DropdownMenuItem className="flex items-center py-2 hover:bg-blue-50 rounded-md cursor-pointer transition-colors">
+              <DropdownMenuItem
+                onClick={() => navigate("/admin/profile")}
+                className="flex items-center py-2 hover:bg-blue-50 rounded-md cursor-pointer transition-colors"
+              >
                 <User className="w-4 h-4 mr-2 text-blue-500" />
                 <span>Profile</span>
               </DropdownMenuItem>

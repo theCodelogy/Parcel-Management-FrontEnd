@@ -21,6 +21,8 @@ import TablePaginationInfo from "@/components/ui/TablePaginationInfo";
 import { Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StatusUpdateModal from "./StatusUpdateModal";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 type TrackerStatus =
   | "Pending"
@@ -382,6 +384,145 @@ const TrackerManagementPage = () => {
     setIsModalOpen(true);
   };
 
+  // Copy to clipboard function
+  const handleCopy = async () => {
+    const headers: string[] = [
+      "SL",
+      "Tracker ID",
+      "Recipient",
+      "Merchant",
+      "Status",
+      "Status Update",
+      "Amount",
+      "Payment",
+      "Weight",
+    ];
+
+    const rows: string[] = [headers.join("\t")];
+
+    currentData.forEach((row, index) => {
+      const rowData: string[] = [
+        String(startIndex + index + 1),
+        row.trackingId,
+        row.pickup.point,
+        row.merchant.name,
+        row.status,
+        row.statusUpdates.map((update) => update.note).join(", "),
+        `COD: ${formatCurrency(
+          row.financial.codAmount
+        )}, Total Charge: ${formatCurrency(
+          row.financial.charges
+        )}, Vat: ${formatCurrency(
+          row.financial.vat
+        )}, Current Payable: ${formatCurrency(row.financial.currentPayable)}`,
+        row.payment.status,
+        String(row.weight),
+      ];
+      rows.push(rowData.join("\t"));
+    });
+
+    try {
+      await navigator.clipboard.writeText(rows.join("\n"));
+      alert("Copied to clipboard!");
+    } catch (error) {
+      alert("Failed to copy to clipboard!");
+    }
+  };
+
+  // Excel download function using SheetJS and file-saver
+  const handleExcelDownload = () => {
+    const headers: string[] = [
+      "SL",
+      "Tracker ID",
+      "Recipient",
+      "Merchant",
+      "Status",
+      "Status Update",
+      "Amount",
+      "Payment",
+      "Weight",
+    ];
+
+    const rows = currentData.map((row, index) => ({
+      SL: startIndex + index + 1,
+      "Tracker ID": row.trackingId,
+      Recipient: row.pickup.point,
+      Merchant: row.merchant.name,
+      Status: row.status,
+      "Status Update": row.statusUpdates
+        .map((update) => update.note)
+        .join(", "),
+      Amount: `COD: ${formatCurrency(
+        row.financial.codAmount
+      )}, Total Charge: ${formatCurrency(
+        row.financial.charges
+      )}, Vat: ${formatCurrency(
+        row.financial.vat
+      )}, Current Payable: ${formatCurrency(row.financial.currentPayable)}`,
+      Payment: row.payment.status,
+      Weight: row.weight,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Trackers");
+
+    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([wbout], { type: "application/octet-stream" });
+    saveAs(blob, "tracker_management.xlsx");
+  };
+
+  // CSV download function
+  const handleCsvDownload = () => {
+    const headers: string[] = [
+      "SL",
+      "Tracker ID",
+      "Recipient",
+      "Merchant",
+      "Status",
+      "Status Update",
+      "Amount",
+      "Payment",
+      "Weight",
+    ];
+
+    const escapeCsv = (value: string | number): string => {
+      const str = String(value);
+      if (str.search(/("|,|\n)/g) !== -1) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const csvRows = [headers.map(escapeCsv).join(",")];
+    currentData.forEach((row, index) => {
+      const rowArray: string[] = [
+        escapeCsv(startIndex + index + 1),
+        escapeCsv(row.trackingId),
+        escapeCsv(row.pickup.point),
+        escapeCsv(row.merchant.name),
+        escapeCsv(row.status),
+        escapeCsv(row.statusUpdates.map((update) => update.note).join(", ")),
+        escapeCsv(
+          `COD: ${formatCurrency(
+            row.financial.codAmount
+          )}, Total Charge: ${formatCurrency(
+            row.financial.charges
+          )}, Vat: ${formatCurrency(
+            row.financial.vat
+          )}, Current Payable: ${formatCurrency(row.financial.currentPayable)}`
+        ),
+        escapeCsv(row.payment.status),
+        escapeCsv(row.weight),
+      ];
+      csvRows.push(rowArray.join(","));
+    });
+
+    const csvString = csvRows.join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8" });
+    saveAs(blob, "tracker_management.csv");
+  };
+
   return (
     <div className="container mx-auto p-4">
       <div className="bg-white p-6 rounded-lg shadow-md">
@@ -497,6 +638,37 @@ const TrackerManagementPage = () => {
               <Plus className="h-4 w-4" />
               <span>Add Parcel</span>
             </Button>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center mb-5 gap-2">
+            <button
+              onClick={handleCopy}
+              className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700"
+            >
+              Copy
+            </button>
+            <button
+              onClick={handleExcelDownload}
+              className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700"
+            >
+              Excel
+            </button>
+            <button
+              onClick={handleCsvDownload}
+              className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700"
+            >
+              Csv
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700">
+              PDF
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700">
+              Print
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700">
+              Print all
+            </button>
           </div>
 
           <div className="overflow-x-auto">

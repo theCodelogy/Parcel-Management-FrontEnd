@@ -4,10 +4,10 @@ import {
   Mail,
   Phone,
   MapPin,
-  Shield,
   CheckCircle,
   Calendar,
   Edit,
+  ShoppingBag,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
@@ -23,7 +23,7 @@ import Modal from "react-modal";
 import { useForm } from "react-hook-form";
 
 // Define user role types
-type UserRole = "admin";
+type UserRole = "merchant";
 
 // Define the user data interface
 interface UserData {
@@ -43,40 +43,40 @@ interface UserData {
   joinDate: string;
   verified: boolean;
   stats: {
-    adminStats?: {
-      totalUsers: number;
-      activeDeliveries: number;
-      pendingApprovals: number;
-      systemHealth: number;
+    merchantStats?: {
+      totalSales: number;
+      activeOrders: number;
+      pendingPayments: number;
+      inventoryLevel: number;
     };
   };
 }
 
 // Sample user data for demonstration
 const sampleUsers: Record<UserRole, UserData> = {
-  admin: {
-    id: "admin-001",
+  merchant: {
+    id: "merchant-001",
     name: "Alex Morgan",
     email: "alex.morgan@parcelid.com",
     phone: "+1 (555) 123-4567",
     address: {
-      street: "123 Admin Ave",
+      street: "123 Merchant Ave",
       city: "San Francisco",
       state: "CA",
       zipCode: "94105",
       country: "USA",
     },
-    role: "admin",
+    role: "merchant",
     avatarUrl:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80",
     joinDate: "2020-01-15",
     verified: true,
     stats: {
-      adminStats: {
-        totalUsers: 1458,
-        activeDeliveries: 267,
-        pendingApprovals: 23,
-        systemHealth: 98,
+      merchantStats: {
+        totalSales: 1458,
+        activeOrders: 267,
+        pendingPayments: 23,
+        inventoryLevel: 98,
       },
     },
   },
@@ -190,7 +190,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   );
 };
 
-const UserProfile: React.FC<UserProfileProps> = ({ role = "admin" }) => {
+const MerchantProfilePage: React.FC<UserProfileProps> = ({
+  role = "merchant",
+}) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const userData = sampleUsers[role];
 
@@ -210,8 +212,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ role = "admin" }) => {
   // Get role badge color
   const getRoleBadgeColor = (role: UserRole): string => {
     switch (role) {
-      case "admin":
-        return "bg-purple-100 text-purple-800";
+      case "merchant":
+        return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -220,8 +222,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ role = "admin" }) => {
   // Get role icon
   const getRoleIcon = (role: UserRole) => {
     switch (role) {
-      case "admin":
-        return <Shield className="w-4 h-4" />;
+      case "merchant":
+        return <ShoppingBag className="w-4 h-4" />;
       default:
         return <User className="w-4 h-4" />;
     }
@@ -362,4 +364,4 @@ const UserProfile: React.FC<UserProfileProps> = ({ role = "admin" }) => {
   );
 };
 
-export default UserProfile;
+export default MerchantProfilePage;

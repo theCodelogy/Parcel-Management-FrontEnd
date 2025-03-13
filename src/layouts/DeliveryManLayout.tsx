@@ -11,7 +11,7 @@ import {
   FileText,
   Package,
 } from "lucide-react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -122,6 +122,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     e.stopPropagation();
     setShowProfileMenu(!showProfileMenu);
   };
+  const navigate = useNavigate();
 
   return (
     <>
@@ -239,7 +240,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </div>
                 <DropdownMenuSeparator className="my-4" />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/rider/profile")}>
                   <User className="w-4 h-4 mr-2" />
                   <span>Profile</span>
                 </DropdownMenuItem>
@@ -355,7 +356,7 @@ const DeliveryManLayout: React.FC = () => {
         }`}
       >
         <div className="p-4 md:p-6">
-          <div className="max-w-7xl mx-auto">
+          <div className="">
             <Outlet />
           </div>
         </div>

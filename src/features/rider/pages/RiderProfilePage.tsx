@@ -23,7 +23,7 @@ import Modal from "react-modal";
 import { useForm } from "react-hook-form";
 
 // Define user role types
-type UserRole = "admin";
+type UserRole = "admin" | "deliveryman";
 
 // Define the user data interface
 interface UserData {
@@ -42,7 +42,7 @@ interface UserData {
   avatarUrl: string;
   joinDate: string;
   verified: boolean;
-  stats: {
+  stats?: {
     adminStats?: {
       totalUsers: number;
       activeDeliveries: number;
@@ -79,6 +79,24 @@ const sampleUsers: Record<UserRole, UserData> = {
         systemHealth: 98,
       },
     },
+  },
+  deliveryman: {
+    id: "deliveryman-001",
+    name: "John Doe",
+    email: "john.doe@parcelid.com",
+    phone: "+1 (555) 987-6543",
+    address: {
+      street: "456 Delivery Dr",
+      city: "New York",
+      state: "NY",
+      zipCode: "10001",
+      country: "USA",
+    },
+    role: "deliveryman",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80",
+    joinDate: "2021-03-20",
+    verified: false,
   },
 };
 
@@ -190,7 +208,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   );
 };
 
-const UserProfile: React.FC<UserProfileProps> = ({ role = "admin" }) => {
+const RiderProfilePage: React.FC<UserProfileProps> = ({
+  role = "deliveryman",
+}) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const userData = sampleUsers[role];
 
@@ -210,7 +230,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ role = "admin" }) => {
   // Get role badge color
   const getRoleBadgeColor = (role: UserRole): string => {
     switch (role) {
-      case "admin":
+      case "deliveryman":
         return "bg-purple-100 text-purple-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -220,7 +240,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ role = "admin" }) => {
   // Get role icon
   const getRoleIcon = (role: UserRole) => {
     switch (role) {
-      case "admin":
+      case "deliveryman":
         return <Shield className="w-4 h-4" />;
       default:
         return <User className="w-4 h-4" />;
@@ -362,4 +382,4 @@ const UserProfile: React.FC<UserProfileProps> = ({ role = "admin" }) => {
   );
 };
 
-export default UserProfile;
+export default RiderProfilePage;
