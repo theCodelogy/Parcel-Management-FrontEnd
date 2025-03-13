@@ -1,78 +1,59 @@
-import React, { useState } from "react";
-import axios from "axios";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { FaSignInAlt, FaEnvelope } from "react-icons/fa";
 import toast from "react-hot-toast";
-import Cookies from "js-cookie";
+import { useLoginMutation } from "@/redux/features/auth/authApi";
+import { useAppDispatch } from "@/redux/hooks";
+import { setUser } from "@/redux/features/auth/authSlice";
+import { verifyToken } from "@/utils/verifyToken";
+
+
 
 interface FormData {
   emailORphone: string;
   password: string;
 }
 
+
 const LoginPage: React.FC = () => {
-  const [loading, setLoading] = useState(false);
+
+  const dispatch = useAppDispatch();
+  
   const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>();
+  const [login] = useLoginMutation();
 
   const onSubmit = async (data: FormData) => {
-    setLoading(true);
+    const tostId = toast.loading("Login in");
+    const payload = {
+      emailORphone: data.emailORphone,
+      password: data.password,
+    };
+
     try {
-      const payload = {
-        emailORphone: data.emailORphone,
-        password: data.password,
-      };
+      const res = await login(payload).unwrap();
+      const {name,email,role,phone} = verifyToken(res.data?.token);
+      dispatch(setUser({ user: {name,email,role,phone}, token: res.data?.token }));
 
-      const response = await axios.post(
-        "https://parcel-management-back-end.vercel.app/api/v1/auth/login",
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (
-        response.data &&
-        response.data.success &&
-        response.data.data &&
-        response.data.data.user
-      ) {
-        const userData = response.data.data.user;
-        const token = response.data.data.token;
-
-        // Set the token in a cookie
-        Cookies.set("token", token, { expires: 7 });
-
-        if (userData.role === "Super Admin") {
-          navigate("/admin/dashboard");
-        } else if (userData.role === "Merchant") {
-          navigate("/merchant/dashboard");
-        } else if (userData.role === "Delivery Man") {
-          navigate("/rider/assigned-parcels");
-        }
-        toast.success("Login successful!");
+      if (role === "Super Admin") {
+        navigate("/admin/dashboard");
+      } else if (role === "Merchant") {
+        navigate("/merchant/dashboard");
+      } else if (role === "Delivery Man") {
+        navigate("/rider/assigned-parcels");
       }
-    } catch (error: any) {
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error("Failed to login");
-      }
-    } finally {
-      setLoading(false);
+
+      toast.success("Loged in Success!", { id: tostId });
+    } catch (error:any) {
+      toast.error(error.data.message, { id: tostId });
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
@@ -137,10 +118,10 @@ const LoginPage: React.FC = () => {
 
             <button
               type="submit"
-              disabled={loading}
+
               className="w-full bg-[#d63384] text-white py-2 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-300"
             >
-              {loading ? "Logging in..." : "Login"}
+               Login
             </button>
           </form>
 

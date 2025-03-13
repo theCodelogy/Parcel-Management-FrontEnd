@@ -1,22 +1,19 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import Cookies from "js-cookie";
+import { useState,  } from "react";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { logout, useCurrentToken } from "@/redux/features/auth/authSlice";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+    const token = useAppSelector(useCurrentToken)
 
-  useEffect(() => {
-    // Check for the token in cookies when the component mounts
-    const token = Cookies.get("token");
-    setToken(token || null);
-  }, []);
+
+
 
   const handleLogout = () => {
-    // Remove the token from cookies and navigate to login
-    Cookies.remove("token");
-    setToken(null);
+    dispatch(logout());
     navigate("/login");
   };
 
