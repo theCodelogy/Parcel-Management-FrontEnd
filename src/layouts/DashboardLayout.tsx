@@ -653,7 +653,7 @@ import {
   Package,
   ChevronDown,
 } from "lucide-react";
-import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -669,6 +669,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useAppDispatch } from "@/redux/hooks";
+import { logout } from "@/redux/features/auth/authSlice";
 
 interface MenuToggleProps {
   isOpen: boolean;
@@ -1036,6 +1038,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       ],
     },
   ];
+ // logout
+ const dispatch = useAppDispatch();
+ const navigate = useNavigate();
+ const handleLogout = () => {
+     dispatch(logout());
+     navigate("/login");
+   };
 
   // Close sidebar on ESC key press on mobile
   useEffect(() => {
@@ -1148,7 +1157,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <User className="w-4 h-4 mr-2 text-blue-500" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center py-2 hover:bg-red-50 rounded-md cursor-pointer transition-colors">
+              <DropdownMenuItem onClick={handleLogout} className="flex items-center py-2 hover:bg-red-50 rounded-md cursor-pointer transition-colors">
                 <LogOut className="w-4 h-4 mr-2 text-red-500" />
                 <span>Log out</span>
               </DropdownMenuItem>
@@ -1178,6 +1187,8 @@ const DashboardLayout: React.FC = () => {
     name: "Khaled Ahemed Nayeem",
     email: "khaledahmed@example.com",
   };
+
+ 
 
   // Build breadcrumb segments from the current URL path
   const pathnames = location.pathname.split("/").filter((x) => x);

@@ -13,7 +13,7 @@ import {
   Package,
   Calendar,
 } from "lucide-react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAppDispatch } from "@/redux/hooks";
+import { logout } from "@/redux/features/auth/authSlice";
 
 interface MenuToggleProps {
   isOpen: boolean;
@@ -116,6 +118,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       path: "/rider/delivery-schedule",
     },
   ];
+
+  // logout
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
 
   // Close sidebar on ESC key press on mobile
   useEffect(() => {
@@ -257,7 +267,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <User className="w-4 h-4 mr-2" />
                   <span>Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />
                   <span>Log out</span>
                 </DropdownMenuItem>
