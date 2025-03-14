@@ -335,7 +335,7 @@ const TrackerManagementPage = () => {
   };
 
   return (
-    <div className="p-4">
+    <div>
       <div className="bg-white p-6 rounded-lg shadow-md">
         <form
           onSubmit={handleSubmit(onSubmit)}

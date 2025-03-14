@@ -19,6 +19,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { logout, useCurrentUser } from "@/redux/features/auth/authSlice";
+import { TUser } from "@/interface";
 
 interface MenuToggleProps {
   isOpen: boolean;
@@ -93,7 +96,6 @@ const Sidebar: React.FC<SidebarProps> = ({
       label: "Assigned Parcels",
       icon: Package,
       path: "/rider/assigned-parcels",
-      active: true,
     },
     {
       id: "Deliverd Parcels",
@@ -102,6 +104,18 @@ const Sidebar: React.FC<SidebarProps> = ({
       path: "/rider/deliverd-parcels",
     },
   ];
+
+  // logout
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
+
+  const handleProfile = () => {
+    navigate("/rider/profile");
+  };
 
   // Close sidebar on ESC key press on mobile
   useEffect(() => {
@@ -122,7 +136,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     e.stopPropagation();
     setShowProfileMenu(!showProfileMenu);
   };
-  const navigate = useNavigate();
 
   return (
     <>
@@ -240,11 +253,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </div>
                 <DropdownMenuSeparator className="my-4" />
-                <DropdownMenuItem onClick={() => navigate("/rider/profile")}>
+                <DropdownMenuItem onClick={handleProfile}>
                   <User className="w-4 h-4 mr-2" />
                   <span>Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />
                   <span>Log out</span>
                 </DropdownMenuItem>
@@ -274,9 +287,11 @@ const DeliveryManLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  const { name, email } = useAppSelector(useCurrentUser) as TUser;
   const userProfile = {
-    name: "Khaled Ahemed Nayeem",
-    email: "khaledahmed@example.com",
+    name: name,
+    email: email,
   };
 
   useEffect(() => {
@@ -356,9 +371,7 @@ const DeliveryManLayout: React.FC = () => {
         }`}
       >
         <div className="p-4 md:p-6">
-          <div className="">
-            <Outlet />
-          </div>
+          <Outlet />
         </div>
       </main>
     </div>

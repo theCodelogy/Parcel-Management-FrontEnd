@@ -24,6 +24,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAppDispatch } from "@/redux/hooks";
+import { logout } from "@/redux/features/auth/authSlice";
 
 interface MenuToggleProps {
   isOpen: boolean;
@@ -138,6 +140,14 @@ const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
 
+  // logout
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
+
   // Close sidebar on ESC key press on mobile
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -157,7 +167,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     e.stopPropagation();
     setShowProfileMenu(!showProfileMenu);
   };
-  const navigate = useNavigate();
 
   return (
     <>
@@ -275,11 +284,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </div>
                 <DropdownMenuSeparator className="my-4" />
-                <DropdownMenuItem onClick={() => navigate("/merchant/profile")}>
+                <DropdownMenuItem>
                   <User className="w-4 h-4 mr-2" />
                   <span>Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />
                   <span>Log out</span>
                 </DropdownMenuItem>

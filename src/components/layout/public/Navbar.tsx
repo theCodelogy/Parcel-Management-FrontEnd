@@ -1,23 +1,19 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import Cookies from "js-cookie";
-import logo from "../../../assets/logo.png";
+import { useState,  } from "react";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { logout, useCurrentToken } from "@/redux/features/auth/authSlice";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+    const token = useAppSelector(useCurrentToken)
 
-  useEffect(() => {
-    // Check for the token in cookies when the component mounts
-    const token = Cookies.get("token");
-    setToken(token || null);
-  }, []);
+
+
 
   const handleLogout = () => {
-    // Remove the token from cookies and navigate to login
-    Cookies.remove("token");
-    setToken(null);
+    dispatch(logout());
     navigate("/login");
   };
 
@@ -35,9 +31,12 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           {/* Logo Section */}
           <div className="flex items-center">
-            <Link className="flex items-center gap-1" to="/">
-              <img className="w-10 h-10 rounded-full" src={logo} alt="Logo" />
-              <h2>ClassicCourierBD</h2>
+            <Link to="/">
+              <img
+                className="w-10 h-10"
+                src="https://upload.wikimedia.org/wikipedia/en/thumb/b/bd/Reddit_Logo_Icon.svg/220px-Reddit_Logo_Icon.svg.png"
+                alt="Logo"
+              />
             </Link>
           </div>
 
