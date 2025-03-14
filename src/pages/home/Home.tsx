@@ -2,6 +2,7 @@ import Hero from "../../components/ui/Hero";
 import Pricing from "../../components/ui/Pricing";
 import Services from "../../components/ui/Service";
 import WhyChooseUs from "../../components/ui/WhyChooseUs";
+import Sample from "../Sample";
 
 const Home = () => {
   return (
@@ -10,6 +11,7 @@ const Home = () => {
       <Services />
       <WhyChooseUs />
       <Pricing />
+      <Sample />
     </div>
   );
 };

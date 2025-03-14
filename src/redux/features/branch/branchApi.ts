@@ -1,19 +1,20 @@
-import { TMerchant } from './../../../../type/merchantType';
-import { TQueryParam, TResponseRedux } from './../../../../type/global';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { TQueryParam, TResponseRedux } from '../../../../type/global';
 import { baseApi } from '../../api/baseApi';
 
-const merchant = baseApi.injectEndpoints({
+
+const Branch = baseApi.injectEndpoints({
   endpoints: (builder) => ({
 
-    addMerchant: builder.mutation({
+    addBranch: builder.mutation({
       query: (data) => ({
-        url: '/merchant',
+        url: '/branch',
         method: 'POST',
         body: data,
       }),
     }),
 
-    getAllMerchant: builder.query({
+    getAllBranch: builder.query({
       query: (args) => {
         const params = new URLSearchParams();
 
@@ -23,13 +24,13 @@ const merchant = baseApi.injectEndpoints({
           });
         }
         return {
-          url: '/merchant',
+          url: '/branch',
           method: 'GET',
           params: params,
         };
       },
-      providesTags: ['Merchant'],
-      transformResponse: (response: TResponseRedux<TMerchant[]>) => {
+      providesTags: ['Branch'],
+      transformResponse: (response: TResponseRedux<[]>) => {
         return {
           data: response.data,
           meta: response.meta,
@@ -37,14 +38,14 @@ const merchant = baseApi.injectEndpoints({
       },
     }),
 
-    getSingleMerchant: builder.query({
+    getSingleBranch: builder.query({
       query: (id) => {
         return {
-          url: `/merchant/${id}`,
+          url: `/branch/${id}`,
           method: 'GET',
         };
       },
-      transformResponse: (response: TResponseRedux<TMerchant>) => {
+      transformResponse: (response: TResponseRedux<any>) => {
         return {
           data: response.data,
           meta: response.meta,
@@ -52,21 +53,21 @@ const merchant = baseApi.injectEndpoints({
       },
     }),
 
-    updateMerchant: builder.mutation({
+    updateBranch: builder.mutation({
       query: (args) => ({
-        url: `/merchant/${args.id}`,
+        url: `/branch/${args.id}`,
         method: 'PATCH',
         body: args.data,
       }),
-      invalidatesTags: ['Merchant'],
+      invalidatesTags: ['Branch'],
     }),
 
-    deleteMerchant: builder.mutation({
+    deleteBranch: builder.mutation({
       query: (id) => ({
-        url: `/merchant/${id}`,
+        url: `/branch/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Merchant'],
+      invalidatesTags: ['Branch'],
     }),
 
 
@@ -74,9 +75,9 @@ const merchant = baseApi.injectEndpoints({
 });
 
 export const { 
-  useGetAllMerchantQuery,
-  useAddMerchantMutation,
-  useUpdateMerchantMutation,
-  useGetSingleMerchantQuery,
-  useDeleteMerchantMutation
- } = merchant;
+  useGetAllBranchQuery,
+  useAddBranchMutation,
+  useUpdateBranchMutation,
+  useGetSingleBranchQuery,
+  useDeleteBranchMutation
+ } =Branch;
