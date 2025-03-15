@@ -1,19 +1,19 @@
-import { TMerchant } from './../../../../type/merchantType';
-import { TQueryParam, TResponseRedux } from './../../../../type/global';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { TQueryParam, TResponseRedux } from '../../../../type/global';
 import { baseApi } from '../../api/baseApi';
 
-const merchant = baseApi.injectEndpoints({
+const superAdmin = baseApi.injectEndpoints({
   endpoints: (builder) => ({
 
-    addMerchant: builder.mutation({
+    addSuperAdmin: builder.mutation({
       query: (data) => ({
-        url: '/merchant',
+        url: '/superAdmin',
         method: 'POST',
         body: data,
       }),
     }),
 
-    getAllMerchant: builder.query({
+    getAllSuperAdmin: builder.query({
       query: (args) => {
         const params = new URLSearchParams();
 
@@ -23,13 +23,13 @@ const merchant = baseApi.injectEndpoints({
           });
         }
         return {
-          url: '/merchant',
+          url: '/superAdmin',
           method: 'GET',
           params: params,
         };
       },
-      providesTags: ['Merchant'],
-      transformResponse: (response: TResponseRedux<TMerchant[]>) => {
+      providesTags: ['SuperAdmin'],
+      transformResponse: (response: TResponseRedux<[]>) => {
         return {
           data: response.data,
           meta: response.meta,
@@ -37,14 +37,14 @@ const merchant = baseApi.injectEndpoints({
       },
     }),
 
-    getSingleMerchant: builder.query({
+    getSingleSuperAdmin: builder.query({
       query: (id) => {
         return {
-          url: `/merchant/${id}`,
+          url: `/superAdmin/${id}`,
           method: 'GET',
         };
       },
-      transformResponse: (response: TResponseRedux<TMerchant>) => {
+      transformResponse: (response: TResponseRedux<any>) => {
         return {
           data: response.data,
           meta: response.meta,
@@ -52,21 +52,21 @@ const merchant = baseApi.injectEndpoints({
       },
     }),
 
-    updateMerchant: builder.mutation({
+    updateSuperAdmin: builder.mutation({
       query: (args) => ({
-        url: `/merchant/${args.id}`,
+        url: `/superAdmin/${args.id}`,
         method: 'PATCH',
         body: args.data,
       }),
-      invalidatesTags: ['Merchant'],
+      invalidatesTags: ['SuperAdmin'],
     }),
 
-    deleteMerchant: builder.mutation({
+    deleteSuperAdmin: builder.mutation({
       query: (id) => ({
-        url: `/merchant/${id}`,
+        url: `/superAdmin/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Merchant'],
+      invalidatesTags: ['SuperAdmin'],
     }),
 
 
@@ -74,9 +74,9 @@ const merchant = baseApi.injectEndpoints({
 });
 
 export const { 
-  useGetAllMerchantQuery,
-  useAddMerchantMutation,
-  useUpdateMerchantMutation,
-  useGetSingleMerchantQuery,
-  useDeleteMerchantMutation
- } = merchant;
+  useGetAllSuperAdminQuery,
+  useAddSuperAdminMutation,
+  useUpdateSuperAdminMutation,
+  useGetSingleSuperAdminQuery,
+  useDeleteSuperAdminMutation
+ } = superAdmin;
