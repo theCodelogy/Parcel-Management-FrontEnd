@@ -193,7 +193,7 @@ const CreateParcel: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md max-w-7xl mx-auto">
+    <div className="p-6 bg-white rounded-lg shadow-md">
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1">
           <h2 className="text-2xl font-semibold mb-4 text-gray-800">

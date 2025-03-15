@@ -12,7 +12,8 @@ import { logout, setUser } from "../features/auth/authSlice";
 
 // prepayer base api with access token
 const baseQuery = fetchBaseQuery({
-  baseUrl: "https://parcel-management-back-end-peach.vercel.app/api/v1",
+  // baseUrl: "https://parcel-management-back-end-peach.vercel.app/api/v1",
+  baseUrl: "http://localhost:5000/api/v1",
   credentials: "include",
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as RootState).auth.token;
@@ -35,10 +36,13 @@ const baseQueryWithRefreshToken: BaseQueryFn<
     //* Send Refresh
     console.log("Sending refresh token");
 
-    const res = await fetch("https://parcel-management-back-end-peach.vercel.app/api/v1/auth/refresh-token", {
-      method: "POST",
-      credentials: "include",
-    });
+    const res = await fetch(
+      "https://parcel-management-back-end-peach.vercel.app/api/v1/auth/refresh-token",
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
 
     const data = await res.json();
     console.log(data);
@@ -62,6 +66,16 @@ const baseQueryWithRefreshToken: BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithRefreshToken,
-  tagTypes: ['Merchant',"DeliveryMan","SuperAdmin","Parcel","DeliveryCategory","DeliveryCharge","Branch","LiquidFragile","User"],
+  tagTypes: [
+    "Merchant",
+    "DeliveryMan",
+    "SuperAdmin",
+    "Parcel",
+    "DeliveryCategory",
+    "DeliveryCharge",
+    "Branch",
+    "LiquidFragile",
+    "User",
+  ],
   endpoints: () => ({}),
 });

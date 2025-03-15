@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import axios from "axios";
 import { useForm } from "react-hook-form";
 import { Eraser, Filter, Plus, Clock, ChevronDown } from "lucide-react";
 import {
@@ -23,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import StatusUpdateModal from "@/features/admin/pages/parcel/StatusUpdateModal";
+import { useGetAllParcelQuery } from "@/redux/features/parcel/parcelApi";
 
 type TrackerStatus =
   | "Pending"
@@ -222,7 +222,7 @@ const PaymentStatusBadge = ({ status }: { status: PaymentStatus }) => {
 
 interface Filters {
   trackerId: string;
-  recipient: string;
+  phone: string;
   merchant: string;
   date: string;
   status: string;
@@ -233,7 +233,7 @@ const OrderHistory = () => {
   const { register, handleSubmit, reset } = useForm<Filters>({
     defaultValues: {
       trackerId: "",
-      recipient: "",
+      phone: "",
       merchant: "",
       date: "",
       status: "",
@@ -242,14 +242,13 @@ const OrderHistory = () => {
 
   const [filters, setFilters] = useState<Filters>({
     trackerId: "",
-    recipient: "",
+    phone: "",
     merchant: "",
     date: "",
     status: "",
   });
 
   const [trackers, setTrackers] = useState<Tracker[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
@@ -262,76 +261,80 @@ const OrderHistory = () => {
     null
   );
 
+  const { data, isLoading, isError } = useGetAllParcelQuery([]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get<{ data: ApiResponse[] }>(
-          // "https://parcel-management-back-end.vercel.app/api/v1/parcel"
-          "https://parcel-management-back-end-peach.vercel.app/api/v1/parcel"
-        );
-        const trackers = response.data.data.map((item: ApiResponse) => ({
-          id: item._id,
-          trackingId: item.TrakingId,
-          merchant: {
-            name: item.merchant,
-          },
-          pickup: {
-            point: item.pickupPoints,
-            phone: item.pickupPhone,
-            address: item.pickupAddress,
-          },
-          financial: {
-            codAmount: item.cashCollection,
-            charges: item.totalCharge,
-            vat: item.vat,
-            currentPayable: item.netPayable,
-          },
-          payment: {
-            status:
-              item.currentPayable === 0 ? "Paid" : ("Pending" as PaymentStatus),
-            amountPaid: item.advance,
-            amountPending: item.currentPayable,
-            method: item.paymentMethod,
-          },
-          status: item.currentStatus as TrackerStatus,
-          statusUpdates: item.parcelStatus.map((status) => ({
-            title: status.title,
-            current: status.current,
-            email: status.email,
-            name: status.name,
-            phone: status.phone,
-            deliveryMan: status.deliveryMan,
-            deliveryManPhone: status.deliveryManPhone,
-            deliveryManEmail: status.deliveryManEmail,
-            note: status.note,
-            date: status.date,
-            createdBy: status.createdBy,
-          })),
-          pickupDate: item.pickupDate || null,
-          deliveryDate: item.deliveryDate || null,
-          address: item.customerAddress,
-          weight: item.Weight,
-        }));
-        setTrackers(trackers);
-      } catch (error) {
-        console.error("Error fetching tracker data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+    if (data?.data) {
+      const trackers = data.data.map((item: ApiResponse) => ({
+        id: item._id,
+        trackingId: item.TrakingId,
+        merchant: {
+          name: item.merchant,
+        },
+        pickup: {
+          point: item.pickupPoints,
+          phone: item.pickupPhone,
+          address: item.pickupAddress,
+        },
+        financial: {
+          codAmount: item.cashCollection,
+          charges: item.totalCharge,
+          vat: item.vat,
+          currentPayable: item.netPayable,
+        },
+        payment: {
+          status:
+            item.currentPayable === 0 ? "Paid" : ("Pending" as PaymentStatus),
+          amountPaid: item.advance,
+          amountPending: item.currentPayable,
+          method: item.paymentMethod,
+        },
+        status: item.currentStatus as TrackerStatus,
+        statusUpdates: item.parcelStatus.map((status) => ({
+          title: status.title,
+          current: status.current,
+          email: status.email,
+          name: status.name,
+          phone: status.phone,
+          deliveryMan: status.deliveryMan,
+          deliveryManPhone: status.deliveryManPhone,
+          deliveryManEmail: status.deliveryManEmail,
+          note: status.note,
+          date: status.date,
+          createdBy: status.createdBy,
+        })),
+        pickupDate: item.pickupDate || null,
+        deliveryDate: item.deliveryDate || null,
+        address: item.customerAddress,
+        weight: item.Weight,
+      }));
+      setTrackers(trackers);
+    }
+  }, [data]);
 
   const onSubmit = (data: Filters) => {
+    console.log("Filters applied:", data);
     setFilters(data);
     setCurrentPage(1);
+
+    // Construct the URL with filters
+    const baseUrl = "http://localhost:5000/api/v1/parcel";
+    const url = new URL(baseUrl);
+
+    if (data.trackerId) url.searchParams.append("TrakingId", data.trackerId);
+    if (data.phone) url.searchParams.append("pickupPhone", data.phone); // Change here
+    if (data.merchant) url.searchParams.append("merchant", data.merchant);
+    if (data.date) url.searchParams.append("date", data.date);
+    if (data.status) url.searchParams.append("status", data.status);
+
+    console.log("Constructed URL:", url.toString());
   };
 
   const onClear = () => {
     reset();
     setFilters({
       trackerId: "",
-      recipient: "",
+      phone: "",
       merchant: "",
       date: "",
       status: "",
@@ -346,10 +349,8 @@ const OrderHistory = () => {
             .toLowerCase()
             .includes(filters.trackerId.toLowerCase())
         : true;
-      const matchRecipient = filters.recipient
-        ? tracker.pickup.point
-            .toLowerCase()
-            .includes(filters.recipient.toLowerCase())
+      const matchPhone = filters.phone
+        ? tracker.pickup.phone.includes(filters.phone) // Change here
         : true;
       const matchMerchant = filters.merchant
         ? tracker.merchant.name
@@ -366,7 +367,7 @@ const OrderHistory = () => {
 
       return (
         matchTrackerId &&
-        matchRecipient &&
+        matchPhone &&
         matchMerchant &&
         matchDate &&
         matchStatus
@@ -525,7 +526,7 @@ const OrderHistory = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="p-4">
       <div className="bg-white p-6 rounded-lg shadow-md">
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -544,12 +545,12 @@ const OrderHistory = () => {
           </div>
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700">
-              Recipient
+              Phone
             </label>
             <input
               type="text"
-              placeholder="Recipient Name"
-              {...register("recipient")}
+              placeholder="Enter Phone Number"
+              {...register("phone")}
               className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
             />
           </div>
@@ -633,13 +634,20 @@ const OrderHistory = () => {
             <h2 className="text-xl font-semibold text-gray-900">Parcels</h2>
             <Button
               variant="default"
-              onClick={() => navigate("/admin/parcels/create")}
+              onClick={() => navigate("/merchant/create-parcel")}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
               <span>Add Parcel</span>
             </Button>
           </div>
+
+          {/* Display error message if there is an error */}
+          {isError && (
+            <div className="text-red-500 text-center mb-4">
+              Failed to load parcels. Please try again later.
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex items-center mb-5 gap-2">
