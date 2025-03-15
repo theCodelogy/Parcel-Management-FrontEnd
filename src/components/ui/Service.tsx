@@ -42,12 +42,12 @@ const services = [
 
 export default function Services() {
   return (
-    <section className="container mx-auto py-12 lg:my-28">
+    <section className="container mx-auto lg:mt-28">
       <h3 className="text-3xl font-bold text-center mb-10">
         <span className="border-b-4 border-[#A31621] pb-1">Our Services</span>
       </h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {services.map((service) => (
           <div
             key={service.id}

@@ -1,29 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
-  User,
   Mail,
   Phone,
   MapPin,
-  CheckCircle,
   Calendar,
   Edit,
-  ShoppingBag,
+  User,
+  ArrowLeftRight,
+  Building,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import Modal from "react-modal";
 import { useForm } from "react-hook-form";
-
-// Define user role types
-type UserRole = "merchant";
+import { useAppSelector } from "@/redux/hooks";
+import { useCurrentUser } from "@/redux/features/auth/authSlice";
+import axios from "axios";
+import { TUser } from "@/interface";
 
 // Define the user data interface
 interface UserData {
@@ -31,61 +26,18 @@ interface UserData {
   name: string;
   email: string;
   phone: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-  };
-  role: UserRole;
+  address: string;
   avatarUrl: string;
   joinDate: string;
-  verified: boolean;
-  stats: {
-    merchantStats?: {
-      totalSales: number;
-      activeOrders: number;
-      pendingPayments: number;
-      inventoryLevel: number;
-    };
-  };
+  businessName: string;
+  referenceName: string;
+  referencePhone: string;
+  returnCharges: number;
 }
-
-// Sample user data for demonstration
-const sampleUsers: Record<UserRole, UserData> = {
-  merchant: {
-    id: "merchant-001",
-    name: "Alex Morgan",
-    email: "alex.morgan@parcelid.com",
-    phone: "+1 (555) 123-4567",
-    address: {
-      street: "123 Merchant Ave",
-      city: "San Francisco",
-      state: "CA",
-      zipCode: "94105",
-      country: "USA",
-    },
-    role: "merchant",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80",
-    joinDate: "2020-01-15",
-    verified: true,
-    stats: {
-      merchantStats: {
-        totalSales: 1458,
-        activeOrders: 267,
-        pendingPayments: 23,
-        inventoryLevel: 98,
-      },
-    },
-  },
-};
 
 // Interface for component props
 interface UserProfileProps {
   userId?: string;
-  role?: UserRole;
 }
 
 interface EditProfileModalProps {
@@ -108,7 +60,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       name: userData.name,
       email: userData.email,
       phone: userData.phone,
-      address: `${userData.address.street}, ${userData.address.city}, ${userData.address.state} ${userData.address.zipCode}, ${userData.address.country}`,
+      address: userData.address,
     },
   });
 
@@ -125,79 +77,117 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       className="modal"
       overlayClassName="overlay"
     >
-      <h2 className="text-2xl font-bold mb-4">Edit Profile</h2>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="mb-4">
-          <label className="block text-gray-700">Name</label>
-          <input
-            type="text"
-            {...register("name", { required: true })}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.name && (
-            <span className="text-red-500">This field is required</span>
-          )}
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Email</label>
-          <input
-            type="email"
-            {...register("email", { required: true })}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.email && (
-            <span className="text-red-500">This field is required</span>
-          )}
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Phone</label>
-          <input
-            type="text"
-            {...register("phone", { required: true })}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.phone && (
-            <span className="text-red-500">This field is required</span>
-          )}
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Address</label>
-          <textarea
-            {...register("address", { required: true })}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.address && (
-            <span className="text-red-500">This field is required</span>
-          )}
-        </div>
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={onRequestClose}
-            className="px-4 py-2 mr-2 text-gray-700 border rounded-lg hover:bg-gray-100"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
-          >
-            Save Changes
-          </button>
-        </div>
-      </form>
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <h2 className="text-2xl font-bold mb-4">Edit Profile</h2>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="mb-4">
+            <label className="block text-gray-700">Name</label>
+            <input
+              type="text"
+              {...register("name", { required: true })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {errors.name && (
+              <span className="text-red-500">This field is required</span>
+            )}
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Email</label>
+            <input
+              type="email"
+              {...register("email", { required: true })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {errors.email && (
+              <span className="text-red-500">This field is required</span>
+            )}
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Phone</label>
+            <input
+              type="text"
+              {...register("phone", { required: true })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {errors.phone && (
+              <span className="text-red-500">This field is required</span>
+            )}
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Address</label>
+            <textarea
+              {...register("address", { required: true })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {errors.address && (
+              <span className="text-red-500">This field is required</span>
+            )}
+          </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={onRequestClose}
+              className="px-4 py-2 mr-2 text-gray-700 border rounded-lg hover:bg-gray-100 transition duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition duration-200"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </motion.div>
     </Modal>
   );
 };
 
-const MerchantProfilePage: React.FC<UserProfileProps> = ({
-  role = "merchant",
-}) => {
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const userData = sampleUsers[role];
+const MerchantProfilePage: React.FC<UserProfileProps> = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const { email } = useAppSelector(useCurrentUser) as TUser;
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get(
+          `https://parcel-management-back-end-peach.vercel.app/api/v1/merchant?email=${email}`
+        );
+        const data = response.data.data[0];
+        const mappedData: UserData = {
+          id: data._id,
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+          avatarUrl: data.image,
+          joinDate: data.createdAt,
+          businessName: data.businessName,
+          referenceName: data.referenceName,
+          referencePhone: data.referencePhone,
+          returnCharges: data.returnCharges,
+        };
+        setUserData(mappedData);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [email]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
+  if (!userData) {
+    return <div>Loading...</div>;
+  }
 
   // Format date
   const formatDate = (dateString: string): string => {
@@ -209,130 +199,140 @@ const MerchantProfilePage: React.FC<UserProfileProps> = ({
     }).format(date);
   };
 
-  // Get role badge color
-  const getRoleBadgeColor = (role: UserRole): string => {
-    switch (role) {
-      case "merchant":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  // Get role icon
-  const getRoleIcon = (role: UserRole) => {
-    switch (role) {
-      case "merchant":
-        return <ShoppingBag className="w-4 h-4" />;
-      default:
-        return <User className="w-4 h-4" />;
-    }
-  };
-
   return (
-    <motion.div
-      className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      <Card className="profile-section p-6 sm:p-8 shadow-lg rounded-lg overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-start md:space-x-8">
-          {/* Profile Header Section */}
-          <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
-            <div className="relative mb-4">
-              <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
+    <div className="">
+      <motion.div
+        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Card className="profile-section p-6 sm:p-8 shadow-md rounded-3xl bg-white backdrop-filter backdrop-blur-md">
+          <div className="flex flex-col md:space-x-8">
+            {/* Profile Header Section */}
+            <div className="flex flex-col items-center justify-center">
+              <Avatar className="w-28 h-28 border-4 border-white shadow-xl">
                 <img
                   src={userData.avatarUrl}
                   alt={userData.name}
-                  className="object-cover"
+                  className="object-cover rounded-full"
                 />
               </Avatar>
-              {userData.verified && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-1">
-                        <CheckCircle className="w-4 h-4" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Verified Account</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
+              <div className="flex flex-col items-center mt-4">
+                <h1 className="text-3xl font-bold text-gray-800">
+                  {userData.name}
+                </h1>
+                <div className="profile-badge flex items-center gap-1 mt-2 px-3 py-1 bg-purple-100 text-purple-800 rounded-full">
+                  <Building className="w-5 h-5" />
+                  <span className="capitalize">Merchant</span>
+                </div>
+                <p className="text-gray-600 mt-2">
+                  Member since {formatDate(userData.joinDate)}
+                </p>
+                <Button
+                  className="mt-3 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 transition duration-200 shadow-md"
+                  onClick={openModal}
+                >
+                  <Edit className="w-5 h-5" />
+                  Edit Profile
+                </Button>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-profile-primary">
-              {userData.name}
-            </h1>
-            <div
-              className={`profile-badge flex items-center gap-1 mt-2 ${getRoleBadgeColor(
-                userData.role
-              )}`}
-            >
-              {getRoleIcon(userData.role)}
-              <span className="capitalize">{userData.role}</span>
+
+            {/* Contact Information and Stats */}
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-700 mb-4">
+                  Contact Information
+                </h2>
+                <ul className="space-y-4">
+                  <li className="flex items-center">
+                    <Mail className="w-6 h-6 text-blue-500 mr-3" />
+                    <div>
+                      <span className="font-medium text-gray-600">Email</span>
+                      <p className="text-gray-800">{userData.email}</p>
+                    </div>
+                  </li>
+                  <li className="flex items-center">
+                    <Phone className="w-6 h-6 text-blue-500 mr-3" />
+                    <div>
+                      <span className="font-medium text-gray-600">Phone</span>
+                      <p className="text-gray-800">{userData.phone}</p>
+                    </div>
+                  </li>
+                  <li className="flex items-center">
+                    <MapPin className="w-6 h-6 text-blue-500 mr-3" />
+                    <div>
+                      <span className="font-medium text-gray-600">Address</span>
+                      <p className="text-gray-800">{userData.address}</p>
+                    </div>
+                  </li>
+                  <li className="flex items-center">
+                    <User className="w-6 h-6 text-blue-500 mr-3" />
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Reference Name
+                      </span>
+                      <p className="text-gray-800">{userData.referenceName}</p>
+                    </div>
+                  </li>
+                  <li className="flex items-center">
+                    <Phone className="w-6 h-6 text-blue-500 mr-3" />
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Reference Phone
+                      </span>
+                      <p className="text-gray-800">{userData.referencePhone}</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-700 mb-4">
+                  Business Details
+                </h2>
+                <ul className="space-y-4">
+                  <li className="flex items-center">
+                    <Calendar className="w-6 h-6 text-blue-500 mr-3" />
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Member Since
+                      </span>
+                      <p className="text-gray-800">
+                        {formatDate(userData.joinDate)}
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-center">
+                    <Building className="w-6 h-6 text-blue-500 mr-3" />
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Business Name
+                      </span>
+                      <p className="text-gray-800">{userData.businessName}</p>
+                    </div>
+                  </li>
+                  <li className="flex items-center">
+                    <ArrowLeftRight className="w-6 h-6 text-blue-500 mr-3" />
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Return Charges
+                      </span>
+                      <p className="text-gray-800">${userData.returnCharges}</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
             </div>
-            <p className="text-profile-muted mt-1 mb-2">
-              Member since {formatDate(userData.joinDate)}
-            </p>
-            <Button
-              className="profile-button profile-button-primary mt-2"
-              onClick={openModal}
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
           </div>
+        </Card>
 
-          {/* Contact Information and Stats */}
-          <div className="flex-1">
-            <h2 className="profile-heading mb-4">Contact Information</h2>
-            <ul className="space-y-4">
-              <li className="flex items-start">
-                <Mail className="w-5 h-5 text-profile-accent mr-3 mt-0.5" />
-                <div>
-                  <span className="profile-label">Email</span>
-                  <p className="profile-value">{userData.email}</p>
-                </div>
-              </li>
-              <li className="flex items-start">
-                <Phone className="w-5 h-5 text-profile-accent mr-3 mt-0.5" />
-                <div>
-                  <span className="profile-label">Phone</span>
-                  <p className="profile-value">{userData.phone}</p>
-                </div>
-              </li>
-              <li className="flex items-start">
-                <MapPin className="w-5 h-5 text-profile-accent mr-3 mt-0.5" />
-                <div>
-                  <span className="profile-label">Address</span>
-                  <p className="profile-value">
-                    {userData.address.street}, {userData.address.city},{" "}
-                    {userData.address.state} {userData.address.zipCode},{" "}
-                    {userData.address.country}
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-start">
-                <Calendar className="w-5 h-5 text-profile-accent mr-3 mt-0.5" />
-                <div>
-                  <span className="profile-label">Member Since</span>
-                  <p className="profile-value">
-                    {formatDate(userData.joinDate)}
-                  </p>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </Card>
-
-      <EditProfileModal
-        isOpen={isModalOpen}
-        onRequestClose={closeModal}
-        userData={userData}
-      />
+        <EditProfileModal
+          isOpen={isModalOpen}
+          onRequestClose={closeModal}
+          userData={userData}
+        />
+      </motion.div>
 
       <style>{`
         .modal {
@@ -343,11 +343,10 @@ const MerchantProfilePage: React.FC<UserProfileProps> = ({
           background: white;
           padding: 20px;
           border-radius: 12px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
           max-width: 500px;
-          width: 100%;
+          width: 90%;
         }
-
         .overlay {
           position: fixed;
           top: 0;
@@ -360,7 +359,7 @@ const MerchantProfilePage: React.FC<UserProfileProps> = ({
           align-items: center;
         }
       `}</style>
-    </motion.div>
+    </div>
   );
 };
 

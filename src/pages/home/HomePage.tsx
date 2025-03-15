@@ -3,9 +3,9 @@ import Pricing from "../../components/ui/Pricing";
 import Services from "../../components/ui/Service";
 import WhyChooseUs from "../../components/ui/WhyChooseUs";
 
-const Home = () => {
+const HomePage = () => {
   return (
-    <div>
+    <div className="container mx-auto">
       <Hero />
       <Services />
       <WhyChooseUs />
@@ -14,4 +14,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default HomePage;

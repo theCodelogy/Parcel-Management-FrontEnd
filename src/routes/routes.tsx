@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import MainLayout from "../layouts/MainLayout";
-import Home from "../pages/home/Home";
+import Home from "../pages/home/HomePage";
 import { adminRoutes } from "./Admin.Routes";
 import Login from "../pages/auth/LoginPage";
 import Registration from "../pages/auth/Registration";
@@ -12,6 +12,7 @@ import MerchantDashboardLayout from "@/layouts/MerchantDashboardLayout";
 import { merchantRoutes } from "./Merchant.Routes";
 import { riderRoutes } from "./Rider.Routes";
 import ProtectedRoute from "@/private/ProtectedRoute";
+import TrackingPage from "@/pages/tracking/TrackingPage";
 
 const router = createBrowserRouter([
   {
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <Home />,
+      },
+      {
+        path: "/tracking",
+        element: <TrackingPage />,
       },
       {
         path: "contact-us",
@@ -42,7 +47,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: <ProtectedRoute role="Super Admin"><DashboardLayout /></ProtectedRoute>,
+    element: (
+      <ProtectedRoute role="Super Admin">
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
     children: adminRoutes.map((route) => ({
       path: route.path,
       element: route.element,
@@ -54,12 +63,20 @@ const router = createBrowserRouter([
   },
   {
     path: "/merchant",
-    element: <ProtectedRoute role="Merchant"><MerchantDashboardLayout /></ProtectedRoute>,
+    element: (
+      <ProtectedRoute role="Merchant">
+        <MerchantDashboardLayout />
+      </ProtectedRoute>
+    ),
     children: merchantRoutes,
   },
   {
     path: "/rider",
-    element: <ProtectedRoute role="Delivery Man"><DeliveryManLayout /></ProtectedRoute>,
+    element: (
+      <ProtectedRoute role="Delivery Man">
+        <DeliveryManLayout />
+      </ProtectedRoute>
+    ),
     children: riderRoutes,
   },
 ]);

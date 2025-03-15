@@ -1,16 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState,  } from "react";
+import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { logout, useCurrentToken } from "@/redux/features/auth/authSlice";
-
+import logo from "../../../assets/logo.png";
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-    const token = useAppSelector(useCurrentToken)
-
-
-
+  const token = useAppSelector(useCurrentToken);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -21,22 +18,20 @@ const Navbar = () => {
   const navLinks = [
     { name: "Home", to: "/" },
     { name: "Services", to: "/services" },
+    { name: "Tracking", to: "/tracking" },
     { name: "About Us", to: "/about-us" },
     { name: "Contact Us", to: "/contact-us" },
   ];
 
   return (
     <nav className="bg-white shadow fixed w-full z-10 top-0 font-bold text-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 sm:px-0">
         <div className="flex justify-between h-16">
           {/* Logo Section */}
           <div className="flex items-center">
-            <Link to="/">
-              <img
-                className="w-10 h-10"
-                src="https://upload.wikimedia.org/wikipedia/en/thumb/b/bd/Reddit_Logo_Icon.svg/220px-Reddit_Logo_Icon.svg.png"
-                alt="Logo"
-              />
+            <Link className="flex items-center gap-1" to="/">
+              <img className="w-14 h-14" src={logo} alt="Logo" />
+              <span className="text-2xl">ClassicCourierBD</span>
             </Link>
           </div>
 

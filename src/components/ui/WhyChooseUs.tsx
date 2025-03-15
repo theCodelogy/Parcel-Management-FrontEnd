@@ -42,7 +42,7 @@ const services = [
 
 export default function WhyChooseUs() {
   return (
-    <section className="py-16 bg-gradient-to-r from-gray-100 to-gray-200">
+    <section className="py-16">
       <div className="container mx-auto px-6">
         <h3 className="text-4xl font-extrabold text-center mb-12 text-gray-800">
           <span className="inline-block border-b-4 border-red-600 pb-2">

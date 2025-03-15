@@ -24,8 +24,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAppDispatch } from "@/redux/hooks";
-import { logout } from "@/redux/features/auth/authSlice";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { logout, useCurrentUser } from "@/redux/features/auth/authSlice";
+import { TUser } from "@/interface";
 
 interface MenuToggleProps {
   isOpen: boolean;
@@ -146,6 +147,10 @@ const Sidebar: React.FC<SidebarProps> = ({
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login");
+  };
+
+  const handleProfile = () => {
+    navigate("/merchant/profile");
   };
 
   // Close sidebar on ESC key press on mobile
@@ -284,7 +289,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </div>
                 <DropdownMenuSeparator className="my-4" />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleProfile}>
                   <User className="w-4 h-4 mr-2" />
                   <span>Profile</span>
                 </DropdownMenuItem>
@@ -318,11 +323,11 @@ const MerchantDashboardLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { name, email } = useAppSelector(useCurrentUser) as TUser;
   const userProfile = {
-    name: "Khaled Ahemed Nayeem",
-    email: "khaledahmed@example.com",
+    name: name,
+    email: email,
   };
-
   useEffect(() => {
     const checkIfMobile = () => {
       // Define mobile as any screen below 1024px.
@@ -401,14 +406,6 @@ const MerchantDashboardLayout: React.FC = () => {
       >
         <div className="p-4 md:p-6">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-6">
-              <h1 className="text-xl md:text-2xl font-bold mb-1">
-                Welcome back, Merchant
-              </h1>
-              <p className="text-sm md:text-base text-gray-600">
-                Here's your Merchant dashboard overview
-              </p>
-            </div>
             <Outlet />
           </div>
         </div>
