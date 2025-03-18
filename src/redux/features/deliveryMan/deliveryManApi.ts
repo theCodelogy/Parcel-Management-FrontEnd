@@ -1,14 +1,13 @@
-import { TQueryParam, TResponseRedux } from '../../../../type/global';
-import { baseApi } from '../../api/baseApi';
-import { TDeliveryMan } from './../../../../type/deliveryManType';
+import { TQueryParam, TResponseRedux } from "../../../../type/global";
+import { baseApi } from "../../api/baseApi";
+import { TDeliveryMan } from "./../../../../type/deliveryManType";
 
 const deliveryMan = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-
     addDeliveryMan: builder.mutation({
       query: (data) => ({
-        url: '/deliveryMan',
-        method: 'POST',
+        url: "/deliveryMan",
+        method: "POST",
         body: data,
       }),
     }),
@@ -23,12 +22,12 @@ const deliveryMan = baseApi.injectEndpoints({
           });
         }
         return {
-          url: '/deliveryMan',
-          method: 'GET',
+          url: "/deliveryMan",
+          method: "GET",
           params: params,
         };
       },
-      providesTags: ['DeliveryMan'],
+      providesTags: ["DeliveryMan"],
       transformResponse: (response: TResponseRedux<TDeliveryMan[]>) => {
         return {
           data: response.data,
@@ -41,7 +40,7 @@ const deliveryMan = baseApi.injectEndpoints({
       query: (id) => {
         return {
           url: `/deliveryMan/${id}`,
-          method: 'GET',
+          method: "GET",
         };
       },
       transformResponse: (response: TResponseRedux<TDeliveryMan>) => {
@@ -55,28 +54,26 @@ const deliveryMan = baseApi.injectEndpoints({
     updateDeliveryMan: builder.mutation({
       query: (args) => ({
         url: `/deliveryMan/${args.id}`,
-        method: 'PATCH',
+        method: "PATCH",
         body: args.data,
       }),
-      invalidatesTags: ['DeliveryMan'],
+      invalidatesTags: ["DeliveryMan"],
     }),
 
     deleteDeliveryMan: builder.mutation({
       query: (id) => ({
         url: `/deliveryMan/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['DeliveryMan'],
+      invalidatesTags: ["DeliveryMan"],
     }),
-
-
   }),
 });
 
-export const { 
+export const {
   useGetAllDeliveryManQuery,
   useAddDeliveryManMutation,
   useUpdateDeliveryManMutation,
   useGetSingleDeliveryManQuery,
-  useDeleteDeliveryManMutation
- } = deliveryMan;
+  useDeleteDeliveryManMutation,
+} = deliveryMan;

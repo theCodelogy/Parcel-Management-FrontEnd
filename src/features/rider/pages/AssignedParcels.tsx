@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import axios from "axios";
 import { useForm } from "react-hook-form";
 import { Eraser, Filter, ChevronDown } from "lucide-react";
 import {
@@ -18,13 +17,10 @@ import {
 import TablePagination from "@/components/ui/TablePagination";
 import TablePaginationInfo from "@/components/ui/TablePaginationInfo";
 import StatusUpdateModal from "@/features/admin/pages/parcel/StatusUpdateModal";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useGetAllParcelQuery } from "@/redux/features/parcel/parcelApi";
+import { useAppSelector } from "@/redux/hooks";
+import { TUser } from "@/interface";
+import { useCurrentUser } from "@/redux/features/auth/authSlice";
 
 type TrackerStatus =
   | "Pending"
@@ -102,8 +98,10 @@ type ApiResponse = {
   }[];
   pickupDate: string | null;
   deliveryDate: string | null;
-  customerAddress: string;
   Weight: number;
+  customerAddress: string;
+  customerName: string;
+  customerPhone: string;
 };
 
 export type Tracker = {
@@ -135,11 +133,9 @@ export type Tracker = {
   deliveryDate: string | null;
   address: string;
   weight: number;
-  proofOfDelivery?: {
-    videoUrl?: string;
-    verificationCode?: string;
-    timestamp?: string;
-  };
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
 };
 
 const formatCurrency = (amount: number): string => {
@@ -174,18 +170,14 @@ interface Filters {
   trackerId: string;
   recipient: string;
   merchant: string;
-  date: string;
-  status: string;
 }
 
-const TrackerManagementPage = () => {
+const AssignedParcels = () => {
   const { register, handleSubmit, reset } = useForm<Filters>({
     defaultValues: {
       trackerId: "",
       recipient: "",
       merchant: "",
-      date: "",
-      status: "",
     },
   });
 
@@ -193,12 +185,9 @@ const TrackerManagementPage = () => {
     trackerId: "",
     recipient: "",
     merchant: "",
-    date: "",
-    status: "",
   });
 
   const [trackers, setTrackers] = useState<Tracker[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
@@ -211,65 +200,71 @@ const TrackerManagementPage = () => {
     null
   );
 
+  const { email } = useAppSelector(useCurrentUser) as TUser;
+
+  // Log the API call parameters
+  console.log("API Call Parameters:", {
+    deliveryManEmail: email,
+    currentStatus: "Delivery Man Assigned",
+  });
+
+  const { data, isLoading, isError } = useGetAllParcelQuery([
+    { name: "parcelStatus.deliveryManEmail", value: email },
+    { name: "currentStatus", value: "Delivery Man Assigned" },
+  ]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get<{ data: ApiResponse[] }>(
-          "https://parcel-management-back-end-peach.vercel.app/api/v1/parcel"
-          // "parcel?currentStatus=Delivery%20Man%20Assigned&parcelStatus.deliveryManEmail=example@gmail.com"
-        );
-        const trackers = response.data.data.map((item: ApiResponse) => ({
-          id: item._id,
-          trackingId: item.TrakingId,
-          merchant: {
-            name: item.merchant,
-          },
-          pickup: {
-            point: item.pickupPoints,
-            phone: item.pickupPhone,
-            address: item.pickupAddress,
-          },
-          financial: {
-            codAmount: item.cashCollection,
-            charges: item.totalCharge,
-            vat: item.vat,
-            currentPayable: item.netPayable,
-          },
-          payment: {
-            status:
-              item.currentPayable === 0 ? "Paid" : ("Pending" as PaymentStatus),
-            amountPaid: item.advance,
-            amountPending: item.currentPayable,
-            method: item.paymentMethod,
-          },
-          status: item.currentStatus as TrackerStatus,
-          statusUpdates: item.parcelStatus.map((status) => ({
-            title: status.title,
-            current: status.current,
-            email: status.email,
-            name: status.name,
-            phone: status.phone,
-            deliveryMan: status.deliveryMan,
-            deliveryManPhone: status.deliveryManPhone,
-            deliveryManEmail: status.deliveryManEmail,
-            note: status.note,
-            date: status.date,
-            createdBy: status.createdBy,
-          })),
-          pickupDate: item.pickupDate || null,
-          deliveryDate: item.deliveryDate || null,
-          address: item.customerAddress,
-          weight: item.Weight,
-        }));
-        setTrackers(trackers);
-      } catch (error) {
-        console.error("Error fetching tracker data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+    if (data?.data) {
+      console.log("API Response:", data);
+      const trackers = data.data.map((item: ApiResponse) => ({
+        id: item._id,
+        trackingId: item.TrakingId,
+        merchant: {
+          name: item.merchant,
+        },
+        pickup: {
+          point: item.pickupPoints,
+          phone: item.pickupPhone,
+          address: item.pickupAddress,
+        },
+        financial: {
+          codAmount: item.cashCollection,
+          charges: item.totalCharge,
+          vat: item.vat,
+          currentPayable: item.netPayable,
+        },
+        payment: {
+          status:
+            item.currentPayable === 0 ? "Paid" : ("Pending" as PaymentStatus),
+          amountPaid: item.advance,
+          amountPending: item.currentPayable,
+          method: item.paymentMethod,
+        },
+        status: item.currentStatus as TrackerStatus,
+        statusUpdates: item.parcelStatus.map((status) => ({
+          title: status.title,
+          current: status.current,
+          email: status.email,
+          name: status.name,
+          phone: status.phone,
+          deliveryMan: status.deliveryMan,
+          deliveryManPhone: status.deliveryManPhone,
+          deliveryManEmail: status.deliveryManEmail,
+          note: status.note,
+          date: status.date,
+          createdBy: status.createdBy,
+        })),
+        pickupDate: item.pickupDate || null,
+        deliveryDate: item.deliveryDate || null,
+        address: item.customerAddress,
+        weight: item.Weight,
+        customerName: item.customerName,
+        customerPhone: item.customerPhone,
+        customerAddress: item.customerAddress,
+      }));
+      setTrackers(trackers);
+    }
+  }, [data]);
 
   const onSubmit = (data: Filters) => {
     setFilters(data);
@@ -282,8 +277,6 @@ const TrackerManagementPage = () => {
       trackerId: "",
       recipient: "",
       merchant: "",
-      date: "",
-      status: "",
     });
     setCurrentPage(1);
   };
@@ -296,7 +289,7 @@ const TrackerManagementPage = () => {
             .includes(filters.trackerId.toLowerCase())
         : true;
       const matchRecipient = filters.recipient
-        ? tracker.pickup.point
+        ? tracker.customerName
             .toLowerCase()
             .includes(filters.recipient.toLowerCase())
         : true;
@@ -305,21 +298,8 @@ const TrackerManagementPage = () => {
             .toLowerCase()
             .includes(filters.merchant.toLowerCase())
         : true;
-      const matchDate = filters.date
-        ? tracker.pickupDate &&
-          new Date(tracker.pickupDate).toISOString().startsWith(filters.date)
-        : true;
-      const matchStatus = filters.status
-        ? tracker.status === filters.status
-        : true;
 
-      return (
-        matchTrackerId &&
-        matchRecipient &&
-        matchMerchant &&
-        matchDate &&
-        matchStatus
-      );
+      return matchTrackerId && matchRecipient && matchMerchant;
     });
   }, [trackers, filters]);
 
@@ -375,52 +355,6 @@ const TrackerManagementPage = () => {
             />
           </div>
 
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">
-              Status
-            </label>
-            <Select {...register("status")}>
-              <SelectTrigger className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200">
-                <SelectValue placeholder="Select a status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in_transit">In Transit</SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
-                <SelectItem value="returned">Returned</SelectItem>
-                <SelectItem value="pickup_assigned">Pickup Assigned</SelectItem>
-                <SelectItem value="pickup_re_schedule">
-                  Pickup Re-Schedule
-                </SelectItem>
-                <SelectItem value="received_by_pickup_man">
-                  Received By Pickup Man
-                </SelectItem>
-                <SelectItem value="received_by_hub">Received By Hub</SelectItem>
-                <SelectItem value="delivery_man_assigned">
-                  Delivery Man Assigned
-                </SelectItem>
-                <SelectItem value="received_warehouse">
-                  Received Warehouse
-                </SelectItem>
-                <SelectItem value="transfer_to_hub">Transfer to hub</SelectItem>
-                <SelectItem value="received_by_hub">Received by hub</SelectItem>
-                <SelectItem value="return_to_courier">
-                  Return to Courier
-                </SelectItem>
-                <SelectItem value="partial_delivered">
-                  Partial Delivered
-                </SelectItem>
-                <SelectItem value="return_assigned_to_merchant">
-                  Return assigned to merchant
-                </SelectItem>
-                <SelectItem value="return_received_by_merchant">
-                  Return received by merchant
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="flex space-x-4">
             <button
               type="button"
@@ -446,6 +380,12 @@ const TrackerManagementPage = () => {
               Assigned Parcels
             </h2>
           </div>
+
+          {isError && (
+            <div className="text-red-500 text-center mb-4">
+              Failed to load parcels. Please try again later.
+            </div>
+          )}
 
           <div className="overflow-x-auto">
             <Table>
@@ -503,23 +443,23 @@ const TrackerManagementPage = () => {
                         {startIndex + currentData.indexOf(tracker) + 1}
                       </TableCell>
                       <TableCell className="p-3 font-medium">
-                        <button className="text-blue-600 hover:text-blue-800 hover:underline">
+                        <button className="text-blue-600 hover:text-blue-800">
                           {tracker.trackingId}
                         </button>
                       </TableCell>
                       <TableCell className="p-3">
                         <div className="flex flex-col space-y-1 text-sm">
                           <div className="font-medium">
-                            {tracker.pickup.point}
+                            {tracker.customerName}
                           </div>
                           <div className="text-gray-500">
-                            {tracker.pickup.phone}
+                            {tracker.customerPhone}
                           </div>
                           <div
                             className="text-gray-500 truncate max-w-[200px]"
-                            title={tracker.pickup.address}
+                            title={tracker.customerAddress}
                           >
-                            {tracker.pickup.address}
+                            {tracker.customerAddress}
                           </div>
                         </div>
                       </TableCell>
@@ -652,4 +592,4 @@ const TrackerManagementPage = () => {
   );
 };
 
-export default TrackerManagementPage;
+export default AssignedParcels;

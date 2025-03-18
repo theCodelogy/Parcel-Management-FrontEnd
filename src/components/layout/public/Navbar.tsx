@@ -17,7 +17,6 @@ const Navbar = () => {
   // Consistent set of navigation links
   const navLinks = [
     { name: "Home", to: "/" },
-    { name: "Services", to: "/services" },
     { name: "Tracking", to: "/tracking" },
     { name: "About Us", to: "/about-us" },
     { name: "Contact Us", to: "/contact-us" },

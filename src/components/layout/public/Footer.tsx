@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  FaFacebookSquare,
-  FaInstagram,
-  FaTwitter,
-  FaPaperPlane,
-} from "react-icons/fa";
+import { FaFacebookSquare, FaPaperPlane, FaEnvelope } from "react-icons/fa";
 import logo from "../../../assets/logo.png";
 
 const Footer: React.FC = () => {
@@ -21,7 +16,14 @@ const Footer: React.FC = () => {
               <h2 className="text-2xl font-bold">ClassicCourierBD</h2>
             </div>
             <p className="mt-3 font-semibold">01624581062</p>
-            <p>Classiccourier2025@gmail.com</p>
+            <p>
+              <a
+                href="mailto:Classiccourier2025@gmail.com"
+                className="hover:underline"
+              >
+                Classiccourier2025@gmail.com
+              </a>
+            </p>
             <p className="mt-3">
               Fastest platform with all courier service features. Helping you
               start, run, and grow your courier service.
@@ -94,15 +96,19 @@ const Footer: React.FC = () => {
               {[
                 {
                   icon: <FaFacebookSquare />,
-                  link: "https://www.facebook.com",
+                  link: "https://www.facebook.com/share/1BDZKmExBY/?mibextid=wwXIfr",
                 },
-                { icon: <FaInstagram />, link: "https://www.instagram.com" },
-                { icon: <FaTwitter />, link: "https://www.twitter.com" },
+                {
+                  icon: <FaEnvelope />,
+                  link: "https://mail.google.com/mail/?view=cm&fs=1&to=Classiccourier2025@gmail.com",
+                },
               ].map(({ icon, link }, index) => (
                 <a
                   key={index}
                   href={link}
                   className="text-gray-800 hover:text-gray-600"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   {icon}
                 </a>

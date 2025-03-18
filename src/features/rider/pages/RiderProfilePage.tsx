@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Mail,
   Phone,
@@ -10,16 +10,24 @@ import {
   DollarSign,
   UserCheck,
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
-import Modal from "react-modal";
 import { useForm } from "react-hook-form";
 import { useAppSelector } from "@/redux/hooks";
 import { useCurrentUser } from "@/redux/features/auth/authSlice";
-import axios from "axios";
-import { TUser } from "@/interface";
+import {
+  useGetAllDeliveryManQuery,
+  useUpdateDeliveryManMutation,
+} from "@/redux/features/deliveryMan/deliveryManApi";
+import { TDeliveryMan } from "type/deliveryManType";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 // Define the user data interface
 interface UserData {
@@ -41,14 +49,14 @@ interface UserProfileProps {
 }
 
 interface EditProfileModalProps {
-  isOpen: boolean;
-  onRequestClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   userData: UserData;
 }
 
 const EditProfileModal: React.FC<EditProfileModalProps> = ({
-  isOpen,
-  onRequestClose,
+  open,
+  onOpenChange,
   userData,
 }) => {
   const {
@@ -64,25 +72,27 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     },
   });
 
-  const onSubmit = (data: any) => {
-    console.log("Form submitted:", data);
-    onRequestClose();
+  // Initialize the update mutation
+  const [updateDeliveryMan, { isLoading: updating }] =
+    useUpdateDeliveryManMutation();
+
+  const onSubmit = async (data: any) => {
+    try {
+      const payload = { id: userData.id, data };
+      const response = await updateDeliveryMan(payload).unwrap();
+      console.log("Update successful:", response);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to update:", error);
+    }
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onRequestClose={onRequestClose}
-      contentLabel="Edit Profile Modal"
-      className="modal"
-      overlayClassName="overlay"
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <h2 className="text-2xl font-bold mb-4">Edit Profile</h2>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Profile</DialogTitle>
+        </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-4">
             <label className="block text-gray-700">Name</label>
@@ -127,68 +137,90 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <span className="text-red-500">This field is required</span>
             )}
           </div>
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={onRequestClose}
-              className="px-4 py-2 mr-2 text-gray-700 border rounded-lg hover:bg-gray-100 transition duration-200"
-            >
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition duration-200"
-            >
-              Save Changes
-            </button>
-          </div>
+            </Button>
+            <Button type="submit" disabled={updating}>
+              {updating ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
         </form>
-      </motion.div>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 };
 
+const SkeletonLoader = () => (
+  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <Card className="profile-section p-6 sm:p-8 shadow-md rounded-3xl bg-white backdrop-filter backdrop-blur-md">
+      <div className="flex flex-col md:space-x-8">
+        <div className="flex flex-col items-center justify-center">
+          <div className="w-28 h-28 bg-gray-300 rounded-full animate-pulse"></div>
+          <div className="flex flex-col items-center mt-4">
+            <div className="h-8 w-40 bg-gray-300 rounded animate-pulse"></div>
+            <div className="h-6 w-24 bg-gray-300 rounded mt-2 animate-pulse"></div>
+            <div className="h-6 w-32 bg-gray-300 rounded mt-2 animate-pulse"></div>
+            <div className="h-10 w-28 bg-gray-300 rounded mt-3 animate-pulse"></div>
+          </div>
+        </div>
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+          <div>
+            <div className="h-6 w-32 bg-gray-300 rounded mb-4 animate-pulse"></div>
+            <ul className="space-y-4">
+              <li className="h-6 w-48 bg-gray-300 rounded animate-pulse"></li>
+              <li className="h-6 w-48 bg-gray-300 rounded animate-pulse"></li>
+              <li className="h-6 w-48 bg-gray-300 rounded animate-pulse"></li>
+            </ul>
+          </div>
+          <div>
+            <div className="h-6 w-32 bg-gray-300 rounded mb-4 animate-pulse"></div>
+            <ul className="space-y-4">
+              <li className="h-6 w-48 bg-gray-300 rounded animate-pulse"></li>
+              <li className="h-6 w-48 bg-gray-300 rounded animate-pulse"></li>
+              <li className="h-6 w-48 bg-gray-300 rounded animate-pulse"></li>
+              <li className="h-6 w-48 bg-gray-300 rounded animate-pulse"></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </Card>
+  </div>
+);
+
 const RiderProfilePage: React.FC<UserProfileProps> = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const { email } = useAppSelector(useCurrentUser) as TUser;
+  const { email } = useAppSelector(useCurrentUser) as any;
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await axios.get(
-          `https://parcel-management-back-end-peach.vercel.app/api/v1/deliveryman?email=${email}`
-        );
-        const data = response.data.data[0];
-        const mappedData: UserData = {
-          id: data._id,
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          address: data.address,
-          avatarUrl: data.image,
-          joinDate: data.createdAt,
-          hub: data.hub,
-          status: data.status,
-          salary: data.salary,
-        };
-        setUserData(mappedData);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+  // Fetch deliveryman data using the RTK Query hook.
+  const { data, isLoading } = useGetAllDeliveryManQuery([
+    { name: "email", value: email },
+  ]);
+
+  // Pick the first matching record from the returned array.
+  const deliveryManData: TDeliveryMan | undefined = data?.data?.[0];
+
+  // Map the fetched data to our local UserData format.
+  const userData: UserData | null = deliveryManData
+    ? {
+        id: deliveryManData._id,
+        name: deliveryManData.name,
+        email: deliveryManData.email,
+        phone: deliveryManData.phone,
+        address: deliveryManData.address,
+        avatarUrl: deliveryManData.image,
+        joinDate: deliveryManData.createdAt,
+        hub: deliveryManData.hub,
+        status: deliveryManData.status,
+        salary: deliveryManData.salary,
       }
-    };
+    : null;
 
-    fetchUserData();
-  }, [email]);
-
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
-
-  if (!userData) {
-    return <div>Loading...</div>;
+  if (isLoading || !userData) {
+    return <SkeletonLoader />;
   }
 
-  // Format date
+  // Format the join date
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat("en-US", {
@@ -199,152 +231,118 @@ const RiderProfilePage: React.FC<UserProfileProps> = () => {
   };
 
   return (
-    <div className="">
-      <motion.div
-        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Card className="profile-section p-6 sm:p-8 shadow-md rounded-3xl bg-white backdrop-filter backdrop-blur-md">
-          <div className="flex flex-col md:space-x-8">
-            {/* Profile Header Section */}
-            <div className="flex flex-col items-center justify-center">
-              <Avatar className="w-28 h-28 border-4 border-white shadow-xl">
-                <img
-                  src={userData.avatarUrl}
-                  alt={userData.name}
-                  className="object-cover rounded-full"
-                />
-              </Avatar>
-              <div className="flex flex-col items-center mt-4">
-                <h1 className="text-3xl font-bold text-gray-800">
-                  {userData.name}
-                </h1>
-                <div className="profile-badge flex items-center gap-1 mt-2 px-3 py-1 bg-purple-100 text-purple-800 rounded-full">
-                  <Bike className="w-5 h-5" />
-                  <span className="capitalize">Deliveryman</span>
-                </div>
-                <p className="text-gray-600 mt-2">
-                  Member since {formatDate(userData.joinDate)}
-                </p>
-                <Button
-                  className="mt-3 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 transition duration-200 shadow-md"
-                  onClick={openModal}
-                >
-                  <Edit className="w-5 h-5" />
-                  Edit Profile
-                </Button>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <Card className="profile-section p-6 sm:p-8 shadow-md rounded-3xl bg-white backdrop-filter backdrop-blur-md">
+        <div className="flex flex-col md:space-x-8">
+          {/* Profile Header */}
+          <div className="flex flex-col items-center justify-center">
+            <Avatar className="w-28 h-28 border-4 border-white shadow-xl">
+              <img
+                src={userData.avatarUrl}
+                alt={userData.name}
+                className="object-cover rounded-full"
+              />
+            </Avatar>
+            <div className="flex flex-col items-center mt-4">
+              <h1 className="text-3xl font-bold text-gray-800">
+                {userData.name}
+              </h1>
+              <div className="profile-badge flex items-center gap-1 mt-2 px-3 py-1 bg-purple-100 text-purple-800 rounded-full">
+                <Bike className="w-5 h-5" />
+                <span className="capitalize">Deliveryman</span>
               </div>
-            </div>
-
-            {/* Contact Information and Stats */}
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-700 mb-4">
-                  Contact Information
-                </h2>
-                <ul className="space-y-4">
-                  <li className="flex items-center">
-                    <Mail className="w-6 h-6 text-blue-500 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-600">Email</span>
-                      <p className="text-gray-800">{userData.email}</p>
-                    </div>
-                  </li>
-                  <li className="flex items-center">
-                    <Phone className="w-6 h-6 text-blue-500 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-600">Phone</span>
-                      <p className="text-gray-800">{userData.phone}</p>
-                    </div>
-                  </li>
-                  <li className="flex items-center">
-                    <MapPin className="w-6 h-6 text-blue-500 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-600">Address</span>
-                      <p className="text-gray-800">{userData.address}</p>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-700 mb-4">
-                  Stats
-                </h2>
-                <ul className="space-y-4">
-                  <li className="flex items-center">
-                    <Calendar className="w-6 h-6 text-blue-500 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-600">
-                        Member Since
-                      </span>
-                      <p className="text-gray-800">
-                        {formatDate(userData.joinDate)}
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-center">
-                    <Truck className="w-6 h-6 text-blue-500 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-600">Hub</span>
-                      <p className="text-gray-800">{userData.hub}</p>
-                    </div>
-                  </li>
-                  <li className="flex items-center">
-                    <UserCheck className="w-6 h-6 text-blue-500 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-600">
-                        Deliveryman Status
-                      </span>
-                      <p className="text-gray-800">{userData.status}</p>
-                    </div>
-                  </li>
-                  <li className="flex items-center">
-                    <DollarSign className="w-6 h-6 text-blue-500 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-600">Salary</span>
-                      <p className="text-gray-800">${userData.salary}</p>
-                    </div>
-                  </li>
-                </ul>
-              </div>
+              <p className="text-gray-600 mt-2">
+                Member since {formatDate(userData.joinDate)}
+              </p>
+              <Button
+                className="mt-3 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 transition duration-200 shadow-md"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <Edit className="w-5 h-5" />
+                Edit Profile
+              </Button>
             </div>
           </div>
-        </Card>
 
-        <EditProfileModal
-          isOpen={isModalOpen}
-          onRequestClose={closeModal}
-          userData={userData}
-        />
-      </motion.div>
-
-      <style>{`
-        .modal {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background: white;
-          padding: 20px;
-          border-radius: 12px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-          max-width: 500px;
-          width: 90%;
-        }
-        .overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-      `}</style>
+          {/* Contact Information and Stats */}
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-700 mb-4">
+                Contact Information
+              </h2>
+              <ul className="space-y-4">
+                <li className="flex items-center">
+                  <Mail className="w-6 h-6 text-blue-500 mr-3" />
+                  <div>
+                    <span className="font-medium text-gray-600">Email</span>
+                    <p className="text-gray-800">{userData.email}</p>
+                  </div>
+                </li>
+                <li className="flex items-center">
+                  <Phone className="w-6 h-6 text-blue-500 mr-3" />
+                  <div>
+                    <span className="font-medium text-gray-600">Phone</span>
+                    <p className="text-gray-800">{userData.phone}</p>
+                  </div>
+                </li>
+                <li className="flex items-center">
+                  <MapPin className="w-6 h-6 text-blue-500 mr-3" />
+                  <div>
+                    <span className="font-medium text-gray-600">Address</span>
+                    <p className="text-gray-800">{userData.address}</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-700 mb-4">
+                Stats
+              </h2>
+              <ul className="space-y-4">
+                <li className="flex items-center">
+                  <Calendar className="w-6 h-6 text-blue-500 mr-3" />
+                  <div>
+                    <span className="font-medium text-gray-600">
+                      Member Since
+                    </span>
+                    <p className="text-gray-800">
+                      {formatDate(userData.joinDate)}
+                    </p>
+                  </div>
+                </li>
+                <li className="flex items-center">
+                  <Truck className="w-6 h-6 text-blue-500 mr-3" />
+                  <div>
+                    <span className="font-medium text-gray-600">Hub</span>
+                    <p className="text-gray-800">{userData.hub}</p>
+                  </div>
+                </li>
+                <li className="flex items-center">
+                  <UserCheck className="w-6 h-6 text-blue-500 mr-3" />
+                  <div>
+                    <span className="font-medium text-gray-600">
+                      Deliveryman Status
+                    </span>
+                    <p className="text-gray-800">{userData.status}</p>
+                  </div>
+                </li>
+                <li className="flex items-center">
+                  <DollarSign className="w-6 h-6 text-blue-500 mr-3" />
+                  <div>
+                    <span className="font-medium text-gray-600">Salary</span>
+                    <p className="text-gray-800">${userData.salary}</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </Card>
+      <EditProfileModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        userData={userData}
+      />
     </div>
   );
 };

@@ -14,9 +14,9 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import axios from "axios";
-import { DeliveryManData } from "../../types";
-import { useQuery } from "@tanstack/react-query";
+import { useGetAllDeliveryManQuery } from "@/redux/features/deliveryMan/deliveryManApi"; // Import the RTK Query hook
+import { useUpdateParcelStatusMutation } from "@/redux/features/parcel/parcelApi";
+import { TDeliveryMan } from "type/deliveryManType";
 
 interface StatusUpdateModalProps {
   isOpen: boolean;
@@ -24,16 +24,6 @@ interface StatusUpdateModalProps {
   selectedStatus: string;
   parcelId: string;
 }
-
-// Fetch delivery man data from API using Axios
-export const fetchDeliveryManApi = async (): Promise<DeliveryManData[]> => {
-  const response = await axios.get<{ data: DeliveryManData[] }>(
-    // "https://parcel-management-back-end.vercel.app/api/v1/deliveryMan"
-    "https://parcel-management-back-end-peach.vercel.app/api/v1/deliveryMan"
-  );
-  console.log("Delivery man data fetched:", response.data.data);
-  return response.data.data;
-};
 
 const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   isOpen,
@@ -45,37 +35,38 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
     string | undefined
   >(undefined);
 
+  const [updateParcelStatus] = useUpdateParcelStatusMutation(); // Use the RTK Query hook
+
   const handleConfirm = async () => {
     console.log("selectedDeliveryMan: ", selectedDeliveryMan);
     try {
-      const response = await axios.put(
-        `https://parcel-management-back-end.vercel.app/api/v1/parcel/${parcelId}`,
-        {
+      await updateParcelStatus({
+        id: parcelId,
+        data: {
           title: selectedStatus,
           statusDetails: {
             deliveryMan: selectedDeliveryMan,
             note: `${selectedStatus} assigned.`,
           },
-        }
-      );
+        },
+      }).unwrap();
 
-      console.log("Status updated successfully:", response.data.data);
+      console.log("Status updated successfully");
       onClose(); // Close the modal after successful update
-    } catch (error:any) {
-      console.error("Error updating status:", error.response.data);
+    } catch (error: any) {
+      console.error("Error updating status:", error);
       // Handle error (e.g., show an error message to the user)
     }
   };
 
-  // Use react-query to fetch delivery men data
+  // Use RTK Query to fetch delivery men data
   const {
-    data: deliveryMen = [],
+    data: deliveryMenResponse,
     isLoading,
     error,
-  } = useQuery<DeliveryManData[]>({
-    queryKey: ["deliveryMen"],
-    queryFn: fetchDeliveryManApi,
-  });
+  } = useGetAllDeliveryManQuery(null);
+
+  const deliveryMen = deliveryMenResponse?.data ?? [];
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -108,7 +99,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                 <SelectValue placeholder="Select a delivery man" />
               </SelectTrigger>
               <SelectContent>
-                {deliveryMen.map((deliveryMan) => (
+                {deliveryMen.map((deliveryMan: TDeliveryMan) => (
                   <SelectItem key={deliveryMan._id} value={deliveryMan.email}>
                     {deliveryMan.name}
                   </SelectItem>

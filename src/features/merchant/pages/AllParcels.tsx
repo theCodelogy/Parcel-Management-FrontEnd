@@ -23,6 +23,9 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import StatusUpdateModal from "@/features/admin/pages/parcel/StatusUpdateModal";
 import { useGetAllParcelQuery } from "@/redux/features/parcel/parcelApi";
+import { TUser } from "@/interface";
+import { useCurrentUser } from "@/redux/features/auth/authSlice";
+import { useAppSelector } from "@/redux/hooks";
 
 type TrackerStatus =
   | "Pending"
@@ -100,8 +103,10 @@ type ApiResponse = {
   }[];
   pickupDate: string | null;
   deliveryDate: string | null;
-  customerAddress: string;
   Weight: number;
+  customerName: string; // New field
+  customerPhone: string; // New field
+  customerAddress: string; // New field
 };
 
 export type Tracker = {
@@ -133,11 +138,8 @@ export type Tracker = {
   deliveryDate: string | null;
   address: string;
   weight: number;
-  proofOfDelivery?: {
-    videoUrl?: string;
-    verificationCode?: string;
-    timestamp?: string;
-  };
+  customerName: string; // New field
+  customerPhone: string; // New field
 };
 
 const formatCurrency = (amount: number): string => {
@@ -223,7 +225,6 @@ const PaymentStatusBadge = ({ status }: { status: PaymentStatus }) => {
 interface Filters {
   trackerId: string;
   phone: string;
-  merchant: string;
   date: string;
   status: string;
 }
@@ -234,7 +235,6 @@ const OrderHistory = () => {
     defaultValues: {
       trackerId: "",
       phone: "",
-      merchant: "",
       date: "",
       status: "",
     },
@@ -243,7 +243,6 @@ const OrderHistory = () => {
   const [filters, setFilters] = useState<Filters>({
     trackerId: "",
     phone: "",
-    merchant: "",
     date: "",
     status: "",
   });
@@ -261,7 +260,13 @@ const OrderHistory = () => {
     null
   );
 
-  const { data, isLoading, isError } = useGetAllParcelQuery([]);
+  const { email } = useAppSelector(useCurrentUser) as TUser;
+  console.log(email);
+
+  // Pass the email as a query parameter to the useGetAllParcelQuery hook
+  const { data, isLoading, isError } = useGetAllParcelQuery([
+    { name: "merchant", value: email },
+  ]);
 
   useEffect(() => {
     if (data?.data) {
@@ -307,6 +312,8 @@ const OrderHistory = () => {
         deliveryDate: item.deliveryDate || null,
         address: item.customerAddress,
         weight: item.Weight,
+        customerName: item.customerName, // New field
+        customerPhone: item.customerPhone, // New field
       }));
       setTrackers(trackers);
     }
@@ -318,12 +325,12 @@ const OrderHistory = () => {
     setCurrentPage(1);
 
     // Construct the URL with filters
-    const baseUrl = "http://localhost:5000/api/v1/parcel";
+    const baseUrl =
+      "https://parcel-management-back-end-beta.vercel.app/api/v1/parcel";
     const url = new URL(baseUrl);
 
     if (data.trackerId) url.searchParams.append("TrakingId", data.trackerId);
-    if (data.phone) url.searchParams.append("pickupPhone", data.phone); // Change here
-    if (data.merchant) url.searchParams.append("merchant", data.merchant);
+    if (data.phone) url.searchParams.append("pickupPhone", data.phone);
     if (data.date) url.searchParams.append("date", data.date);
     if (data.status) url.searchParams.append("status", data.status);
 
@@ -335,7 +342,6 @@ const OrderHistory = () => {
     setFilters({
       trackerId: "",
       phone: "",
-      merchant: "",
       date: "",
       status: "",
     });
@@ -350,12 +356,7 @@ const OrderHistory = () => {
             .includes(filters.trackerId.toLowerCase())
         : true;
       const matchPhone = filters.phone
-        ? tracker.pickup.phone.includes(filters.phone) // Change here
-        : true;
-      const matchMerchant = filters.merchant
-        ? tracker.merchant.name
-            .toLowerCase()
-            .includes(filters.merchant.toLowerCase())
+        ? tracker.pickup.phone.includes(filters.phone)
         : true;
       const matchDate = filters.date
         ? tracker.pickupDate &&
@@ -365,13 +366,7 @@ const OrderHistory = () => {
         ? tracker.status === filters.status
         : true;
 
-      return (
-        matchTrackerId &&
-        matchPhone &&
-        matchMerchant &&
-        matchDate &&
-        matchStatus
-      );
+      return matchTrackerId && matchPhone && matchDate && matchStatus;
     });
   }, [trackers, filters]);
 
@@ -392,7 +387,6 @@ const OrderHistory = () => {
       "SL",
       "Tracker ID",
       "Recipient",
-      "Merchant",
       "Status",
       "Status Update",
       "Amount",
@@ -407,7 +401,6 @@ const OrderHistory = () => {
         String(startIndex + index + 1),
         row.trackingId,
         row.pickup.point,
-        row.merchant.name,
         row.status,
         row.statusUpdates.map((update) => update.note).join(", "),
         `COD: ${formatCurrency(
@@ -437,7 +430,6 @@ const OrderHistory = () => {
       "SL",
       "Tracker ID",
       "Recipient",
-      "Merchant",
       "Status",
       "Status Update",
       "Amount",
@@ -449,7 +441,6 @@ const OrderHistory = () => {
       SL: startIndex + index + 1,
       "Tracker ID": row.trackingId,
       Recipient: row.pickup.point,
-      Merchant: row.merchant.name,
       Status: row.status,
       "Status Update": row.statusUpdates
         .map((update) => update.note)
@@ -480,7 +471,6 @@ const OrderHistory = () => {
       "SL",
       "Tracker ID",
       "Recipient",
-      "Merchant",
       "Status",
       "Status Update",
       "Amount",
@@ -502,7 +492,6 @@ const OrderHistory = () => {
         escapeCsv(startIndex + index + 1),
         escapeCsv(row.trackingId),
         escapeCsv(row.pickup.point),
-        escapeCsv(row.merchant.name),
         escapeCsv(row.status),
         escapeCsv(row.statusUpdates.map((update) => update.note).join(", ")),
         escapeCsv(
@@ -551,17 +540,6 @@ const OrderHistory = () => {
               type="text"
               placeholder="Enter Phone Number"
               {...register("phone")}
-              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">
-              Merchant
-            </label>
-            <input
-              type="text"
-              placeholder="Merchant Name"
-              {...register("merchant")}
               className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
             />
           </div>
@@ -672,12 +650,6 @@ const OrderHistory = () => {
             <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700">
               PDF
             </button>
-            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700">
-              Print
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700">
-              Print all
-            </button>
           </div>
 
           <div className="overflow-x-auto">
@@ -687,7 +659,6 @@ const OrderHistory = () => {
                   <TableHead className="p-3 text-left">SL</TableHead>
                   <TableHead className="p-3 text-left">Tracker ID</TableHead>
                   <TableHead className="p-3 text-left">Recipient</TableHead>
-                  <TableHead className="p-3 text-left">Merchant</TableHead>
                   <TableHead className="p-3 text-left">Status</TableHead>
                   <TableHead className="p-3 text-left">Status Update</TableHead>
                   <TableHead className="p-3 text-left">Amount</TableHead>
@@ -706,7 +677,7 @@ const OrderHistory = () => {
                       <TableCell className="p-3">
                         <div className="h-4 w-4 bg-gray-200 rounded"></div>
                       </TableCell>
-                      {Array.from({ length: 8 }).map((_, colIndex) => (
+                      {Array.from({ length: 7 }).map((_, colIndex) => (
                         <TableCell
                           key={`skeleton-col-${colIndex}`}
                           className="p-3"
@@ -722,7 +693,7 @@ const OrderHistory = () => {
                 ) : currentData.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={10}
+                      colSpan={9}
                       className="p-6 text-center text-gray-500"
                     >
                       No trackers available.
@@ -738,39 +709,23 @@ const OrderHistory = () => {
                         {startIndex + currentData.indexOf(tracker) + 1}
                       </TableCell>
                       <TableCell className="p-3 font-medium">
-                        <button className="text-blue-600 hover:text-blue-800 hover:underline">
+                        <button className="text-blue-600 hover:text-blue-800">
                           {tracker.trackingId}
                         </button>
                       </TableCell>
                       <TableCell className="p-3">
                         <div className="flex flex-col space-y-1 text-sm">
                           <div className="font-medium">
-                            {tracker.pickup.point}
+                            {tracker.customerName} {/* New field */}
                           </div>
                           <div className="text-gray-500">
-                            {tracker.pickup.phone}
-                          </div>
-                          <div
-                            className="text-gray-500 truncate max-w-[200px]"
-                            title={tracker.pickup.address}
-                          >
-                            {tracker.pickup.address}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="p-3">
-                        <div className="flex flex-col space-y-1 text-sm">
-                          <div className="font-medium">
-                            {tracker.merchant.name}
-                          </div>
-                          <div className="text-gray-500">
-                            {tracker.pickup.phone}
+                            {tracker.customerPhone} {/* New field */}
                           </div>
                           <div
                             className="text-gray-500 truncate max-w-[200px]"
                             title={tracker.address}
                           >
-                            {tracker.address}
+                            {tracker.address} {/* Existing field */}
                           </div>
                         </div>
                       </TableCell>

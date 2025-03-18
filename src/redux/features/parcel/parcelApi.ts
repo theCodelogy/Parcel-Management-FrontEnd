@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TQueryParam, TResponseRedux } from '../../../../type/global';
-import { baseApi } from '../../api/baseApi';
-
+import { TQueryParam, TResponseRedux } from "../../../../type/global";
+import { baseApi } from "../../api/baseApi";
 
 const parcel = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-
     addParcel: builder.mutation({
       query: (data) => ({
-        url: '/parcel',
-        method: 'POST',
+        url: "/parcel",
+        method: "POST",
         body: data,
       }),
     }),
@@ -24,12 +22,12 @@ const parcel = baseApi.injectEndpoints({
           });
         }
         return {
-          url: '/parcel',
-          method: 'GET',
+          url: "/parcel",
+          method: "GET",
           params: params,
         };
       },
-      providesTags: ['Parcel'],
+      providesTags: ["Parcel"],
       transformResponse: (response: TResponseRedux<[]>) => {
         return {
           data: response.data,
@@ -42,7 +40,7 @@ const parcel = baseApi.injectEndpoints({
       query: (id) => {
         return {
           url: `/parcel/${id}`,
-          method: 'GET',
+          method: "GET",
         };
       },
       transformResponse: (response: TResponseRedux<any>) => {
@@ -56,38 +54,36 @@ const parcel = baseApi.injectEndpoints({
     updateParcel: builder.mutation({
       query: (args) => ({
         url: `/parcel/${args.id}`,
-        method: 'PATCH',
+        method: "PATCH",
         body: args.data,
       }),
-      invalidatesTags: ['Parcel'],
+      invalidatesTags: ["Parcel"],
     }),
 
     updateParcelStatus: builder.mutation({
       query: (args) => ({
         url: `/parcel/${args.id}`,
-        method: 'PUT',
+        method: "PUT",
         body: args.data,
       }),
-      invalidatesTags: ['Parcel'],
+      invalidatesTags: ["Parcel"],
     }),
 
     deleteParcel: builder.mutation({
       query: (id) => ({
         url: `/parcel/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Parcel'],
+      invalidatesTags: ["Parcel"],
     }),
-
-
   }),
 });
 
-export const { 
+export const {
   useGetAllParcelQuery,
   useAddParcelMutation,
   useUpdateParcelMutation,
   useGetSingleParcelQuery,
   useDeleteParcelMutation,
-  useUpdateParcelStatusMutation
- } = parcel;
+  useUpdateParcelStatusMutation,
+} = parcel;
