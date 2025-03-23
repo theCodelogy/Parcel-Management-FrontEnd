@@ -1,10 +1,11 @@
 import BranchDashboard from "@/features/branch/pages/BranchDashboard";
-import DeliveryManPageBranch from "@/features/branch/pages/DeliveryManPageBranch";
+import DeliveryManPageBranch from "@/features/branch/pages/deliveryMan/DeliveryManPageBranch";
 import MerchatnListPageBranch from "@/features/branch/pages/MerchatnListPageBranch";
 import ParcelPageBranch from "@/features/branch/pages/ParcelPageBranch";
 import PackagingManageBranch from "../features/branch/pages/PackagingManageBranch";
 import DeliveryChargeBranch from "@/features/branch/pages/DeliveryChargeBranch";
-import CreateDeliveryManBranch from "@/features/branch/pages/CreateDeliveryManBranch";
+import CreateDeliveryManBranch from "@/features/branch/pages/deliveryMan/CreateDeliveryManBranch";
+import EditDeliveryManPageBranch from "@/features/branch/pages/deliveryMan/EditDeliveryManPageBranch";
 
 export const branchRoutes = [
   {
@@ -26,10 +27,10 @@ export const branchRoutes = [
         path: "create",
         element: <CreateDeliveryManBranch />,
       },
-      // {
-      //   path: "edit",
-      //   element: <EditDeliveryManPage />,
-      // },
+      {
+        path: "edit",
+        element: <EditDeliveryManPageBranch />,
+      },
     ],
   },
   {

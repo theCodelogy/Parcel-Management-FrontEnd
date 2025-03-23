@@ -1,15 +1,15 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { hostImage } from "../../../utils/hostImageOnIMGBB";
-import toast from "react-hot-toast";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { hostImage } from "../../../../utils/hostImageOnIMGBB";
+import { toast } from "sonner";
+import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useAppSelector } from "@/redux/hooks";
+import { useUpdateDeliveryManMutation } from "@/redux/features/deliveryMan/deliveryManApi";
 import { useCurrentUser } from "@/redux/features/auth/authSlice";
 import { TUser } from "@/interface";
+import { useAppSelector } from "@/redux/hooks";
 
 interface AuthState {
   name: string;
@@ -21,7 +21,7 @@ interface AuthState {
   openingBalance: string;
   password: string;
   salary: number;
-  status: string;
+  status: "Pending" | "Active" | "Disabled";
   drivingLicense: File | null;
   image: File | null;
   address: string;
@@ -30,6 +30,7 @@ interface AuthState {
 }
 
 export type TDeliveryMan = {
+  _id: string;
   name: string;
   phone: string;
   email: string;
@@ -38,7 +39,7 @@ export type TDeliveryMan = {
   returnCharge: number;
   pickupCharge: number;
   openingBalance: number;
-  password: string;
+  password?: string;
   salary: number;
   status: "Pending" | "Active" | "Disabled";
   hub: string;
@@ -47,17 +48,24 @@ export type TDeliveryMan = {
   address: string;
 };
 
-const CreateDeliveryManBranch: React.FC = () => {
-  const { name } = useAppSelector(useCurrentUser) as TUser;
-
+const EditDeliveryManPageBranch: React.FC = () => {
   const navigate = useNavigate();
+  const { name } = useAppSelector(useCurrentUser) as TUser;
+  console.log("Current user name (hub):", name);
+  const location = useLocation();
+  const deliveryManData = location.state?.deliveryMan as TDeliveryMan;
+  const [updateDeliveryMan, { isLoading: isUpdating }] =
+    useUpdateDeliveryManMutation();
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
+    setValue,
     setError,
   } = useForm<AuthState>();
+
   const [state, setState] = useState<AuthState>({
     name: "",
     phone: "",
@@ -76,24 +84,47 @@ const CreateDeliveryManBranch: React.FC = () => {
     loading: false,
   });
 
+  useEffect(() => {
+    if (deliveryManData) {
+      setValue("name", deliveryManData.name);
+      setValue("phone", deliveryManData.phone);
+      setValue("email", deliveryManData.email);
+      setValue("deliveryCharge", deliveryManData.deliveryCharge);
+      setValue("returnCharge", deliveryManData.returnCharge);
+      setValue("pickupCharge", deliveryManData.pickupCharge);
+      setValue("openingBalance", String(deliveryManData.openingBalance));
+      setValue("salary", deliveryManData.salary);
+      setValue("status", deliveryManData.status);
+      setValue("address", deliveryManData.address);
+      setState((prevState) => ({
+        ...prevState,
+        drivingLicense: null,
+        image: null,
+      }));
+    }
+  }, [deliveryManData, setValue]);
+
   const onSubmit = async (data: AuthState): Promise<void> => {
     setState((prevState) => ({ ...prevState, loading: true }));
+    const toastId = toast.loading("Updating Delivery Man...");
 
-    const payload: TDeliveryMan = {
+    const payload: Partial<TDeliveryMan> = {
       name: data.name,
       phone: data.phone,
       email: data.email,
-      role: "Delivery Man",
       deliveryCharge: Number(data.deliveryCharge),
       returnCharge: Number(data.returnCharge),
       pickupCharge: Number(data.pickupCharge),
       openingBalance: Number(data.openingBalance),
-      password: data.password,
       salary: Number(data.salary),
-      status: "Active",
-      hub: name, // Set the hub to the user's name
+      status: data.status,
+      hub: name, // Set hub to the current user's name
       address: data.address,
     };
+
+    if (data.password) {
+      payload.password = data.password;
+    }
 
     if (state.drivingLicense) {
       const drivinglicenceUrl = await hostImage(state.drivingLicense);
@@ -104,25 +135,24 @@ const CreateDeliveryManBranch: React.FC = () => {
       const imageUrl = await hostImage(state.image);
       payload.image = imageUrl;
     }
-    console.log("Payload being sent:", payload);
+
     try {
-      const res = await axios.post(
-        "https://parcel-management-back-end.vercel.app/api/v1/deliveryMan",
-        payload,
-        {
-          withCredentials: true,
-        }
-      );
-      const responseData = res.data;
-      if (responseData.success) {
-        console.log(responseData);
-        toast.success("Successfully Delivery Man added!");
-        navigate("/admin/deliveryman");
+      const res = await updateDeliveryMan({
+        id: deliveryManData._id,
+        data: payload,
+      }).unwrap();
+
+      if (res.success) {
+        toast.success("Successfully updated Delivery Man!", { id: toastId });
+        navigate("/branch/deliveryman");
       }
     } catch (err: any) {
-      console.log(err.response.data);
-      if (err.response.data.message === "Duplicate Key Error") {
-        err.response.data.errorSource.forEach(
+      console.log(err);
+      const errorMessage = err?.data?.message || "Error updating Delivery Man";
+      toast.error(errorMessage, { id: toastId });
+
+      if (err?.data?.message === "Duplicate Key Error") {
+        err?.data?.errorSource.forEach(
           (error: { path: string; message: string }) => {
             setError(error.path as keyof AuthState, {
               type: "manual",
@@ -130,8 +160,6 @@ const CreateDeliveryManBranch: React.FC = () => {
             });
           }
         );
-      } else {
-        toast.error("Error adding Delivery Man");
       }
     } finally {
       setState((prevState) => ({ ...prevState, loading: false }));
@@ -139,11 +167,11 @@ const CreateDeliveryManBranch: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full bg-white rounded-2xl shadow-xl overflow-auto p-8">
         <div className="col-span-2 mb-6 text-center">
           <h2 className="text-2xl font-bold text-gray-800">
-            Create Delivery Man
+            Edit Delivery Man
           </h2>
         </div>
 
@@ -285,7 +313,6 @@ const CreateDeliveryManBranch: React.FC = () => {
                 <input
                   type={state.showPassword ? "text" : "password"}
                   {...register("password", {
-                    required: true,
                     minLength: 8,
                   })}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
@@ -332,46 +359,100 @@ const CreateDeliveryManBranch: React.FC = () => {
             </div>
 
             {/* Driving License */}
-            <Controller
-              name="drivingLicense"
-              control={control}
-              render={({ field }) => (
-                <FileUpload
-                  id="drivingLicense"
-                  label="Driving License"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(file) => {
-                    field.onChange(file);
-                    setState((prevState) => ({
-                      ...prevState,
-                      drivingLicense: file,
-                    }));
-                  }}
-                  error={errors.drivingLicense?.message}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Driving License
+              </label>
+              {deliveryManData.drivingLicence ? (
+                <div className="relative w-full max-h-48 overflow-hidden rounded-md border-2 border-dashed border-border p-4">
+                  <img
+                    src={deliveryManData.drivingLicence}
+                    alt="Driving License"
+                    className="w-full h-auto object-contain"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2 rounded-full w-6 h-6 p-0 flex items-center justify-center"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setValue("drivingLicense", null);
+                      setState((prev) => ({ ...prev, drivingLicense: null }));
+                    }}
+                  >
+                    ×
+                  </Button>
+                </div>
+              ) : (
+                <Controller
+                  name="drivingLicense"
+                  control={control}
+                  render={({ field }) => (
+                    <FileUpload
+                      id="drivingLicense"
+                      label="Driving License"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(file) => {
+                        field.onChange(file);
+                        setState((prevState) => ({
+                          ...prevState,
+                          drivingLicense: file,
+                        }));
+                      }}
+                      error={errors.drivingLicense?.message}
+                    />
+                  )}
                 />
               )}
-            />
+            </div>
 
             {/* Image */}
-            <Controller
-              name="image"
-              control={control}
-              render={({ field }) => (
-                <FileUpload
-                  id="image"
-                  label="Profile Image"
-                  accept="image/*"
-                  onChange={(file) => {
-                    field.onChange(file);
-                    setState((prevState) => ({
-                      ...prevState,
-                      image: file,
-                    }));
-                  }}
-                  error={errors.image?.message}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Profile Image
+              </label>
+              {deliveryManData.image ? (
+                <div className="relative w-full max-h-48 overflow-hidden rounded-md border-2 border-dashed border-border p-4">
+                  <img
+                    src={deliveryManData.image}
+                    alt="Profile"
+                    className="w-full h-auto object-contain"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2 rounded-full w-6 h-6 p-0 flex items-center justify-center"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setValue("image", null);
+                      setState((prev) => ({ ...prev, image: null }));
+                    }}
+                  >
+                    ×
+                  </Button>
+                </div>
+              ) : (
+                <Controller
+                  name="image"
+                  control={control}
+                  render={({ field }) => (
+                    <FileUpload
+                      id="image"
+                      label="Profile Image"
+                      accept="image/*"
+                      onChange={(file) => {
+                        field.onChange(file);
+                        setState((prevState) => ({
+                          ...prevState,
+                          image: file,
+                        }));
+                      }}
+                      error={errors.image?.message}
+                    />
+                  )}
                 />
               )}
-            />
+            </div>
 
             {/* Address */}
             <div className="col-span-2">
@@ -395,9 +476,9 @@ const CreateDeliveryManBranch: React.FC = () => {
             <button
               type="submit"
               className="w-full bg-[#d63384] text-white py-2 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-300"
-              disabled={state.loading}
+              disabled={state.loading || isUpdating}
             >
-              {state.loading ? "Submitting..." : "Submit"}
+              {state.loading || isUpdating ? "Updating..." : "Update"}
             </button>
           </div>
         </form>
@@ -406,7 +487,7 @@ const CreateDeliveryManBranch: React.FC = () => {
   );
 };
 
-export default CreateDeliveryManBranch;
+export default EditDeliveryManPageBranch;
 
 interface FileUploadProps {
   id: string;
@@ -438,7 +519,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
     if (file) {
       setFileName(file.name);
 
-      // Create preview for images
       if (file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onload = () => {
