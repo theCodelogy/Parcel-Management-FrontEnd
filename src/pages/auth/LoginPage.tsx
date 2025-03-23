@@ -8,18 +8,14 @@ import { useAppDispatch } from "@/redux/hooks";
 import { setUser } from "@/redux/features/auth/authSlice";
 import { verifyToken } from "@/utils/verifyToken";
 
-
-
 interface FormData {
   emailORphone: string;
   password: string;
 }
 
-
 const LoginPage: React.FC = () => {
-
   const dispatch = useAppDispatch();
-  
+
   const navigate = useNavigate();
   const {
     register,
@@ -37,23 +33,26 @@ const LoginPage: React.FC = () => {
 
     try {
       const res = await login(payload).unwrap();
-      const {name,email,role,phone} = verifyToken(res.data?.token);
-      dispatch(setUser({ user: {name,email,role,phone}, token: res.data?.token }));
+      const { name, email, role, phone } = verifyToken(res.data?.token);
+      dispatch(
+        setUser({ user: { name, email, role, phone }, token: res.data?.token })
+      );
 
       if (role === "Super Admin") {
         navigate("/admin/dashboard");
       } else if (role === "Merchant") {
         navigate("/merchant/dashboard");
+      } else if (role === "Branch") {
+        navigate("/branch/dashboard");
       } else if (role === "Delivery Man") {
         navigate("/rider/assigned-parcels");
       }
 
       toast.success("Loged in Success!", { id: tostId });
-    } catch (error:any) {
+    } catch (error: any) {
       toast.error(error.data.message, { id: tostId });
     }
   };
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
@@ -118,10 +117,9 @@ const LoginPage: React.FC = () => {
 
             <button
               type="submit"
-
               className="w-full bg-[#d63384] text-white py-2 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-300"
             >
-               Login
+              Login
             </button>
           </form>
 

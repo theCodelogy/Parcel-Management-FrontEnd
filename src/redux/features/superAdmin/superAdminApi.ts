@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TQueryParam, TResponseRedux } from '../../../../type/global';
-import { baseApi } from '../../api/baseApi';
+import { TQueryParam, TResponseRedux } from "../../../../type/global";
+import { baseApi } from "../../api/baseApi";
 
 const superAdmin = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-
     addSuperAdmin: builder.mutation({
       query: (data) => ({
-        url: '/superAdmin',
-        method: 'POST',
+        url: "/superAdmin",
+        method: "POST",
         body: data,
       }),
     }),
@@ -23,12 +22,12 @@ const superAdmin = baseApi.injectEndpoints({
           });
         }
         return {
-          url: '/superAdmin',
-          method: 'GET',
+          url: "/superAdmin",
+          method: "GET",
           params: params,
         };
       },
-      providesTags: ['SuperAdmin'],
+      providesTags: ["SuperAdmin"],
       transformResponse: (response: TResponseRedux<[]>) => {
         return {
           data: response.data,
@@ -41,7 +40,7 @@ const superAdmin = baseApi.injectEndpoints({
       query: (id) => {
         return {
           url: `/superAdmin/${id}`,
-          method: 'GET',
+          method: "GET",
         };
       },
       transformResponse: (response: TResponseRedux<any>) => {
@@ -55,28 +54,26 @@ const superAdmin = baseApi.injectEndpoints({
     updateSuperAdmin: builder.mutation({
       query: (args) => ({
         url: `/superAdmin/${args.id}`,
-        method: 'PATCH',
+        method: "PATCH",
         body: args.data,
       }),
-      invalidatesTags: ['SuperAdmin'],
+      invalidatesTags: ["SuperAdmin"],
     }),
 
     deleteSuperAdmin: builder.mutation({
       query: (id) => ({
         url: `/superAdmin/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['SuperAdmin'],
+      invalidatesTags: ["SuperAdmin"],
     }),
-
-
   }),
 });
 
-export const { 
+export const {
   useGetAllSuperAdminQuery,
   useAddSuperAdminMutation,
   useUpdateSuperAdminMutation,
   useGetSingleSuperAdminQuery,
-  useDeleteSuperAdminMutation
- } = superAdmin;
+  useDeleteSuperAdminMutation,
+} = superAdmin;

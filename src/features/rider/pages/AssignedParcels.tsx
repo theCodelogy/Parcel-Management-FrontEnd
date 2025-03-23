@@ -44,7 +44,7 @@ type PaymentStatus = "Paid" | "Pending" | "Partial";
 
 type StatusUpdate = {
   title: string;
-  current: string;
+  current?: string;
   email?: string;
   name?: string;
   phone?: string;
@@ -65,43 +65,41 @@ type StatusUpdate = {
 type ApiResponse = {
   _id: string;
   TrakingId: string;
-  merchant: string;
-  pickupPoints: string;
-  pickupPhone: string;
-  pickupAddress: string;
+  merchantEmail: string;
+  merchantName: string;
+  merchantAddress: string;
+  merchantPhone: string;
   cashCollection: number;
+  sellingPrice: number;
+  invoice: string;
+  deliveryType: string;
+  Weight: number;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  note: string;
+  packaging: string;
+  priority: string;
+  paymentMethod: string;
+  deliveryCharge: number;
+  liquidORFragile: number;
+  codCharge: number;
   totalCharge: number;
   vat: number;
   netPayable: number;
-  currentPayable: number;
   advance: number;
-  paymentMethod?: string;
+  currentPayable: number;
   currentStatus: TrackerStatus;
   parcelStatus: {
     title: string;
-    current: string;
-    email?: string;
-    name?: string;
-    phone?: string;
+    date: number;
     deliveryMan?: string;
     deliveryManPhone?: string;
     deliveryManEmail?: string;
     note?: string;
-    date: number;
-    createdBy?: {
-      email?: string;
-      name?: string;
-      phone?: string;
-      role?: string;
-      date: number;
-    };
   }[];
-  pickupDate: string | null;
-  deliveryDate: string | null;
-  Weight: number;
-  customerAddress: string;
-  customerName: string;
-  customerPhone: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Tracker = {
@@ -109,11 +107,9 @@ export type Tracker = {
   trackingId: string;
   merchant: {
     name: string;
-  };
-  pickup: {
-    point: string;
-    phone: string;
+    email: string;
     address: string;
+    phone: string;
   };
   financial: {
     codAmount: number;
@@ -129,8 +125,9 @@ export type Tracker = {
   };
   status: TrackerStatus;
   statusUpdates: StatusUpdate[];
-  pickupDate: string | null;
-  deliveryDate: string | null;
+  // Not available in the new structure; can be set to null or omitted.
+  pickupDate: null;
+  deliveryDate: null;
   address: string;
   weight: number;
   customerName: string;
@@ -215,17 +212,14 @@ const AssignedParcels = () => {
 
   useEffect(() => {
     if (data?.data) {
-      console.log("API Response:", data);
       const trackers = data.data.map((item: ApiResponse) => ({
         id: item._id,
         trackingId: item.TrakingId,
         merchant: {
-          name: item.merchant,
-        },
-        pickup: {
-          point: item.pickupPoints,
-          phone: item.pickupPhone,
-          address: item.pickupAddress,
+          name: item.merchantName,
+          email: item.merchantEmail,
+          address: item.merchantAddress,
+          phone: item.merchantPhone,
         },
         financial: {
           codAmount: item.cashCollection,
@@ -234,28 +228,22 @@ const AssignedParcels = () => {
           currentPayable: item.netPayable,
         },
         payment: {
-          status:
-            item.currentPayable === 0 ? "Paid" : ("Pending" as PaymentStatus),
+          status: item.netPayable === 0 ? "Paid" : ("Pending" as PaymentStatus),
           amountPaid: item.advance,
-          amountPending: item.currentPayable,
+          amountPending: item.netPayable,
           method: item.paymentMethod,
         },
-        status: item.currentStatus as TrackerStatus,
+        status: item.currentStatus,
         statusUpdates: item.parcelStatus.map((status) => ({
           title: status.title,
-          current: status.current,
-          email: status.email,
-          name: status.name,
-          phone: status.phone,
           deliveryMan: status.deliveryMan,
           deliveryManPhone: status.deliveryManPhone,
           deliveryManEmail: status.deliveryManEmail,
           note: status.note,
           date: status.date,
-          createdBy: status.createdBy,
         })),
-        pickupDate: item.pickupDate || null,
-        deliveryDate: item.deliveryDate || null,
+        pickupDate: null,
+        deliveryDate: null,
         address: item.customerAddress,
         weight: item.Weight,
         customerName: item.customerName,
@@ -434,13 +422,13 @@ const AssignedParcels = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  currentData.map((tracker) => (
+                  currentData.map((tracker, index) => (
                     <TableRow
                       key={tracker.id}
                       className="hover:bg-gray-50 transition-colors"
                     >
                       <TableCell className="p-3">
-                        {startIndex + currentData.indexOf(tracker) + 1}
+                        {startIndex + index + 1}
                       </TableCell>
                       <TableCell className="p-3 font-medium">
                         <button className="text-blue-600 hover:text-blue-800">
@@ -469,17 +457,16 @@ const AssignedParcels = () => {
                             {tracker.merchant.name}
                           </div>
                           <div className="text-gray-500">
-                            {tracker.pickup.phone}
+                            {tracker.merchant.phone}
                           </div>
                           <div
                             className="text-gray-500 truncate max-w-[200px]"
-                            title={tracker.address}
+                            title={tracker.merchant.address}
                           >
-                            {tracker.address}
+                            {tracker.merchant.address}
                           </div>
                         </div>
                       </TableCell>
-
                       <TableCell className="p-3">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -489,7 +476,7 @@ const AssignedParcels = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="start"
-                            className=" p-2 bg-white shadow-lg rounded-md"
+                            className="p-2 bg-white shadow-lg rounded-md"
                           >
                             <div className="space-y-2 max-h-60 overflow-y-auto">
                               <p className="text-sm font-medium px-2 py-1.5 text-gray-500">
@@ -526,19 +513,19 @@ const AssignedParcels = () => {
                             </span>
                           </div>
                           <div className="text-gray-500">
-                            Total Charge Amount:{" "}
+                            Total Charge:{" "}
                             <span className="font-medium text-gray-800">
                               {formatCurrency(tracker.financial.charges)}
                             </span>
                           </div>
                           <div className="text-gray-500">
-                            Vat Amount:{" "}
+                            Vat:{" "}
                             <span className="font-medium text-gray-800">
                               {formatCurrency(tracker.financial.vat)}
                             </span>
                           </div>
                           <div className="text-gray-500">
-                            Current Payable:{" "}
+                            Net Payable:{" "}
                             <span className="font-medium text-gray-800">
                               {formatCurrency(tracker.financial.currentPayable)}
                             </span>
@@ -548,7 +535,6 @@ const AssignedParcels = () => {
                       <TableCell className="p-3">
                         <PaymentStatusBadge status={tracker.payment.status} />
                       </TableCell>
-
                       <TableCell className="p-3">{tracker.weight} kg</TableCell>
                     </TableRow>
                   ))
@@ -579,7 +565,6 @@ const AssignedParcels = () => {
         </div>
       </div>
 
-      {/* Render the StatusUpdateModal */}
       {selectedStatus && selectedTrackerId && (
         <StatusUpdateModal
           parcelId={selectedTrackerId}

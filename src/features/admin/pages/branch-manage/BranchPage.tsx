@@ -1,7 +1,5 @@
-import { useState } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useQuery } from "@tanstack/react-query";
 import {
   Eraser,
   Filter,
@@ -13,7 +11,6 @@ import {
 } from "lucide-react";
 import Modal from "react-modal";
 import TablePagination from "../../../../components/ui/TablePagination";
-import { BranchData } from "../../types";
 import {
   Table,
   TableBody,
@@ -37,20 +34,30 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
-
-// Fetch branch data from API using Axios
-export const fetchBranchApi = async (): Promise<BranchData[]> => {
-  console.log("Fetching branch data from API...");
-  const response = await axios.get<{ data: BranchData[] }>(
-    "https://parcel-management-back-end.vercel.app/api/v1/branch"
-  );
-  console.log("Branch data fetched:", response.data.data);
-  return response.data.data; // Access the nested data property
-};
+import {
+  useGetAllBranchQuery,
+  useAddBranchMutation,
+  useUpdateBranchMutation,
+  useDeleteBranchMutation,
+} from "../../../../redux/features/branch/branchApi"; // Import the RTK Query hooks
 
 interface Filters {
   name: string;
   phone: string;
+}
+
+interface BranchData {
+  _id: string;
+  name: string;
+  branchManagerName: string;
+  phone: string;
+  address: string;
+  password?: string; // Password should not be used in frontend, but kept for consistency with provided data.  Make it optional.
+  email: string;
+  status: "Active" | "Inactive"; // Use union type
+  role: "Branch";
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface TablePaginationInfoProps {
@@ -78,7 +85,11 @@ const TablePaginationInfo: React.FC<TablePaginationInfoProps> = ({
 
 const BranchPage = () => {
   // react-hook-form for filter form
-  const { register, handleSubmit, reset } = useForm<Filters>({
+  const {
+    register,
+    handleSubmit,
+    reset: resetFilterForm,
+  } = useForm<Filters>({
     defaultValues: { name: "", phone: "" },
   });
 
@@ -86,7 +97,7 @@ const BranchPage = () => {
   const {
     register: registerCreate,
     handleSubmit: handleSubmitCreate,
-    reset: resetCreate,
+    reset: resetCreateForm,
     control: controlCreate,
   } = useForm({
     defaultValues: { name: "", phone: "", address: "", status: "Active" },
@@ -96,34 +107,39 @@ const BranchPage = () => {
   const {
     register: registerEdit,
     handleSubmit: handleSubmitEdit,
-    reset: resetEdit,
+    reset: resetEditForm,
     control: controlEdit,
     setValue: setValueEdit,
-  } = useForm({
+  } = useForm<{
+    name: string;
+    phone: string;
+    address: string;
+    status: "Active" | "Inactive";
+  }>({
+    // Define the type of the form
     defaultValues: { name: "", phone: "", address: "", status: "Active" },
   });
 
-  // Use react-query to fetch branch data
+  // RTK Query hooks
+  const [filterParams, setFilterParams] = useState<Filters>({
+    name: "",
+    phone: "",
+  });
   const {
-    data: branches = [],
+    data: branchesData,
     isLoading,
     error,
     refetch,
-  } = useQuery<BranchData[]>({
-    queryKey: ["branch"],
-    queryFn: fetchBranchApi,
-  });
+  } = useGetAllBranchQuery([
+    { name: "name", value: filterParams.name },
+    { name: "phone", value: filterParams.phone },
+  ]); // Initial query with empty filters
 
-  // Filter handlers
-  const onSubmit = (data: Filters) => {
-    console.log("Filter data submitted:", data);
-    // Implement filtering logic here using the form data
-  };
-
-  const onClear = () => {
-    console.log("Clearing filter data...");
-    reset();
-  };
+  const branches: BranchData[] = branchesData?.data || []; // Type the branches variable
+  console.log("Branches data:", branches);
+  const [addBranch] = useAddBranchMutation();
+  const [updateBranch] = useUpdateBranchMutation();
+  const [deleteBranch] = useDeleteBranchMutation();
 
   // Modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -131,45 +147,59 @@ const BranchPage = () => {
   const [isLoadingForm, setIsLoadingForm] = useState(false);
   const [branchToEdit, setBranchToEdit] = useState<BranchData | null>(null);
 
+  // Filter handlers
+  const onSubmit = (data: Filters) => {
+    console.log("Filter data submitted:", data);
+    setFilterParams(data); // Update filter state
+  };
+
+  const onClear = () => {
+    console.log("Clearing filter data...");
+    resetFilterForm();
+    setFilterParams({ name: "", phone: "" });
+  };
+
   // Form submit handler for creating a new branch
   const handleCreateSubmit = async (data: any) => {
-    console.log("Create branch data:", data);
     setIsLoadingForm(true);
     try {
-      const response = await axios.post(
-        "https://parcel-management-back-end.vercel.app/api/v1/branch",
-        data
-      );
-      console.log("Branch created successfully:", response.data);
+      const response = await addBranch(data).unwrap();
+      console.log("Branch created successfully:", response);
       refetch();
       toast.success("Branch created successfully");
       setIsCreateModalOpen(false);
-      resetCreate();
+      resetCreateForm();
     } catch (error: any) {
-      console.error("Error creating branch:", error.response.data);
-      toast.error("Failed to create branch");
+      console.error("Error creating branch:", error.data);
+      toast.error(error.data?.message || "Failed to create branch");
     } finally {
       setIsLoadingForm(false);
     }
   };
 
   // Form submit handler for editing a branch
-  const handleEditSubmit = async (data: any) => {
-    console.log("Edit branch data:", data);
+  const handleEditSubmit = async (data: {
+    name: string;
+    phone: string;
+    address: string;
+    status: "Active" | "Inactive";
+  }) => {
     setIsLoadingForm(true);
     try {
-      const response = await axios.patch(
-        `https://parcel-management-back-end.vercel.app/api/v1/branch/${branchToEdit?._id}`,
-        data
-      );
-      console.log("Branch edited successfully:", response.data);
-      refetch();
-      toast.success("Branch edited successfully");
-      setIsEditModalOpen(false);
-      resetEdit();
-    } catch (error) {
-      console.error("Error editing branch:", error);
-      toast.error("Failed to edit branch");
+      if (branchToEdit?._id) {
+        const response = await updateBranch({
+          id: branchToEdit._id,
+          data,
+        }).unwrap();
+        console.log("Branch edited successfully:", response);
+        refetch();
+        toast.success("Branch edited successfully");
+        setIsEditModalOpen(false);
+        resetEditForm();
+      }
+    } catch (error: any) {
+      console.error("Error editing branch:", error.data);
+      toast.error(error.data?.message || "Failed to edit branch");
     } finally {
       setIsLoadingForm(false);
     }
@@ -179,15 +209,12 @@ const BranchPage = () => {
   const handleDelete = async (branchId: string) => {
     setIsLoadingForm(true);
     try {
-      const response = await axios.delete(
-        `https://parcel-management-back-end.vercel.app/api/v1/branch/${branchId}`
-      );
-      console.log("Branch deleted successfully:", response.data);
+      await deleteBranch(branchId).unwrap();
       refetch();
       toast.success("Branch deleted successfully");
-    } catch (error) {
-      console.error("Error deleting branch:", error);
-      toast.error("Failed to delete branch");
+    } catch (error: any) {
+      console.error("Error deleting branch:", error.data);
+      toast.error(error.data?.message || "Failed to delete branch");
     } finally {
       setIsLoadingForm(false);
     }
@@ -292,7 +319,9 @@ const BranchPage = () => {
             {isLoading ? (
               <p className="p-3">Loading...</p>
             ) : error ? (
-              <p className="p-3 text-red-600">Error loading data</p>
+              <p className="p-3 text-red-600">
+                Error: {(error as any).message || "Failed to load data"}
+              </p>
             ) : (
               <Table>
                 <TableHeader>
@@ -346,10 +375,7 @@ const BranchPage = () => {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="focus:text-white focus:bg-red-500 flex items-center text-sm text-red-600 hover:bg-gray-100"
-                              // onClick={() => handleDelete(branchItem._id)}
-                              onClick={() =>
-                                handleDelete(String(branchItem._id))
-                              }
+                              onClick={() => handleDelete(branchItem._id)}
                             >
                               <Trash className="mr-2 focus:text-red-500" />{" "}
                               Delete

@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TQueryParam, TResponseRedux } from '../../../../type/global';
-import { baseApi } from '../../api/baseApi';
-
+import { TQueryParam, TResponseRedux } from "../../../../type/global";
+import { baseApi } from "../../api/baseApi";
 
 const deliveryCharge = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-
     addDeliveryCharge: builder.mutation({
       query: (data) => ({
-        url: '/deliveryCharge',
-        method: 'POST',
+        url: "/deliveryCharge",
+        method: "POST",
         body: data,
       }),
     }),
@@ -24,12 +22,12 @@ const deliveryCharge = baseApi.injectEndpoints({
           });
         }
         return {
-          url: '/deliveryCharge',
-          method: 'GET',
+          url: "/deliveryCharge",
+          method: "GET",
           params: params,
         };
       },
-      providesTags: ['DeliveryCharge'],
+      providesTags: ["DeliveryCharge"],
       transformResponse: (response: TResponseRedux<[]>) => {
         return {
           data: response.data,
@@ -42,7 +40,7 @@ const deliveryCharge = baseApi.injectEndpoints({
       query: (id) => {
         return {
           url: `/deliveryCharge/${id}`,
-          method: 'GET',
+          method: "GET",
         };
       },
       transformResponse: (response: TResponseRedux<any>) => {
@@ -56,28 +54,26 @@ const deliveryCharge = baseApi.injectEndpoints({
     updateDeliveryCharge: builder.mutation({
       query: (args) => ({
         url: `/deliveryCharge/${args.id}`,
-        method: 'PATCH',
+        method: "PATCH",
         body: args.data,
       }),
-      invalidatesTags: ['DeliveryCharge'],
+      invalidatesTags: ["DeliveryCharge"],
     }),
 
     deleteDeliveryCharge: builder.mutation({
       query: (id) => ({
         url: `/deliveryCharge/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['DeliveryCharge'],
+      invalidatesTags: ["DeliveryCharge"],
     }),
-
-
   }),
 });
 
-export const { 
+export const {
   useGetAllDeliveryChargeQuery,
   useAddDeliveryChargeMutation,
   useUpdateDeliveryChargeMutation,
   useGetSingleDeliveryChargeQuery,
-  useDeleteDeliveryChargeMutation
- } =deliveryCharge;
+  useDeleteDeliveryChargeMutation,
+} = deliveryCharge;

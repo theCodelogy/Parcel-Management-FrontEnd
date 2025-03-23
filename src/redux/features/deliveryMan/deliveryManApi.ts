@@ -10,6 +10,7 @@ const deliveryMan = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: ["DeliveryMan"],
     }),
 
     getAllDeliveryMan: builder.query({

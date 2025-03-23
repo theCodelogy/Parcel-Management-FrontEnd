@@ -1,5 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
-import DashboardLayout from "../layouts/DashboardLayout";
+import DashboardLayout from "../layouts/AdminDashboardLayout";
 import MainLayout from "../layouts/MainLayout";
 import Home from "../pages/home/HomePage";
 import { adminRoutes } from "./Admin.Routes";
@@ -13,6 +13,11 @@ import { merchantRoutes } from "./Merchant.Routes";
 import { riderRoutes } from "./Rider.Routes";
 import ProtectedRoute from "@/private/ProtectedRoute";
 import TrackingPage from "@/pages/tracking/TrackingPage";
+import BranchDashbordLayout from "@/layouts/BranchDashbordLayout";
+import { branchRoutes } from "./Branch.Routes";
+import ServiceOne from "@/pages/service/ServiceOne";
+import ServiceTow from "@/pages/service/ServiceTow";
+import ServiceThree from "@/pages/service/ServiceThree";
 
 const router = createBrowserRouter([
   {
@@ -34,6 +39,18 @@ const router = createBrowserRouter([
       {
         path: "about-us",
         element: <About />,
+      },
+      {
+        path: "service-details/1",
+        element: <ServiceOne />,
+      },
+      {
+        path: "service-details/2",
+        element: <ServiceTow />,
+      },
+      {
+        path: "service-details/3",
+        element: <ServiceThree />,
       },
     ],
   },
@@ -69,6 +86,15 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: merchantRoutes,
+  },
+  {
+    path: "/branch",
+    element: (
+      <ProtectedRoute role="Branch">
+        <BranchDashbordLayout />
+      </ProtectedRoute>
+    ),
+    children: branchRoutes,
   },
   {
     path: "/rider",

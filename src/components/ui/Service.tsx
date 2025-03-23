@@ -12,7 +12,7 @@ const services = [
     description:
       "Reliable and fast delivery service ensuring your online orders reach customers safely and on time.",
     icon: <FaShippingFast className="text-blue-500 text-5xl" />,
-    link: "https://cte.fitspick.com/service-details/1",
+    // link: "/service-details/1",
   },
   {
     id: 2,
@@ -20,7 +20,7 @@ const services = [
     description:
       "Hassle-free pick & drop services for documents, parcels, and personal packages with secure handling.",
     icon: <FaTruckPickup className="text-green-500 text-5xl" />,
-    link: "https://cte.fitspick.com/service-details/2",
+    // link: "https://cte.fitspick.com/service-details/2",
   },
   {
     id: 3,
@@ -28,7 +28,7 @@ const services = [
     description:
       "Durable and eco-friendly packaging solutions to keep your products safe during transportation.",
     icon: <FaBoxOpen className="text-yellow-500 text-5xl" />,
-    link: "https://cte.fitspick.com/service-details/3",
+    // link: "https://cte.fitspick.com/service-details/3",
   },
   {
     id: 4,
@@ -36,7 +36,7 @@ const services = [
     description:
       "Secure, climate-controlled storage facilities to keep your inventory organized and protected.",
     icon: <FaWarehouse className="text-red-500 text-5xl" />,
-    link: "https://cte.fitspick.com/service-details/4",
+    // link: "https://cte.fitspick.com/service-details/4",
   },
 ];
 
@@ -56,12 +56,6 @@ export default function Services() {
             <div className="flex justify-center mb-4">{service.icon}</div>
             <h5 className="text-lg font-semibold">{service.title}</h5>
             <p className="text-gray-600 mt-2 text-sm">{service.description}</p>
-            <a
-              href={service.link}
-              className="text-[#A31621] mt-4 inline-block transition hover:text-[#A31621]"
-            >
-              Learn More →
-            </a>
           </div>
         ))}
       </div>

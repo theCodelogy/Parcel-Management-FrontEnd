@@ -18,14 +18,28 @@ import { Button } from "@/components/ui/button";
 import TablePagination from "@/components/ui/TablePagination";
 import TablePaginationInfo from "@/components/ui/TablePaginationInfo";
 import { Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import StatusUpdateModal from "@/features/admin/pages/parcel/StatusUpdateModal";
-import { useGetAllParcelQuery } from "@/redux/features/parcel/parcelApi";
+import {
+  useGetAllParcelQuery,
+  useDeleteParcelMutation,
+} from "@/redux/features/parcel/parcelApi";
 import { TUser } from "@/interface";
 import { useCurrentUser } from "@/redux/features/auth/authSlice";
 import { useAppSelector } from "@/redux/hooks";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 type TrackerStatus =
   | "Pending"
@@ -43,13 +57,14 @@ type TrackerStatus =
   | "Return to Courier"
   | "Partial Delivered"
   | "Return assigned to merchant"
-  | "Return received by merchant";
+  | "Return received by merchant"
+  | "Parcel Create";
 
 type PaymentStatus = "Paid" | "Pending" | "Partial";
 
 type StatusUpdate = {
   title: string;
-  current: string;
+  current?: string;
   email?: string;
   name?: string;
   phone?: string;
@@ -70,21 +85,34 @@ type StatusUpdate = {
 type ApiResponse = {
   _id: string;
   TrakingId: string;
-  merchant: string;
-  pickupPoints: string;
-  pickupPhone: string;
-  pickupAddress: string;
+  merchantEmail: string;
+  merchantName: string;
+  merchantAddress: string;
+  merchantPhone: string;
   cashCollection: number;
+  sellingPrice: number;
+  deliveryType: string;
+  Weight: number;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  note: string;
+  packaging: string;
+  priority: string;
+  paymentMethod?: string;
+  deliveryCharge: number;
+  liquidORFragile: number;
+  codCharge: number;
   totalCharge: number;
   vat: number;
   netPayable: number;
-  currentPayable: number;
   advance: number;
-  paymentMethod?: string;
+  currentPayable: number;
   currentStatus: TrackerStatus;
   parcelStatus: {
     title: string;
-    current: string;
+    date: number;
+    current?: string;
     email?: string;
     name?: string;
     phone?: string;
@@ -92,7 +120,6 @@ type ApiResponse = {
     deliveryManPhone?: string;
     deliveryManEmail?: string;
     note?: string;
-    date: number;
     createdBy?: {
       email?: string;
       name?: string;
@@ -101,12 +128,8 @@ type ApiResponse = {
       date: number;
     };
   }[];
-  pickupDate: string | null;
-  deliveryDate: string | null;
-  Weight: number;
-  customerName: string; // New field
-  customerPhone: string; // New field
-  customerAddress: string; // New field
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Tracker = {
@@ -114,11 +137,9 @@ export type Tracker = {
   trackingId: string;
   merchant: {
     name: string;
-  };
-  pickup: {
-    point: string;
-    phone: string;
+    email: string;
     address: string;
+    phone: string;
   };
   financial: {
     codAmount: number;
@@ -134,12 +155,10 @@ export type Tracker = {
   };
   status: TrackerStatus;
   statusUpdates: StatusUpdate[];
-  pickupDate: string | null;
-  deliveryDate: string | null;
-  address: string;
   weight: number;
-  customerName: string; // New field
-  customerPhone: string; // New field
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
 };
 
 const formatCurrency = (amount: number): string => {
@@ -164,6 +183,7 @@ const StatusBadge = ({ status }: { status: TrackerStatus }) => {
     case "Pending":
     case "Pickup Assigned":
     case "Pickup Re-Schedule":
+    case "Parcel Create":
       bgColor = "bg-yellow-500";
       break;
     case "In Transit":
@@ -229,14 +249,49 @@ interface Filters {
   status: string;
 }
 
-const OrderHistory = () => {
+const DeleteConfirmationModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  isLoading,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  isLoading: boolean;
+}) => {
+  return (
+    <AlertDialog open={isOpen} onOpenChange={onClose}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete this parcel? This action cannot be
+            undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onClose} disabled={isLoading}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} disabled={isLoading}>
+            {isLoading ? "Deleting..." : "Confirm"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
+const ParcelPageBranch = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { register, handleSubmit, reset } = useForm<Filters>({
     defaultValues: {
       trackerId: "",
       phone: "",
       date: "",
-      status: "",
+      status: new URLSearchParams(location.search).get("status") || "",
     },
   });
 
@@ -244,7 +299,7 @@ const OrderHistory = () => {
     trackerId: "",
     phone: "",
     date: "",
-    status: "",
+    status: new URLSearchParams(location.search).get("status") || "",
   });
 
   const [trackers, setTrackers] = useState<Tracker[]>([]);
@@ -260,13 +315,22 @@ const OrderHistory = () => {
     null
   );
 
-  const { email } = useAppSelector(useCurrentUser) as TUser;
-  console.log(email);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [parcelToDelete, setParcelToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const { name } = useAppSelector(useCurrentUser) as TUser;
 
   // Pass the email as a query parameter to the useGetAllParcelQuery hook
   const { data, isLoading, isError } = useGetAllParcelQuery([
-    { name: "merchant", value: email },
+    { name: "branchname", value: name },
+    ...(filters.status
+      ? [{ name: "currentStatus", value: filters.status }]
+      : []),
   ]);
+
+  // Delete parcel mutation
+  const [deleteParcel] = useDeleteParcelMutation();
 
   useEffect(() => {
     if (data?.data) {
@@ -274,12 +338,10 @@ const OrderHistory = () => {
         id: item._id,
         trackingId: item.TrakingId,
         merchant: {
-          name: item.merchant,
-        },
-        pickup: {
-          point: item.pickupPoints,
-          phone: item.pickupPhone,
-          address: item.pickupAddress,
+          name: item.merchantName,
+          email: item.merchantEmail,
+          address: item.merchantAddress,
+          phone: item.merchantPhone,
         },
         financial: {
           codAmount: item.cashCollection,
@@ -308,33 +370,18 @@ const OrderHistory = () => {
           date: status.date,
           createdBy: status.createdBy,
         })),
-        pickupDate: item.pickupDate || null,
-        deliveryDate: item.deliveryDate || null,
-        address: item.customerAddress,
         weight: item.Weight,
-        customerName: item.customerName, // New field
-        customerPhone: item.customerPhone, // New field
+        customerName: item.customerName,
+        customerPhone: item.customerPhone,
+        customerAddress: item.customerAddress,
       }));
       setTrackers(trackers);
     }
   }, [data]);
 
   const onSubmit = (data: Filters) => {
-    console.log("Filters applied:", data);
     setFilters(data);
     setCurrentPage(1);
-
-    // Construct the URL with filters
-    const baseUrl =
-      "https://parcel-management-back-end-beta.vercel.app/api/v1/parcel";
-    const url = new URL(baseUrl);
-
-    if (data.trackerId) url.searchParams.append("TrakingId", data.trackerId);
-    if (data.phone) url.searchParams.append("pickupPhone", data.phone);
-    if (data.date) url.searchParams.append("date", data.date);
-    if (data.status) url.searchParams.append("status", data.status);
-
-    console.log("Constructed URL:", url.toString());
   };
 
   const onClear = () => {
@@ -356,11 +403,12 @@ const OrderHistory = () => {
             .includes(filters.trackerId.toLowerCase())
         : true;
       const matchPhone = filters.phone
-        ? tracker.pickup.phone.includes(filters.phone)
+        ? tracker.customerPhone.includes(filters.phone)
         : true;
       const matchDate = filters.date
-        ? tracker.pickupDate &&
-          new Date(tracker.pickupDate).toISOString().startsWith(filters.date)
+        ? tracker.statusUpdates.some((update) =>
+            new Date(update.date).toISOString().startsWith(filters.date)
+          )
         : true;
       const matchStatus = filters.status
         ? tracker.status === filters.status
@@ -381,7 +429,41 @@ const OrderHistory = () => {
     setIsModalOpen(true);
   };
 
-  // Copy to clipboard function
+  const handleDeleteParcel = (id: string) => {
+    setParcelToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteParcel = async () => {
+    if (parcelToDelete) {
+      setIsDeleting(true);
+      const loadingToastId = toast.loading("Deleting parcel...");
+
+      try {
+        await deleteParcel(parcelToDelete);
+        setTrackers(
+          trackers.filter((tracker) => tracker.id !== parcelToDelete)
+        );
+        toast.success("Parcel deleted successfully!", {
+          id: loadingToastId,
+        });
+      } catch (error) {
+        toast.error("Failed to delete parcel.", {
+          id: loadingToastId,
+        });
+      } finally {
+        setIsDeleting(false);
+        setIsDeleteModalOpen(false);
+        setParcelToDelete(null);
+      }
+    }
+  };
+
+  const cancelDeleteParcel = () => {
+    setIsDeleteModalOpen(false);
+    setParcelToDelete(null);
+  };
+
   const handleCopy = async () => {
     const headers: string[] = [
       "SL",
@@ -400,7 +482,7 @@ const OrderHistory = () => {
       const rowData: string[] = [
         String(startIndex + index + 1),
         row.trackingId,
-        row.pickup.point,
+        row.customerName,
         row.status,
         row.statusUpdates.map((update) => update.note).join(", "),
         `COD: ${formatCurrency(
@@ -418,13 +500,12 @@ const OrderHistory = () => {
 
     try {
       await navigator.clipboard.writeText(rows.join("\n"));
-      alert("Copied to clipboard!");
+      toast.success("Copied to clipboard!");
     } catch (error) {
-      alert("Failed to copy to clipboard!");
+      toast.error("Failed to copy to clipboard!");
     }
   };
 
-  // Excel download function using SheetJS and file-saver
   const handleExcelDownload = () => {
     const headers: string[] = [
       "SL",
@@ -440,7 +521,7 @@ const OrderHistory = () => {
     const rows = currentData.map((row, index) => ({
       SL: startIndex + index + 1,
       "Tracker ID": row.trackingId,
-      Recipient: row.pickup.point,
+      Recipient: row.customerName,
       Status: row.status,
       "Status Update": row.statusUpdates
         .map((update) => update.note)
@@ -465,7 +546,6 @@ const OrderHistory = () => {
     saveAs(blob, "tracker_management.xlsx");
   };
 
-  // CSV download function
   const handleCsvDownload = () => {
     const headers: string[] = [
       "SL",
@@ -491,7 +571,7 @@ const OrderHistory = () => {
       const rowArray: string[] = [
         escapeCsv(startIndex + index + 1),
         escapeCsv(row.trackingId),
-        escapeCsv(row.pickup.point),
+        escapeCsv(row.customerName),
         escapeCsv(row.status),
         escapeCsv(row.statusUpdates.map((update) => update.note).join(", ")),
         escapeCsv(
@@ -586,6 +666,7 @@ const OrderHistory = () => {
               <option value="Return received by merchant">
                 Return received by merchant
               </option>
+              <option value="Parcel Create">Parcel Create</option>
             </select>
           </div>
           <div className="flex space-x-4">
@@ -612,7 +693,7 @@ const OrderHistory = () => {
             <h2 className="text-xl font-semibold text-gray-900">Parcels</h2>
             <Button
               variant="default"
-              onClick={() => navigate("/merchant/create-parcel")}
+              onClick={() => navigate("/branch/create-parcel")}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -620,14 +701,12 @@ const OrderHistory = () => {
             </Button>
           </div>
 
-          {/* Display error message if there is an error */}
           {isError && (
             <div className="text-red-500 text-center mb-4">
               Failed to load parcels. Please try again later.
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="flex items-center mb-5 gap-2">
             <button
               onClick={handleCopy}
@@ -716,16 +795,16 @@ const OrderHistory = () => {
                       <TableCell className="p-3">
                         <div className="flex flex-col space-y-1 text-sm">
                           <div className="font-medium">
-                            {tracker.customerName} {/* New field */}
+                            {tracker.customerName}
                           </div>
                           <div className="text-gray-500">
-                            {tracker.customerPhone} {/* New field */}
+                            {tracker.customerPhone}
                           </div>
                           <div
                             className="text-gray-500 truncate max-w-[200px]"
-                            title={tracker.address}
+                            title={tracker.customerAddress}
                           >
-                            {tracker.address} {/* Existing field */}
+                            {tracker.customerAddress}
                           </div>
                         </div>
                       </TableCell>
@@ -788,51 +867,54 @@ const OrderHistory = () => {
                         </div>
                       </TableCell>
                       <TableCell className="p-3">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="h-8 px-2 p-2 bg-gray-200 rounded-lg text-gray-700 hover:text-blue-600 hover:border-blue-600 transition-colors">
-                              <ChevronDown className="h-3.5 w-3.5" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="start"
-                            className=" p-2 bg-white shadow-lg rounded-md"
-                          >
-                            <div className="space-y-2 max-h-60 overflow-y-auto">
-                              <p className="text-sm font-medium px-2 py-1.5 text-gray-500">
-                                Update Status
-                              </p>
-                              {[
-                                "Pickup Assigned",
-                                "Pickup Re-Schedule",
-                                "Received By Pickup Man",
-                                "Received By Hub",
-                                "Delivery Man Assigned",
-                                "Received Warehouse",
-                                "Transfer to hub",
-                                "Received by hub",
-                                "Return to Courier",
-                                "Partial Delivered",
-                                "Delivered",
-                                "Return assigned to merchant",
-                                "Return received by merchant",
-                              ].map((status) => (
-                                <button
-                                  key={status}
-                                  className="w-full px-2 py-1.5 text-left hover:bg-gray-50 rounded-md flex items-center space-x-2"
-                                  onClick={() =>
-                                    handleStatusUpdate(
-                                      tracker.id,
-                                      status as TrackerStatus
-                                    )
-                                  }
-                                >
-                                  {status}
-                                </button>
-                              ))}
-                            </div>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        {tracker.status !== "Delivered" ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className="h-8 px-2 p-2 bg-gray-200 rounded-lg text-gray-700 hover:text-blue-600 hover:border-blue-600 transition-colors">
+                                <ChevronDown className="h-3.5 w-3.5" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="start"
+                              className=" p-2 bg-white shadow-lg rounded-md"
+                            >
+                              <div className="space-y-2 max-h-60 overflow-y-auto">
+                                <p className="text-sm font-medium px-2 py-1.5 text-gray-500">
+                                  Update Status
+                                </p>
+                                {[
+                                  "Pickup Assigned",
+                                  "Pickup Re-Schedule",
+                                  "Received By Pickup Man",
+                                  "Received By Hub",
+                                  "Delivery Man Assigned",
+                                  "Received Warehouse",
+                                  "Transfer to hub",
+                                  "Received by hub",
+                                  "Return to Courier",
+                                  "Partial Delivered",
+                                  "Return assigned to merchant",
+                                  "Return received by merchant",
+                                ].map((status) => (
+                                  <button
+                                    key={status}
+                                    className="w-full px-2 py-1.5 text-left hover:bg-gray-50 rounded-md flex items-center space-x-2"
+                                    onClick={() =>
+                                      handleStatusUpdate(
+                                        tracker.id,
+                                        status as TrackerStatus
+                                      )
+                                    }
+                                  >
+                                    {status}
+                                  </button>
+                                ))}
+                              </div>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <span className="text-gray-500"></span>
+                        )}
                       </TableCell>
                       <TableCell className="p-3">
                         <div className="flex flex-col space-y-1 text-sm">
@@ -873,6 +955,7 @@ const OrderHistory = () => {
                             variant="outline"
                             size="sm"
                             className="h-8 px-2 text-gray-700 hover:text-red-600 hover:border-red-600 transition-colors"
+                            onClick={() => handleDeleteParcel(tracker.id)}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
@@ -907,7 +990,6 @@ const OrderHistory = () => {
         </div>
       </div>
 
-      {/* Render the StatusUpdateModal */}
       {selectedStatus && selectedTrackerId && (
         <StatusUpdateModal
           parcelId={selectedTrackerId}
@@ -916,8 +998,15 @@ const OrderHistory = () => {
           selectedStatus={selectedStatus}
         />
       )}
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={cancelDeleteParcel}
+        onConfirm={confirmDeleteParcel}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
 
-export default OrderHistory;
+export default ParcelPageBranch;

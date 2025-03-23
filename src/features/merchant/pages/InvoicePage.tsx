@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -14,6 +14,7 @@ import { TUser } from "@/interface";
 import { useCurrentUser } from "@/redux/features/auth/authSlice";
 import { useAppSelector } from "@/redux/hooks";
 import { useNavigate } from "react-router-dom";
+import { Eye } from "lucide-react";
 
 type TrackerStatus =
   | "Pending"
@@ -57,11 +58,10 @@ type StatusUpdate = {
 
 type ApiResponse = {
   _id: string;
-  TrakingId: string; // Updated field from API response
-  merchant: string;
-  pickupPoints: string;
-  pickupPhone: string;
-  pickupAddress: string;
+  TrakingId: string;
+  merchantEmail: string;
+  merchantName: string;
+  merchantPhone: string;
   cashCollection: number;
   totalCharge: number;
   vat: number;
@@ -70,31 +70,14 @@ type ApiResponse = {
   advance: number;
   paymentMethod?: string;
   currentStatus: TrackerStatus;
-  parcelStatus: {
-    title: string;
-    current: string;
-    email?: string;
-    name?: string;
-    phone?: string;
-    deliveryMan?: string;
-    deliveryManPhone?: string;
-    deliveryManEmail?: string;
-    note?: string;
-    date: number;
-    createdBy?: {
-      email?: string;
-      name?: string;
-      phone?: string;
-      role?: string;
-      date: number;
-    };
-  }[];
+  parcelStatus: StatusUpdate[];
   pickupDate: string | null;
   deliveryDate: string | null;
   Weight: number;
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  invoice: string;
 };
 
 export type Tracker = {
@@ -102,11 +85,7 @@ export type Tracker = {
   trackingId: string;
   merchant: {
     name: string;
-  };
-  pickup: {
-    point: string;
     phone: string;
-    address: string;
   };
   financial: {
     codAmount: number;
@@ -128,6 +107,7 @@ export type Tracker = {
   weight: number;
   customerName: string;
   customerPhone: string;
+  invoiceNumber: string;
 };
 
 const formatCurrency = (amount: number): string => {
@@ -147,19 +127,18 @@ const formatDate = (dateString: string | null): string => {
   });
 };
 
-const InvoicePage = () => {
+const InvoicePage: React.FC = () => {
   const [trackers, setTrackers] = useState<Tracker[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
   const { email } = useAppSelector(useCurrentUser) as TUser;
 
-  // Pass the email as a query parameter to the useGetAllParcelQuery hook
   const { data, isLoading, isError } = useGetAllParcelQuery([
-    { name: "merchant", value: email },
+    { name: "merchantEmail", value: email },
     { name: "currentStatus", value: "Delivered" },
   ]);
-  console.log(data?.data);
+
   useEffect(() => {
     if (data?.data) {
       const trackers = data.data.map((item: ApiResponse) => {
@@ -169,14 +148,10 @@ const InvoicePage = () => {
 
         return {
           id: item._id,
-          trackingId: item.TrakingId, // Use the updated API field here
+          trackingId: item.TrakingId,
           merchant: {
-            name: item.merchant,
-          },
-          pickup: {
-            point: item.pickupPoints,
-            phone: item.pickupPhone,
-            address: item.pickupAddress,
+            name: item.merchantName,
+            phone: item.merchantPhone,
           },
           financial: {
             codAmount: item.cashCollection,
@@ -213,6 +188,7 @@ const InvoicePage = () => {
           weight: item.Weight,
           customerName: item.customerName,
           customerPhone: item.customerPhone,
+          invoiceNumber: item.invoice,
         };
       });
       setTrackers(trackers);
@@ -224,148 +200,151 @@ const InvoicePage = () => {
   const startIndex = (currentPage - 1) * pageSize;
   const currentData = trackers.slice(startIndex, startIndex + pageSize);
 
-  // Inside your component
   const navigate = useNavigate();
 
   return (
-    <div className="p-4">
-      <div className="mt-8">
-        <div className="p-6 bg-white rounded-lg shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Payment Invoice
-            </h2>
-          </div>
+    <div className="p-6 bg-white rounded-lg shadow-lg">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-900">Payment Invoice</h2>
+      </div>
 
-          {/* Display error message if there is an error */}
-          {isError && (
-            <div className="text-red-500 text-center mb-4">
-              Failed to load parcels. Please try again later.
-            </div>
-          )}
-
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="p-3 text-left">SL</TableHead>
-                  <TableHead className="p-3 text-left">Tracker ID</TableHead>
-                  <TableHead className="p-3 text-left">Amount</TableHead>
-                  <TableHead className="p-3 text-left">Delivery Date</TableHead>
-                  <TableHead className="p-3 text-center">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  Array.from({ length: pageSize }).map((_, index) => (
-                    <TableRow
-                      key={`skeleton-${index}`}
-                      className="animate-pulse"
-                    >
-                      <TableCell className="p-3">
-                        <div className="h-4 w-4 bg-gray-200 rounded"></div>
-                      </TableCell>
-                      {Array.from({ length: 4 }).map((_, colIndex) => (
-                        <TableCell
-                          key={`skeleton-col-${colIndex}`}
-                          className="p-3"
-                        >
-                          <div className="h-4 bg-gray-200 rounded w-24"></div>
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : currentData.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="p-6 text-center text-gray-500"
-                    >
-                      No trackers available.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  currentData.map((tracker, index) => (
-                    <TableRow
-                      key={tracker.id} // Use the unique tracker id here
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <TableCell className="p-3">
-                        {startIndex + index + 1}
-                      </TableCell>
-                      <TableCell className="p-3 font-medium">
-                        <button className="text-blue-600 hover:text-blue-800">
-                          {tracker.trackingId}
-                        </button>
-                      </TableCell>
-                      <TableCell className="p-3">
-                        <div className="flex flex-col space-y-1 text-sm">
-                          <div className="text-gray-500">
-                            COD:{" "}
-                            <span className="font-medium text-gray-800">
-                              {formatCurrency(tracker.financial.codAmount)}
-                            </span>
-                          </div>
-                          <div className="text-gray-500">
-                            Total Charge Amount:{" "}
-                            <span className="font-medium text-gray-800">
-                              {formatCurrency(tracker.financial.charges)}
-                            </span>
-                          </div>
-                          <div className="text-gray-500">
-                            Vat Amount:{" "}
-                            <span className="font-medium text-gray-800">
-                              {formatCurrency(tracker.financial.vat)}
-                            </span>
-                          </div>
-                          <div className="text-gray-500">
-                            Current Payable:{" "}
-                            <span className="font-medium text-gray-800">
-                              {formatCurrency(tracker.financial.currentPayable)}
-                            </span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="p-3">
-                        {formatDate(tracker.deliveryDate)}
-                      </TableCell>
-                      <TableCell className="p-3 text-center">
-                        <button
-                          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded shadow transition-all duration-300"
-                          onClick={() =>
-                            navigate(`/merchant/invoice/${tracker.trackingId}`)
-                          }
-                        >
-                          View Details
-                        </button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-6 space-y-4 sm:space-y-0">
-            <TablePaginationInfo
-              startIndex={startIndex}
-              pageSize={pageSize}
-              totalEntries={totalEntries}
-              currentDataLength={currentData.length}
-            />
-            <TablePagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              onPrevPage={() =>
-                currentPage > 1 && setCurrentPage(currentPage - 1)
-              }
-              onNextPage={() =>
-                currentPage < totalPages && setCurrentPage(currentPage + 1)
-              }
-            />
-          </div>
+      {isError && (
+        <div className="text-red-500 text-center mb-4">
+          Failed to load parcels. Please try again later.
         </div>
+      )}
+
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="p-3 text-left">SL</TableHead>
+              <TableHead className="p-3 text-left">Tracker ID</TableHead>
+              <TableHead className="p-3 text-left">Amount</TableHead>
+              <TableHead className="p-3 text-left">Delivery Date</TableHead>
+              <TableHead className="p-3 text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              Array.from({ length: pageSize }).map((_, index) => (
+                <TableRow key={`skeleton-${index}`} className="animate-pulse">
+                  <TableCell className="p-3">
+                    <div className="h-4 w-4 bg-gray-200 rounded"></div>
+                  </TableCell>
+                  {Array.from({ length: 3 }).map((_, colIndex) => (
+                    <TableCell key={`skeleton-col-${colIndex}`} className="p-3">
+                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : currentData.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="p-6 text-center text-gray-500"
+                >
+                  No trackers available.
+                </TableCell>
+              </TableRow>
+            ) : (
+              currentData.map((tracker, index) => (
+                <TableRow
+                  key={tracker.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  <TableCell className="p-3">
+                    {startIndex + index + 1}
+                  </TableCell>
+                  <TableCell className="p-3 font-medium">
+                    <button className="text-blue-600 hover:text-blue-800">
+                      {tracker.trackingId}
+                    </button>
+                  </TableCell>
+                  <TableCell className="p-3">
+                    <div className="flex flex-col space-y-1 text-sm">
+                      <div className="text-gray-500">
+                        COD:{" "}
+                        <span className="font-medium text-gray-800">
+                          {formatCurrency(tracker.financial.codAmount)}
+                        </span>
+                      </div>
+                      <div className="text-gray-500">
+                        Total Charge Amount:{" "}
+                        <span className="font-medium text-gray-800">
+                          {formatCurrency(tracker.financial.charges)}
+                        </span>
+                      </div>
+                      <div className="text-gray-500">
+                        Vat Amount:{" "}
+                        <span className="font-medium text-gray-800">
+                          {formatCurrency(tracker.financial.vat)}
+                        </span>
+                      </div>
+                      <div className="text-gray-500">
+                        Current Payable:{" "}
+                        <span className="font-medium text-gray-800">
+                          {formatCurrency(tracker.financial.currentPayable)}
+                        </span>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="p-3">
+                    {formatDate(tracker.deliveryDate)}
+                  </TableCell>
+                  <TableCell className="p-3 text-center">
+                    <button
+                      className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded shadow transition-all duration-300 flex items-center gap-2"
+                      onClick={() =>
+                        navigate(`/merchant/invoice/${tracker.trackingId}`, {
+                          state: {
+                            tracker,
+                            invoiceNumber: tracker.invoiceNumber,
+                            invoiceDate: formatDate(tracker.deliveryDate),
+                            invoiceTime:
+                              tracker.deliveryDate !== null
+                                ? new Date(
+                                    tracker.deliveryDate
+                                  ).toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })
+                                : "",
+                            merchantName: tracker.merchant.name,
+                            merchantPhone: tracker.merchant.phone,
+                          },
+                        })
+                      }
+                    >
+                      <Eye size={16} />
+                      <span>View</span>
+                    </button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between items-center mt-6 space-y-4 sm:space-y-0">
+        <TablePaginationInfo
+          startIndex={startIndex}
+          pageSize={pageSize}
+          totalEntries={totalEntries}
+          currentDataLength={currentData.length}
+        />
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          onPrevPage={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+          onNextPage={() =>
+            currentPage < totalPages && setCurrentPage(currentPage + 1)
+          }
+        />
       </div>
     </div>
   );

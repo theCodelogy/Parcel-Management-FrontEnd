@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TQueryParam, TResponseRedux } from '../../../../type/global';
-import { baseApi } from '../../api/baseApi';
-
+import { TQueryParam, TResponseRedux } from "../../../../type/global";
+import { baseApi } from "../../api/baseApi";
 
 const DeliveryCategory = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-
     addDeliveryCategory: builder.mutation({
       query: (data) => ({
-        url: '/deliveryCategory',
-        method: 'POST',
+        url: "/deliveryCategory",
+        method: "POST",
         body: data,
       }),
     }),
@@ -24,12 +22,12 @@ const DeliveryCategory = baseApi.injectEndpoints({
           });
         }
         return {
-          url: '/deliveryCategory',
-          method: 'GET',
+          url: "/deliveryCategory",
+          method: "GET",
           params: params,
         };
       },
-      providesTags: ['DeliveryCategory'],
+      providesTags: ["DeliveryCategory"],
       transformResponse: (response: TResponseRedux<[]>) => {
         return {
           data: response.data,
@@ -42,7 +40,7 @@ const DeliveryCategory = baseApi.injectEndpoints({
       query: (id) => {
         return {
           url: `/deliveryCategory/${id}`,
-          method: 'GET',
+          method: "GET",
         };
       },
       transformResponse: (response: TResponseRedux<any>) => {
@@ -56,28 +54,26 @@ const DeliveryCategory = baseApi.injectEndpoints({
     updateDeliveryCategory: builder.mutation({
       query: (args) => ({
         url: `/deliveryCategory/${args.id}`,
-        method: 'PATCH',
+        method: "PATCH",
         body: args.data,
       }),
-      invalidatesTags: ['DeliveryCategory'],
+      invalidatesTags: ["DeliveryCategory"],
     }),
 
     deleteDeliveryCategory: builder.mutation({
       query: (id) => ({
         url: `/deliveryCategory/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['DeliveryCategory'],
+      invalidatesTags: ["DeliveryCategory"],
     }),
-
-
   }),
 });
 
-export const { 
+export const {
   useGetAllDeliveryCategoryQuery,
   useAddDeliveryCategoryMutation,
   useUpdateDeliveryCategoryMutation,
   useGetSingleDeliveryCategoryQuery,
-  useDeleteDeliveryCategoryMutation
- } = DeliveryCategory;
+  useDeleteDeliveryCategoryMutation,
+} = DeliveryCategory;

@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   User,
-  Settings,
-  HelpCircle,
   LogOut,
   Menu,
   Bell,
@@ -121,18 +119,18 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: FileText,
       path: "/merchant/invoice",
     },
-    {
-      id: "Settings",
-      label: "Settings",
-      icon: Settings,
-      path: "/merchant/settings",
-    },
-    {
-      id: "Support",
-      label: "Support",
-      icon: HelpCircle,
-      path: "/merchant/support",
-    },
+    // {
+    //   id: "Settings",
+    //   label: "Settings",
+    //   icon: Settings,
+    //   path: "/merchant/settings",
+    // },
+    // {
+    //   id: "Support",
+    //   label: "Support",
+    //   icon: HelpCircle,
+    //   path: "/merchant/support",
+    // },
     {
       id: "Create Parcel",
       label: "Create Parcel",
@@ -324,6 +322,7 @@ const MerchantDashboardLayout: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { name, email } = useAppSelector(useCurrentUser) as TUser;
+  console.log(name, email);
   const userProfile = {
     name: name,
     email: email,

@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { hostImage } from "../../../utils/hostImageOnIMGBB";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAppSelector } from "@/redux/hooks";
+import { useCurrentUser } from "@/redux/features/auth/authSlice";
+import { TUser } from "@/interface";
 
 interface AuthState {
   name: string;
@@ -18,9 +21,7 @@ interface AuthState {
   openingBalance: string;
   password: string;
   salary: number;
-  //   status: string;
-  status: "Pending" | "Active" | "Disabled";
-  hub: string;
+  status: string;
   drivingLicense: File | null;
   image: File | null;
   address: string;
@@ -46,20 +47,17 @@ export type TDeliveryMan = {
   address: string;
 };
 
-const EditDeliveryManPage: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const deliveryManData = location.state?.deliveryMan;
+const CreateDeliveryManBranch: React.FC = () => {
+  const { name } = useAppSelector(useCurrentUser) as TUser;
 
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
-    setValue,
     setError,
   } = useForm<AuthState>();
-
   const [state, setState] = useState<AuthState>({
     name: "",
     phone: "",
@@ -71,7 +69,6 @@ const EditDeliveryManPage: React.FC = () => {
     password: "",
     salary: 0,
     status: "Pending",
-    hub: "",
     drivingLicense: null,
     image: null,
     address: "",
@@ -79,42 +76,22 @@ const EditDeliveryManPage: React.FC = () => {
     loading: false,
   });
 
-  useEffect(() => {
-    if (deliveryManData) {
-      setValue("name", deliveryManData.name);
-      setValue("phone", deliveryManData.phone);
-      setValue("email", deliveryManData.email);
-      setValue("deliveryCharge", deliveryManData.deliveryCharge);
-      setValue("returnCharge", deliveryManData.returnCharge);
-      setValue("pickupCharge", deliveryManData.pickupCharge);
-      setValue("openingBalance", String(deliveryManData.openingBalance));
-      setValue("salary", deliveryManData.salary);
-      setValue("status", deliveryManData.status);
-      setValue("hub", deliveryManData.hub);
-      setValue("address", deliveryManData.address);
-      setState((prevState) => ({
-        ...prevState,
-        drivingLicense: null,
-        image: null,
-      }));
-    }
-  }, [deliveryManData, setValue]);
-
   const onSubmit = async (data: AuthState): Promise<void> => {
     setState((prevState) => ({ ...prevState, loading: true }));
 
-    const payload: Partial<TDeliveryMan> = {
+    const payload: TDeliveryMan = {
       name: data.name,
       phone: data.phone,
       email: data.email,
+      role: "Delivery Man",
       deliveryCharge: Number(data.deliveryCharge),
       returnCharge: Number(data.returnCharge),
       pickupCharge: Number(data.pickupCharge),
       openingBalance: Number(data.openingBalance),
       password: data.password,
       salary: Number(data.salary),
-      status: data.status,
-      hub: data.hub,
+      status: "Active",
+      hub: name, // Set the hub to the user's name
       address: data.address,
     };
 
@@ -127,10 +104,10 @@ const EditDeliveryManPage: React.FC = () => {
       const imageUrl = await hostImage(state.image);
       payload.image = imageUrl;
     }
-
+    console.log("Payload being sent:", payload);
     try {
-      const res = await axios.patch(
-        `https://parcel-management-back-end.vercel.app/api/v1/deliveryMan/${deliveryManData._id}`,
+      const res = await axios.post(
+        "https://parcel-management-back-end.vercel.app/api/v1/deliveryMan",
         payload,
         {
           withCredentials: true,
@@ -139,7 +116,7 @@ const EditDeliveryManPage: React.FC = () => {
       const responseData = res.data;
       if (responseData.success) {
         console.log(responseData);
-        toast.success("Successfully updated Delivery Man!");
+        toast.success("Successfully Delivery Man added!");
         navigate("/admin/deliveryman");
       }
     } catch (err: any) {
@@ -154,7 +131,7 @@ const EditDeliveryManPage: React.FC = () => {
           }
         );
       } else {
-        toast.error("Error updating Delivery Man");
+        toast.error("Error adding Delivery Man");
       }
     } finally {
       setState((prevState) => ({ ...prevState, loading: false }));
@@ -162,11 +139,11 @@ const EditDeliveryManPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="flex items-center justify-center">
       <div className="w-full bg-white rounded-2xl shadow-xl overflow-auto p-8">
         <div className="col-span-2 mb-6 text-center">
           <h2 className="text-2xl font-bold text-gray-800">
-            Edit Delivery Man
+            Create Delivery Man
           </h2>
         </div>
 
@@ -308,6 +285,7 @@ const EditDeliveryManPage: React.FC = () => {
                 <input
                   type={state.showPassword ? "text" : "password"}
                   {...register("password", {
+                    required: true,
                     minLength: 8,
                   })}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
@@ -350,22 +328,6 @@ const EditDeliveryManPage: React.FC = () => {
               />
               {errors.salary && (
                 <p className="mt-1 text-sm text-red-600">Salary is required</p>
-              )}
-            </div>
-
-            {/* Hub */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hub
-              </label>
-              <input
-                type="text"
-                {...register("hub", { required: true })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Hub"
-              />
-              {errors.hub && (
-                <p className="mt-1 text-sm text-red-600">Hub is required</p>
               )}
             </div>
 
@@ -435,7 +397,7 @@ const EditDeliveryManPage: React.FC = () => {
               className="w-full bg-[#d63384] text-white py-2 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-300"
               disabled={state.loading}
             >
-              {state.loading ? "Updating..." : "Update"}
+              {state.loading ? "Submitting..." : "Submit"}
             </button>
           </div>
         </form>
@@ -444,7 +406,7 @@ const EditDeliveryManPage: React.FC = () => {
   );
 };
 
-export default EditDeliveryManPage;
+export default CreateDeliveryManBranch;
 
 interface FileUploadProps {
   id: string;

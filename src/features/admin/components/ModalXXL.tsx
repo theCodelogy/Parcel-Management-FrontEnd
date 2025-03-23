@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaPlus } from "react-icons/fa";
-import CreateDeliveryManPage from "../pages/CreateDeliveryManPage";
+import CreateDeliveryManPage from "../pages/delivery-man/CreateDeliveryManPage";
 
 const ModalXXL = () => {
   const [isOpen, setIsOpen] = useState(false);

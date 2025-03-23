@@ -56,46 +56,34 @@ type StatusUpdate = {
   };
 };
 
+// Updated interface to match your JSON structure
 type ApiResponse = {
   _id: string;
   TrakingId: string;
-  merchant: string;
-  pickupPoints: string;
-  pickupPhone: string;
-  pickupAddress: string;
+  merchantEmail: string; // Removed from table display, but still used in logic
+  merchantName: string;
+  merchantAddress: string;
+  merchantPhone: string;
   cashCollection: number;
   totalCharge: number;
   vat: number;
   netPayable: number;
-  currentPayable: number;
   advance: number;
   paymentMethod?: string;
   currentStatus: TrackerStatus;
   parcelStatus: {
     title: string;
-    current: string;
-    email?: string;
-    name?: string;
-    phone?: string;
     deliveryMan?: string;
     deliveryManPhone?: string;
     deliveryManEmail?: string;
     note?: string;
     date: number;
-    createdBy?: {
-      email?: string;
-      name?: string;
-      phone?: string;
-      role?: string;
-      date: number;
-    };
   }[];
-  pickupDate: string | null;
-  deliveryDate: string | null;
-  customerAddress: string;
   Weight: number;
-  customerName: string; // Add this line
-  customerPhone: string; // Add this line
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  // Additional fields like sellingPrice, invoice, etc. are available if needed.
 };
 
 export type Tracker = {
@@ -103,9 +91,6 @@ export type Tracker = {
   trackingId: string;
   merchant: {
     name: string;
-  };
-  pickup: {
-    point: string;
     phone: string;
     address: string;
   };
@@ -123,18 +108,10 @@ export type Tracker = {
   };
   status: TrackerStatus;
   statusUpdates: StatusUpdate[];
-  pickupDate: string | null;
-  deliveryDate: string | null;
-  address: string;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
   weight: number;
-  proofOfDelivery?: {
-    videoUrl?: string;
-    verificationCode?: string;
-    timestamp?: string;
-  };
-  customerName: string; // Add this line
-  customerPhone: string; // Add this line
-  customerAddress: string; // Add this line
 };
 
 const formatCurrency = (amount: number): string => {
@@ -232,7 +209,6 @@ const DeliverdParcels = () => {
     date: "",
     status: "",
   });
-
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
@@ -243,17 +219,15 @@ const DeliverdParcels = () => {
     { name: "parcelStatus.deliveryManEmail", value: email },
   ]);
 
+  // Map the API response to your Tracker type using the provided JSON keys
   const trackers = useMemo(() => {
     return (apiResponse?.data || []).map((item: ApiResponse) => ({
       id: item._id,
       trackingId: item.TrakingId,
       merchant: {
-        name: item.merchant,
-      },
-      pickup: {
-        point: item.pickupPoints,
-        phone: item.pickupPhone,
-        address: item.pickupAddress,
+        name: item.merchantName,
+        phone: item.merchantPhone,
+        address: item.merchantAddress,
       },
       financial: {
         codAmount: item.cashCollection,
@@ -262,33 +236,25 @@ const DeliverdParcels = () => {
         currentPayable: item.netPayable,
       },
       payment: {
-        status:
-          item.currentPayable === 0 ? "Paid" : ("Pending" as PaymentStatus),
+        status: item.netPayable === 0 ? "Paid" : ("Pending" as PaymentStatus),
         amountPaid: item.advance,
-        amountPending: item.currentPayable,
+        amountPending: item.netPayable,
         method: item.paymentMethod,
       },
       status: item.currentStatus as TrackerStatus,
       statusUpdates: item.parcelStatus.map((status) => ({
         title: status.title,
-        current: status.current,
-        email: status.email,
-        name: status.name,
-        phone: status.phone,
+        current: status.title, // Adjust if a different field represents the "current" value
         deliveryMan: status.deliveryMan,
         deliveryManPhone: status.deliveryManPhone,
         deliveryManEmail: status.deliveryManEmail,
         note: status.note,
         date: status.date,
-        createdBy: status.createdBy,
       })),
-      pickupDate: item.pickupDate || null,
-      deliveryDate: item.deliveryDate || null,
-      address: item.customerAddress,
+      customerName: item.customerName,
+      customerPhone: item.customerPhone,
+      customerAddress: item.customerAddress,
       weight: item.Weight,
-      customerName: item.customerName, // Add this line
-      customerPhone: item.customerPhone, // Add this line
-      customerAddress: item.customerAddress, // Add this line
     }));
   }, [apiResponse]);
 
@@ -317,7 +283,7 @@ const DeliverdParcels = () => {
             .includes(filters.trackerId.toLowerCase())
         : true;
       const matchRecipient = filters.recipient
-        ? tracker.customerName // Update this line
+        ? tracker.customerName
             .toLowerCase()
             .includes(filters.recipient.toLowerCase())
         : true;
@@ -327,8 +293,11 @@ const DeliverdParcels = () => {
             .includes(filters.merchant.toLowerCase())
         : true;
       const matchDate = filters.date
-        ? tracker.pickupDate &&
-          new Date(tracker.pickupDate).toISOString().startsWith(filters.date)
+        ? // Assuming you might use a date field from one of your status updates or other fields.
+          tracker.statusUpdates.length > 0 &&
+          new Date(tracker.statusUpdates[0].date)
+            .toISOString()
+            .startsWith(filters.date)
         : true;
       const matchStatus = filters.status
         ? tracker.status === filters.status
@@ -440,17 +409,19 @@ const DeliverdParcels = () => {
                       <TableCell className="p-3">
                         <div className="h-4 w-4 bg-gray-200 rounded"></div>
                       </TableCell>
-                      {Array.from({ length: 8 }).map((_, colIndex) => (
-                        <TableCell
-                          key={`skeleton-col-${colIndex}`}
-                          className="p-3"
-                        >
-                          <div className="h-4 bg-gray-200 rounded w-24"></div>
-                        </TableCell>
-                      ))}
-                      <TableCell className="p-3 text-right">
-                        <div className="h-8 bg-gray-200 rounded w-16 ml-auto"></div>
-                      </TableCell>
+                      {Array.from({ length: 7 }).map(
+                        (
+                          _,
+                          colIndex // Changed to 7
+                        ) => (
+                          <TableCell
+                            key={`skeleton-col-${colIndex}`}
+                            className="p-3"
+                          >
+                            <div className="h-4 bg-gray-200 rounded w-24"></div>
+                          </TableCell>
+                        )
+                      )}
                     </TableRow>
                   ))
                 ) : currentData.length === 0 ? (
@@ -463,57 +434,55 @@ const DeliverdParcels = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  currentData.map((tracker) => (
+                  currentData.map((tracker, index) => (
                     <TableRow
                       key={tracker.id}
                       className="hover:bg-gray-50 transition-colors"
                     >
                       <TableCell className="p-3">
-                        {startIndex + currentData.indexOf(tracker) + 1}
+                        {startIndex + index + 1}
                       </TableCell>
                       <TableCell className="p-3 font-medium">
                         <button className="text-blue-600 hover:text-blue-800 hover:underline">
                           {tracker.trackingId}
                         </button>
                       </TableCell>
+                      {/* Recipient Data */}
                       <TableCell className="p-3">
                         <div className="flex flex-col space-y-1 text-sm">
                           <div className="font-medium">
-                            {tracker.customerName} {/* Display customerName */}
+                            {tracker.customerName}
                           </div>
                           <div className="text-gray-500">
-                            {tracker.customerPhone}{" "}
-                            {/* Display customerPhone */}
+                            {tracker.customerPhone}
                           </div>
                           <div
                             className="text-gray-500 truncate max-w-[200px]"
                             title={tracker.customerAddress}
                           >
-                            {tracker.customerAddress}{" "}
-                            {/* Display customerAddress */}
+                            {tracker.customerAddress}
                           </div>
                         </div>
                       </TableCell>
+                      {/* Merchant Data */}
                       <TableCell className="p-3">
                         <div className="flex flex-col space-y-1 text-sm">
                           <div className="font-medium">
                             {tracker.merchant.name}
                           </div>
                           <div className="text-gray-500">
-                            {tracker.pickup.phone}
+                            {tracker.merchant.phone}
                           </div>
                           <div
                             className="text-gray-500 truncate max-w-[200px]"
-                            title={tracker.address}
+                            title={tracker.merchant.address}
                           >
-                            {tracker.address}
+                            {tracker.merchant.address}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="p-3">
-                        <div className="flex items-center">
-                          <StatusBadge status={tracker.status} />
-                        </div>
+                        <StatusBadge status={tracker.status} />
                       </TableCell>
                       <TableCell className="p-3">
                         <div className="flex flex-col space-y-1 text-sm">
@@ -524,13 +493,13 @@ const DeliverdParcels = () => {
                             </span>
                           </div>
                           <div className="text-gray-500">
-                            Total Charge Amount:{" "}
+                            Total Charge:{" "}
                             <span className="font-medium text-gray-800">
                               {formatCurrency(tracker.financial.charges)}
                             </span>
                           </div>
                           <div className="text-gray-500">
-                            Vat Amount:{" "}
+                            Vat:{" "}
                             <span className="font-medium text-gray-800">
                               {formatCurrency(tracker.financial.vat)}
                             </span>
@@ -546,7 +515,6 @@ const DeliverdParcels = () => {
                       <TableCell className="p-3">
                         <PaymentStatusBadge status={tracker.payment.status} />
                       </TableCell>
-
                       <TableCell className="p-3">{tracker.weight} kg</TableCell>
                     </TableRow>
                   ))

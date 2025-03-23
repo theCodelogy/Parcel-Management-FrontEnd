@@ -10,6 +10,7 @@ const parcel = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: ["Parcel"],
     }),
 
     getAllParcel: builder.query({

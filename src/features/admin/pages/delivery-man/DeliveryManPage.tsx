@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useForm } from "react-hook-form";
-import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import {
   Eraser,
   Filter,
@@ -25,9 +24,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { toast } from "react-hot-toast";
 import TablePagination from "@/components/ui/TablePagination";
-import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  useDeleteDeliveryManMutation,
+  useGetAllDeliveryManQuery,
+} from "@/redux/features/deliveryMan/deliveryManApi";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface DeliveryManData {
   _id: string;
@@ -44,19 +54,15 @@ interface DeliveryManData {
   status: string;
 }
 
-// Fetch delivery man data from API using Axios
-export const fetchDeliveryManApi = async (): Promise<DeliveryManData[]> => {
-  const response = await axios.get<{ data: DeliveryManData[] }>(
-    // "https://parcel-management-back-end.vercel.app/api/v1/deliveryMan"
-    "https://parcel-management-back-end-peach.vercel.app/api/v1/deliveryMan"
-  );
-  return response.data.data;
-};
-
 interface Filters {
   name: string;
   email: string;
   phone: string;
+}
+
+interface TQueryParam {
+  name: string;
+  value: string;
 }
 
 interface TablePaginationInfoProps {
@@ -90,66 +96,94 @@ const DeliveryManPage = () => {
     defaultValues: { name: "", email: "", phone: "" },
   });
 
-  // Use react-query to fetch delivery men data
+  // State to store filters for the query parameters.
+  const [queryFilters, setQueryFilters] = useState<TQueryParam[]>([]);
+
+  // RTK Query hook that fetches data using queryFilters.
   const {
-    data: deliveryMen = [],
+    data: deliveryManResponse,
     isLoading,
     error,
     refetch,
-  } = useQuery<DeliveryManData[]>({
-    queryKey: ["deliveryMen"],
-    queryFn: fetchDeliveryManApi,
-  });
+  } = useGetAllDeliveryManQuery(queryFilters);
 
-  // Filter handlers
+  // Map the fetched data to include a default currentBalance if it's missing.
+  const deliveryMen: DeliveryManData[] = (deliveryManResponse?.data || []).map(
+    (man: any) => ({
+      ...man,
+      currentBalance:
+        man.currentBalance !== undefined
+          ? man.currentBalance
+          : man.openingBalance,
+    })
+  );
+
+  console.log("deliveryMen: ", deliveryMen);
+
+  const [deleteDeliveryMan, { isLoading: isDeleting }] =
+    useDeleteDeliveryManMutation();
+
+  // New state for filter button loading state
+  const [isFiltering, setIsFiltering] = useState(false);
+
+  // When filter form is submitted, convert the data to query parameters.
   const onSubmit = async (data: Filters) => {
-    setIsLoadingForm(true);
+    console.log("Filter data submitted:", data);
+    setIsFiltering(true); // Set loading state to true
+    const filters: TQueryParam[] = [];
+    if (data.name) {
+      filters.push({ name: "name", value: data.name });
+    }
+    if (data.email) {
+      filters.push({ name: "email", value: data.email });
+    }
+    if (data.phone) {
+      filters.push({ name: "phone", value: data.phone });
+    }
+    setQueryFilters(filters);
     try {
-      console.log("Filter data submitted:", data);
-      // Implement filtering logic here using the form data
+      await refetch(); // Manually trigger refetch with new filters
     } finally {
-      setIsLoadingForm(false);
+      setIsFiltering(false); // Set loading state to false
     }
   };
 
   const onClear = () => {
     console.log("Clearing filter data...");
     reset();
+    setQueryFilters([]);
+    setIsFiltering(false);
+    refetch();
   };
 
-  const [isLoadingForm, setIsLoadingForm] = useState(false);
+  // State for delete modal.
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deliveryManToDelete, setDeliveryManToDelete] = useState<string | null>(
     null
   );
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Form submit handler for editing a delivery man
+  // Handler for editing a delivery man.
   const handleEdit = (deliveryMan: DeliveryManData) => {
     navigate("/admin/deliveryman/edit", { state: { deliveryMan } });
   };
 
-  // Delete handler for deleting a delivery man
-  const handleDelete = async (deliveryManId: string) => {
+  // Opens confirmation modal for delete.
+  const handleDelete = (deliveryManId: string) => {
     setDeliveryManToDelete(deliveryManId);
     setIsDeleteModalOpen(true);
   };
 
   const confirmDelete = async () => {
     if (deliveryManToDelete) {
-      setIsDeleting(true);
+      // Display a loading toast.
+      const toastId = toast.loading("Deleting delivery man...");
       try {
-        const response = await axios.delete(
-          `https://parcel-management-back-end.vercel.app/api/v1/deliveryMan/${deliveryManToDelete}`
-        );
-        console.log("Delivery man deleted successfully:", response.data);
-        refetch();
-        toast.success("Delivery man deleted successfully");
+        await deleteDeliveryMan(deliveryManToDelete).unwrap();
+        toast.success("Delivery man deleted successfully", { id: toastId });
       } catch (error) {
         console.error("Error deleting delivery man:", error);
-        toast.error("Failed to delete delivery man");
+        toast.error("Failed to delete delivery man", { id: toastId });
       } finally {
-        setIsDeleting(false);
         setIsDeleteModalOpen(false);
         setDeliveryManToDelete(null);
       }
@@ -161,7 +195,7 @@ const DeliveryManPage = () => {
     setDeliveryManToDelete(null);
   };
 
-  // Pagination logic
+  // Pagination logic.
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const totalEntries = deliveryMen.length;
@@ -236,8 +270,37 @@ const DeliveryManPage = () => {
             <button
               type="submit"
               className="flex items-center gap-2 bg-[#6610f2] text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-700 transition-colors"
+              disabled={isFiltering} // Disable button when filtering
             >
-              <Filter className="text-sm" /> Filter
+              {isFiltering ? ( // Show loader if filtering
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5 mr-3"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Filtering...
+                </>
+              ) : (
+                <>
+                  <Filter className="text-sm" /> Filter
+                </>
+              )}
             </button>
           </div>
         </form>
@@ -254,7 +317,6 @@ const DeliveryManPage = () => {
               variant="default"
               onClick={() => navigate("/admin/deliveryman/create")}
               className="flex items-center gap-2"
-              disabled={isLoadingForm}
             >
               <Plus className="h-4 w-4" />
               <span>Add Delivery Man</span>
@@ -263,7 +325,7 @@ const DeliveryManPage = () => {
 
           <div className="overflow-x-auto">
             {isLoading ? (
-              <p className="p-3">Loading...</p>
+              <div className="p-3 text-center">Loading...</div>
             ) : error ? (
               <p className="p-3 text-red-600">Error loading data</p>
             ) : (
@@ -301,8 +363,8 @@ const DeliveryManPage = () => {
                       <TableCell className="p-3">
                         {startIndex + index + 1}
                       </TableCell>
-                      <TableCell className="p-3 flex items-center space-x-2">
-                        <div className="flex gap-2">
+                      <TableCell className="p-3">
+                        <div className="flex items-center gap-2">
                           <img
                             src={man.image}
                             alt={man.name}
@@ -311,6 +373,7 @@ const DeliveryManPage = () => {
                           <div>
                             <p className="font-semibold">{man.name}</p>
                             <p className="text-xs text-gray-500">{man.email}</p>
+                            <p className="text-xs text-gray-500">{man.phone}</p>
                           </div>
                         </div>
                       </TableCell>
@@ -357,13 +420,10 @@ const DeliveryManPage = () => {
                               disabled={isDeleting}
                             >
                               {isDeleting ? (
-                                <>
-                                  <span className="mr-2">Deleting...</span>
-                                </>
+                                <span className="mr-2">Deleting...</span>
                               ) : (
                                 <>
-                                  <Trash className="mr-2 focus:text-red-500" />{" "}
-                                  Delete
+                                  <Trash className="mr-2" /> Delete
                                 </>
                               )}
                             </DropdownMenuItem>
@@ -396,31 +456,33 @@ const DeliveryManPage = () => {
         </div>
       </div>
 
-      {/* Confirmation Modal */}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-            <h2 className="text-lg font-semibold mb-4">Confirm Deletion</h2>
-            <p>Are you sure you want to delete this delivery man?</p>
-            <div className="flex justify-end mt-6 space-x-4">
-              <button
-                onClick={cancelDelete}
-                className="px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md"
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                disabled={isDeleting}
-              >
-                {isDeleting ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Confirmation Modal using ShadCN Dialog */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this delivery man?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end space-x-4">
+            <Button
+              variant="outline"
+              onClick={cancelDelete}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

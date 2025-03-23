@@ -1,6 +1,5 @@
 import React, { useState, useEffect, JSX } from "react";
 import { Link } from "react-router-dom";
-// Import lucide-react icons
 import {
   Package,
   Check,
@@ -14,21 +13,17 @@ import {
   Settings,
 } from "lucide-react";
 import { FaMoneyBill } from "react-icons/fa";
+import { useGetAllParcelQuery } from "@/redux/features/parcel/parcelApi";
+import { useAppSelector } from "@/redux/hooks";
+import { useCurrentUser } from "@/redux/features/auth/authSlice";
+import { TUser } from "@/interface";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Define the structure of StatCardData
-interface StatCardData {
-  title: string;
-  value: number;
-  icon?: JSX.Element;
-  path?: string; // Add a path for navigation
-}
-
-// Custom hook for counting up numbers with animation
 const useCountUp = (
   target: number,
   duration: number = 1000,
   shouldAnimate: boolean = true
-) => {
+): number => {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -53,11 +48,12 @@ const useCountUp = (
 };
 
 interface StatCardProps {
-  data: StatCardData;
+  data: { title: string; value: number; icon?: JSX.Element; path?: string };
+  isLoading: boolean;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ data }) => {
-  const shouldAnimate = true; // Always animate the count-up effect
+const StatCard: React.FC<StatCardProps> = ({ data, isLoading }) => {
+  const shouldAnimate = !isLoading;
   const count = useCountUp(data.value, 1000, shouldAnimate);
 
   return (
@@ -74,7 +70,11 @@ const StatCard: React.FC<StatCardProps> = ({ data }) => {
           )}
         </div>
         <div className="flex items-end justify-between">
-          <div className="text-2xl font-bold gradient-text">{count}</div>
+          {isLoading ? (
+            <Skeleton className="w-[100px] h-[32px]" />
+          ) : (
+            <div className="text-2xl font-bold gradient-text">{count}</div>
+          )}
         </div>
       </div>
     </Link>
@@ -82,26 +82,82 @@ const StatCard: React.FC<StatCardProps> = ({ data }) => {
 };
 
 const MerchantDashboard = () => {
+  const { email } = useAppSelector(useCurrentUser) as TUser;
+
+  const { data: allParcels, isLoading: isLoadingAllParcels } =
+    useGetAllParcelQuery([{ name: "merchantEmail", value: email }]);
+
+  const { data: deliveredParcels, isLoading: isLoadingDeliveredParcels } =
+    useGetAllParcelQuery([
+      { name: "merchantEmail", value: email },
+      { name: "currentStatus", value: "Delivered" },
+    ]);
+
+  const { data: pickedParcels, isLoading: isLoadingPickedParcels } =
+    useGetAllParcelQuery([
+      { name: "merchantEmail", value: email },
+      { name: "currentStatus", value: "Pickup Assigned" },
+    ]);
+
+  const {
+    data: pickupPendingParcels,
+    isLoading: isLoadingPickupPendingParcels,
+  } = useGetAllParcelQuery([
+    { name: "merchantEmail", value: email },
+    { name: "currentStatus", value: "Parcel Create" },
+  ]);
+
+  console.log("All Parcels:", allParcels);
+  console.log("Delivered Parcels:", deliveredParcels);
+  console.log("Picked Parcels:", pickedParcels);
+  console.log("Pickup Pending Parcels:", pickupPendingParcels);
+
   const orderSummary = [
-    { title: "Total Order", count: 2, icon: <Package size={24} /> },
-    { title: "Total Delivered", count: 2, icon: <Check size={24} /> },
-    { title: "Total Picked", count: 0, icon: <Truck size={24} /> },
-    { title: "Pickup Pending", count: 0, icon: <Clipboard size={24} /> },
-    { title: "Total Amount", count: 2500, icon: <DollarSign size={24} /> },
+    {
+      title: "Total Order",
+      value: allParcels?.data?.length || 0,
+      icon: <Package size={24} />,
+      path: "/merchant/all-orders",
+    },
+    {
+      title: "Total Delivered",
+      value: deliveredParcels?.data?.length || 0,
+      icon: <Check size={24} />,
+      path: "/merchant/all-orders?status=Delivered",
+    },
+    {
+      title: "Total Picked",
+      value: pickedParcels?.data?.length || 0,
+      icon: <Truck size={24} />,
+      path: "/merchant/all-orders?status=Pickup Assigned",
+    },
+    {
+      title: "Pickup Pending",
+      value: pickupPendingParcels?.data?.length || 0,
+      icon: <Clipboard size={24} />,
+      path: "/merchant/all-orders?status=Parcel Create",
+    },
+    { title: "Total Amount", value: 2500, icon: <DollarSign size={24} /> },
     {
       title: "Delivered Collected Amount",
-      count: 2500,
+      value: 2500,
       icon: <FaMoneyBill size={24} />,
     },
-    { title: "Delivery Charge", count: 160, icon: <Tag size={24} /> },
-    { title: "COD Charge", count: 0, icon: <CreditCard size={24} /> },
+    { title: "Delivery Charge", value: 160, icon: <Tag size={24} /> },
+    { title: "COD Charge", value: 0, icon: <CreditCard size={24} /> },
   ];
 
   const paymentSummary = [
-    { title: "Paid Amount", count: 2340, icon: <CheckCircle size={24} /> },
-    { title: "Unpaid Amount", count: 0, icon: <Hourglass size={24} /> },
-    { title: "Processing Amount", count: 0, icon: <Settings size={24} /> },
+    { title: "Paid Amount", value: 2340, icon: <CheckCircle size={24} /> },
+    { title: "Unpaid Amount", value: 0, icon: <Hourglass size={24} /> },
+    { title: "Processing Amount", value: 0, icon: <Settings size={24} /> },
   ];
+
+  const isLoading =
+    isLoadingAllParcels ||
+    isLoadingDeliveredParcels ||
+    isLoadingPickedParcels ||
+    isLoadingPickupPendingParcels;
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -111,21 +167,11 @@ const MerchantDashboard = () => {
         </h2>
         <div className="mt-1 h-1 w-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
       </div>
-      {/* Order Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
         {orderSummary.map((item, index) => (
-          <StatCard
-            key={index}
-            data={{
-              title: item.title,
-              value: item.count,
-              icon: item.icon,
-            }}
-          />
+          <StatCard key={index} data={item} isLoading={isLoading} />
         ))}
       </div>
-
-      {/* Payment Summary */}
       <div>
         <div className="mb-8">
           <h2 className="text-2xl font-semibold gradient-text">
@@ -135,14 +181,7 @@ const MerchantDashboard = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {paymentSummary.map((item, index) => (
-            <StatCard
-              key={index}
-              data={{
-                title: item.title,
-                value: item.count,
-                icon: item.icon,
-              }}
-            />
+            <StatCard key={index} data={item} isLoading={isLoading} />
           ))}
         </div>
       </div>

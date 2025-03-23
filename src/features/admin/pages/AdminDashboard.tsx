@@ -1,5 +1,4 @@
 import React, { useState, useEffect, JSX } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   BarChart,
   Bar,
@@ -26,14 +25,17 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import useAxiosSecure from "@/Hoocks/useAxiosSecure";
-
-// Import your secured axios hook
+import { useGetAllMerchantQuery } from "@/redux/features/merchant/merchantApi";
+import { useGetAllDeliveryManQuery } from "@/redux/features/deliveryMan/deliveryManApi";
+import { useGetAllBranchQuery } from "@/redux/features/branch/branchApi";
+import { useGetAllParcelQuery } from "@/redux/features/parcel/parcelApi";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Define the structure of StatCardData
 interface StatCardData {
   title: string;
-  value: number;
+  value: number | undefined; // Allow undefined values
   change?: number;
   icon?: JSX.Element;
   path?: string; // Add a path for navigation
@@ -41,13 +43,18 @@ interface StatCardData {
 
 // Custom hook for counting up numbers with animation
 const useCountUp = (
-  target: number,
+  target: number | undefined,
   duration: number = 1000,
   shouldAnimate: boolean = true
 ) => {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState<number | undefined>(0);
 
   useEffect(() => {
+    if (target === undefined) {
+      setCount(undefined);
+      return;
+    }
+
     if (shouldAnimate) {
       let startTimestamp: number | null = null;
       const step = (timestamp: number) => {
@@ -70,29 +77,38 @@ const useCountUp = (
 
 interface StatCardProps {
   data: StatCardData;
+  isLoading: boolean;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ data }) => {
-  const shouldAnimate = true; // Always animate the count-up effect
+const StatCard: React.FC<StatCardProps> = ({ data, isLoading }) => {
+  const shouldAnimate = !isLoading; // Only animate when not loading
   const count = useCountUp(data.value, 1000, shouldAnimate);
 
   return (
     <Link to={data.path || "#"} className="no-underline">
-      <div className="glass-card card-transition rounded-xl p-6 flex flex-col relative overflow-hidden shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">
-            {data.title}
-          </h3>
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            {isLoading ? <Skeleton className="h-4 w-1/2" /> : data.title}
+          </CardTitle>
           {data.icon && (
             <div className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600 rounded-full">
-              {data.icon}
+              {isLoading ? <Skeleton className="h-5 w-5" /> : data.icon}
             </div>
           )}
-        </div>
-        <div className="flex items-end justify-between">
-          <div className="text-2xl font-bold gradient-text">{count}</div>
-        </div>
-      </div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">
+            {isLoading ? (
+              <Skeleton className="h-6 w-24" />
+            ) : count !== undefined ? (
+              count
+            ) : (
+              0
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </Link>
   );
 };
@@ -129,76 +145,99 @@ const courierRevenueData = [
 ];
 
 const Dashboard: React.FC = () => {
-  // Use your secured axios instance
-  const axiosSecure = useAxiosSecure();
-
   // Fetch merchants from /merchant
   const {
     data: merchants,
     isLoading: merchantsLoading,
     error: merchantsError,
-  } = useQuery({
-    queryKey: ["merchants"],
-    queryFn: async () => {
-      const res = await axiosSecure.get("/merchant");
-      return res.data.data;
-    },
-  });
+  } = useGetAllMerchantQuery([]);
 
   // Fetch delivery men from /deliveryMan
   const {
     data: deliveryMen,
     isLoading: deliveryMenLoading,
     error: deliveryMenError,
-  } = useQuery({
-    queryKey: ["deliveryMen"],
-    queryFn: async () => {
-      const res = await axiosSecure.get("/deliveryMan");
-      return res.data.data;
-    },
-  });
+  } = useGetAllDeliveryManQuery([]);
 
   // Fetch Branches from /branch
   const {
     data: branches,
     isLoading: branchesLoading,
     error: branchesError,
-  } = useQuery({
-    queryKey: ["branches"],
-    queryFn: async () => {
-      const res = await axiosSecure.get("/branch");
-      return res.data.data;
-    },
-  });
+  } = useGetAllBranchQuery([]);
 
   // Fetch parcels from /parcel
   const {
     data: parcels,
     isLoading: parcelsLoading,
     error: parcelsError,
-  } = useQuery({
-    queryKey: ["parcels"],
-    queryFn: async () => {
-      const res = await axiosSecure.get("/parcel");
-      return res.data.data;
-    },
-  });
+  } = useGetAllParcelQuery([]);
+
+  // Fetch delivered parcels from /parcel
+  const {
+    data: deliveredParcels,
+    isLoading: deliveredParcelsLoading,
+    error: deliveredParcelsError,
+  } = useGetAllParcelQuery([{ name: "currentStatus", value: "Delivered" }]);
 
   // Handle loading and error states (adjust as necessary)
-  if (
+  const isLoading =
     merchantsLoading ||
     deliveryMenLoading ||
     parcelsLoading ||
-    branchesLoading
-  ) {
+    branchesLoading ||
+    deliveredParcelsLoading;
+  const hasError =
+    merchantsError ||
+    deliveryMenError ||
+    parcelsError ||
+    branchesError ||
+    deliveredParcelsError;
+
+  if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        Loading...
+      <div>
+        <div className="space-y-8">
+          <Skeleton className="h-8 w-64 mx-auto" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-4 w-1/2" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-6 w-24" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-1/3" />
+                </CardHeader>
+                <CardContent className="h-96">
+                  {i === 0 ? ( // Income vs Expense Chart
+                    <div className="flex items-center justify-center h-full">
+                      <Skeleton className="w-full h-full" />
+                    </div>
+                  ) : (
+                    // Delivery Man Statement/Merchant Statement
+                    <div className="flex items-center justify-center h-full">
+                      <Skeleton className="w-full h-full" />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (merchantsError || deliveryMenError || parcelsError || branchesError) {
+  if (hasError) {
     return <div>Error loading data.</div>;
   }
 
@@ -207,7 +246,7 @@ const Dashboard: React.FC = () => {
   const statCardsData: StatCardData[] = [
     {
       title: "Total Parcels",
-      value: parcels ? parcels.length : 0,
+      value: parcels ? parcels?.data?.length : 0,
       change: 10,
       icon: <Package className="h-5 w-5" />,
       path: "/admin/parcels", // Add a path for navigation
@@ -222,21 +261,21 @@ const Dashboard: React.FC = () => {
     },
     {
       title: "Total Merchants",
-      value: merchants ? merchants.length : 0,
+      value: merchants ? merchants?.data?.length : 0,
       change: 2,
       icon: <ShoppingBag className="h-5 w-5" />,
       path: "/admin/merchant-manage/merchants",
     },
     {
       title: "Total Delivery Mans",
-      value: deliveryMen ? deliveryMen.length : 0,
+      value: deliveryMen ? deliveryMen?.data?.length : 0,
       change: 0,
       icon: <Truck className="h-5 w-5" />,
       path: "/admin/deliveryman",
     },
     {
       title: "Total Branches",
-      value: branches ? branches.length : 0, // static example
+      value: branches ? branches?.data?.length : 0, // static example
       change: 1,
       icon: <MapPin className="h-5 w-5" />,
       path: "/admin/branch-manage/branch",
@@ -257,7 +296,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: "Total Parcels Delivered",
-      value: 4800, // static example
+      value: deliveredParcels ? deliveredParcels?.data?.length : 0,
       change: 12,
       icon: <CheckCircle className="h-5 w-5" />,
       path: "/delivered-parcels", // Add a path for navigation
@@ -268,10 +307,10 @@ const Dashboard: React.FC = () => {
   const COLORS = ["#3b82f6", "#ef4444", "#22c55e"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <section className="container mx-auto px-4 py-8 relative">
+    <div className="">
+      <section className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold gradient-text">
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
             Dashboard Overview
           </h2>
           <div className="mt-1 h-1 w-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
@@ -279,21 +318,19 @@ const Dashboard: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {statCardsData.map((card) => (
-            <StatCard key={card.title} data={card} />
+            <StatCard key={card.title} data={card} isLoading={false} />
           ))}
         </div>
-
-        {/* Additional decorative elements */}
-        <div className="absolute -top-10 left-1/4 w-72 h-72 bg-purple-300/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute bottom-10 right-1/3 w-48 h-48 bg-blue-300/10 rounded-full blur-3xl -z-10"></div>
       </section>
 
       <section className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Income vs Expense Chart */}
-          <div className="glass-card rounded-xl p-6 shadow-md">
-            <h3 className="text-xl font-semibold mb-4">Income vs Expense</h3>
-            <div className="h-[300px]">
+          <Card>
+            <CardHeader>
+              <CardTitle>Income vs Expense</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={incomeExpenseData}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
@@ -312,15 +349,15 @@ const Dashboard: React.FC = () => {
                   <Bar dataKey="Expense" fill="#ef4444" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Delivery Man Statement */}
-          <div className="glass-card rounded-xl p-6 shadow-md">
-            <h3 className="text-xl font-semibold mb-4">
-              Delivery Man Statement
-            </h3>
-            <div className="h-[300px] flex justify-center items-center">
+          <Card>
+            <CardHeader>
+              <CardTitle>Delivery Man Statement</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px] flex justify-center items-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -354,13 +391,15 @@ const Dashboard: React.FC = () => {
                   />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Merchant Statement */}
-          <div className="glass-card rounded-xl p-6 shadow-md">
-            <h3 className="text-xl font-semibold mb-4">Merchant Statement</h3>
-            <div className="h-[300px] flex justify-center items-center">
+          <Card>
+            <CardHeader>
+              <CardTitle>Merchant Statement</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px] flex justify-center items-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -394,13 +433,15 @@ const Dashboard: React.FC = () => {
                   />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Courier Revenue */}
-          <div className="glass-card rounded-xl p-6 shadow-md">
-            <h3 className="text-xl font-semibold mb-4">Courier Revenue</h3>
-            <div className="h-[300px]">
+          <Card>
+            <CardHeader>
+              <CardTitle>Courier Revenue</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={courierRevenueData}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
@@ -425,8 +466,8 @@ const Dashboard: React.FC = () => {
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
     </div>

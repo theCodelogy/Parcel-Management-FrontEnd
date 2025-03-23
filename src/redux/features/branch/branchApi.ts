@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TQueryParam, TResponseRedux } from '../../../../type/global';
-import { baseApi } from '../../api/baseApi';
-
+import { TQueryParam, TResponseRedux } from "../../../../type/global";
+import { baseApi } from "../../api/baseApi";
 
 const Branch = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-
     addBranch: builder.mutation({
       query: (data) => ({
-        url: '/branch',
-        method: 'POST',
+        url: "/branch",
+        method: "POST",
         body: data,
       }),
     }),
@@ -24,12 +22,12 @@ const Branch = baseApi.injectEndpoints({
           });
         }
         return {
-          url: '/branch',
-          method: 'GET',
+          url: "/branch",
+          method: "GET",
           params: params,
         };
       },
-      providesTags: ['Branch'],
+      providesTags: ["Branch"],
       transformResponse: (response: TResponseRedux<[]>) => {
         return {
           data: response.data,
@@ -42,7 +40,7 @@ const Branch = baseApi.injectEndpoints({
       query: (id) => {
         return {
           url: `/branch/${id}`,
-          method: 'GET',
+          method: "GET",
         };
       },
       transformResponse: (response: TResponseRedux<any>) => {
@@ -56,28 +54,26 @@ const Branch = baseApi.injectEndpoints({
     updateBranch: builder.mutation({
       query: (args) => ({
         url: `/branch/${args.id}`,
-        method: 'PATCH',
+        method: "PATCH",
         body: args.data,
       }),
-      invalidatesTags: ['Branch'],
+      invalidatesTags: ["Branch"],
     }),
 
     deleteBranch: builder.mutation({
       query: (id) => ({
         url: `/branch/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Branch'],
+      invalidatesTags: ["Branch"],
     }),
-
-
   }),
 });
 
-export const { 
+export const {
   useGetAllBranchQuery,
   useAddBranchMutation,
   useUpdateBranchMutation,
   useGetSingleBranchQuery,
-  useDeleteBranchMutation
- } =Branch;
+  useDeleteBranchMutation,
+} = Branch;

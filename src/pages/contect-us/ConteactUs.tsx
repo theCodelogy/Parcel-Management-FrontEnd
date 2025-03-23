@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import {
-  FaPhoneAlt,
-  FaEnvelope,
-  FaFacebookF,
-  FaTwitter,
-  FaInstagram,
-} from "react-icons/fa";
+import { FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 
 interface ContactFormInputs {
   name: string;
@@ -70,20 +64,6 @@ const ContactUs: React.FC = () => {
                     </p>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div className="mt-10">
-              <h3 className="text-xl font-semibold mb-4">Follow Us</h3>
-              <div className="flex space-x-4">
-                <a href="#" className="hover:text-yellow-300 transition-colors">
-                  <FaFacebookF className="w-5 h-5" />
-                </a>
-                <a href="#" className="hover:text-yellow-300 transition-colors">
-                  <FaTwitter className="w-5 h-5" />
-                </a>
-                <a href="#" className="hover:text-yellow-300 transition-colors">
-                  <FaInstagram className="w-5 h-5" />
-                </a>
               </div>
             </div>
           </div>

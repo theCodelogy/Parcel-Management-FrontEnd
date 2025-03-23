@@ -1,14 +1,13 @@
-import { TMerchant } from './../../../../type/merchantType';
-import { TQueryParam, TResponseRedux } from './../../../../type/global';
-import { baseApi } from '../../api/baseApi';
+import { TMerchant } from "./../../../../type/merchantType";
+import { TQueryParam, TResponseRedux } from "./../../../../type/global";
+import { baseApi } from "../../api/baseApi";
 
 const merchant = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-
     addMerchant: builder.mutation({
       query: (data) => ({
-        url: '/merchant',
-        method: 'POST',
+        url: "/merchant",
+        method: "POST",
         body: data,
       }),
     }),
@@ -23,12 +22,12 @@ const merchant = baseApi.injectEndpoints({
           });
         }
         return {
-          url: '/merchant',
-          method: 'GET',
+          url: "/merchant",
+          method: "GET",
           params: params,
         };
       },
-      providesTags: ['Merchant'],
+      providesTags: ["Merchant"],
       transformResponse: (response: TResponseRedux<TMerchant[]>) => {
         return {
           data: response.data,
@@ -41,7 +40,7 @@ const merchant = baseApi.injectEndpoints({
       query: (id) => {
         return {
           url: `/merchant/${id}`,
-          method: 'GET',
+          method: "GET",
         };
       },
       transformResponse: (response: TResponseRedux<TMerchant>) => {
@@ -55,28 +54,26 @@ const merchant = baseApi.injectEndpoints({
     updateMerchant: builder.mutation({
       query: (args) => ({
         url: `/merchant/${args.id}`,
-        method: 'PATCH',
+        method: "PATCH",
         body: args.data,
       }),
-      invalidatesTags: ['Merchant'],
+      invalidatesTags: ["Merchant"],
     }),
 
     deleteMerchant: builder.mutation({
       query: (id) => ({
         url: `/merchant/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Merchant'],
+      invalidatesTags: ["Merchant"],
     }),
-
-
   }),
 });
 
-export const { 
+export const {
   useGetAllMerchantQuery,
   useAddMerchantMutation,
   useUpdateMerchantMutation,
   useGetSingleMerchantQuery,
-  useDeleteMerchantMutation
- } = merchant;
+  useDeleteMerchantMutation,
+} = merchant;

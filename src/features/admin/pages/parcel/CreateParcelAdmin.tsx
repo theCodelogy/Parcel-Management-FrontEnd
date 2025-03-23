@@ -1,8 +1,18 @@
 // import React, { useState, useEffect } from "react";
-// import axios from "axios";
 // import { FaMoneyBill } from "react-icons/fa";
 // import { useForm, Controller } from "react-hook-form";
-// import { generateStatus } from "../../../utils/statusGenerator";
+// import { useGetAllDeliveryCategoryQuery } from "@/redux/features/deliveryCategory/deliveryCategoryApi";
+// import { useGetAllMerchantQuery } from "@/redux/features/merchant/merchantApi";
+// import { useGetAllDeliveryChargeQuery } from "@/redux/features/deliveryCharge/deliveryChargeApi";
+// import { useAddParcelMutation } from "@/redux/features/parcel/parcelApi"; // Import the hooks
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+// import { generateStatus } from "@/utils/statusGenerator";
 
 // interface DeliveryCharges {
 //   cashCollection: number;
@@ -13,14 +23,6 @@
 //   netPayable: number;
 //   currentPayable: number;
 //   totalPayable: number;
-// }
-
-// interface Category {
-//   _id: string;
-//   title: string;
-//   status: string;
-//   position: number;
-//   __v: number;
 // }
 
 // interface DeliveryChargeData {
@@ -35,7 +37,7 @@
 //   position: number;
 // }
 
-// const CreateParcel: React.FC = () => {
+// const CreateParcelAdmin: React.FC = () => {
 //   const { control, handleSubmit, watch } = useForm();
 //   const [charges, setCharges] = useState<DeliveryCharges>({
 //     cashCollection: 0,
@@ -48,12 +50,29 @@
 //     totalPayable: 0,
 //   });
 
-//   const [categories, setCategories] = useState<Category[]>([]);
 //   const [deliveryChargeData, setDeliveryChargeData] = useState<
 //     DeliveryChargeData[]
 //   >([]);
-
 //   const formData = watch();
+
+//   const { data: categoriesData } = useGetAllDeliveryCategoryQuery([]);
+//   const categories = categoriesData?.data || [];
+
+//   const { data: merchantsData } = useGetAllMerchantQuery([]);
+
+//   const { data: deliveryChargesData, error: deliveryChargesError } =
+//     useGetAllDeliveryChargeQuery([]);
+
+//   const [addParcel] = useAddParcelMutation(); // Use the mutation hook
+
+//   useEffect(() => {
+//     if (deliveryChargesData) {
+//       setDeliveryChargeData(deliveryChargesData?.data);
+//     }
+//     if (deliveryChargesError) {
+//       console.error("Error fetching delivery charges:", deliveryChargesError);
+//     }
+//   }, [deliveryChargesData, deliveryChargesError]);
 
 //   useEffect(() => {
 //     const cashCollection = parseFloat(formData.cashCollection) || 0;
@@ -109,36 +128,6 @@
 //     deliveryChargeData,
 //   ]);
 
-//   useEffect(() => {
-//     axios
-//       .get(
-//         "https://parcel-management-back-end.vercel.app/api/v1/deliveryCategory"
-//       )
-//       .then((response) => {
-//         setCategories(response.data.data);
-//       })
-//       .catch((error) => {
-//         console.error("Error fetching categories:", error);
-//       });
-//   }, []);
-
-//   useEffect(() => {
-//     axios
-//       .get(
-//         "https://parcel-management-back-end.vercel.app/api/v1/deliveryCharge"
-//       )
-//       .then((response) => {
-//         if (Array.isArray(response.data.data)) {
-//           setDeliveryChargeData(response.data.data);
-//         } else {
-//           console.error("Unexpected data format:", response.data);
-//         }
-//       })
-//       .catch((error) => {
-//         console.error("Error fetching delivery charges:", error);
-//       });
-//   }, []);
-
 //   const activeCategories = categories.filter(
 //     (category) => category.status === "Active"
 //   );
@@ -148,7 +137,7 @@
 //       title: "Parcel Create",
 //       statusDetails: {},
 //     });
-//     console.log(status);
+
 //     const payload = {
 //       merchant: data.merchant,
 //       pickupPoints: data.pickupPoints,
@@ -165,7 +154,7 @@
 //       note: data.note,
 //       packaging: data.packaging,
 //       priority: data.priority ? "High" : "Normal",
-//       paymentMethod: data.paymentMethod, // Ensure this is included
+//       paymentMethod: data.paymentMethod,
 //       deliveryCharge: charges.deliveryCharge,
 //       liquidORFragile: data.liquidFragile ? 1 : 0,
 //       codCharge: charges.codCharge,
@@ -177,19 +166,14 @@
 //       parcelStatus: [status],
 //     };
 
-//     axios
-//       .post(
-//         "https://parcel-management-back-end.vercel.app/api/v1/parcel",
-//         payload
-//       )
+//     addParcel(payload) // Use the mutation to add the parcel
+//       .unwrap()
 //       .then((response) => {
-//         console.log("Response data:", response.data);
+//         console.log("Parcel added successfully:", response);
 //       })
 //       .catch((error) => {
-//         console.error("Error sending data:", error);
+//         console.error("Error adding parcel:", error);
 //       });
-
-//     console.log("Form submitted", payload);
 //   };
 
 //   return (
@@ -219,14 +203,24 @@
 //                       defaultValue=""
 //                       rules={{ required: "Merchant is required" }}
 //                       render={({ field }) => (
-//                         <select
-//                           {...field}
-//                           className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+//                         <Select
+//                           onValueChange={field.onChange}
+//                           defaultValue={field.value}
 //                         >
-//                           <option value="">Select Merchant</option>
-//                           <option value="merchantA">Merchant A</option>
-//                           <option value="merchantB">Merchant B</option>
-//                         </select>
+//                           <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
+//                             <SelectValue placeholder="Select Merchant" />
+//                           </SelectTrigger>
+//                           <SelectContent>
+//                             {merchantsData?.data?.map((merchant) => (
+//                               <SelectItem
+//                                 key={merchant._id}
+//                                 value={merchant.name}
+//                               >
+//                                 {merchant.name}
+//                               </SelectItem>
+//                             ))}
+//                           </SelectContent>
+//                         </Select>
 //                       )}
 //                     />
 //                   </div>
@@ -399,17 +393,24 @@
 //                       defaultValue=""
 //                       rules={{ required: "Category is required" }}
 //                       render={({ field }) => (
-//                         <select
-//                           {...field}
-//                           className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+//                         <Select
+//                           onValueChange={field.onChange}
+//                           defaultValue={field.value}
 //                         >
-//                           <option value="">Select Category</option>
-//                           {activeCategories.map((category) => (
-//                             <option key={category._id} value={category.title}>
-//                               {category.title}
-//                             </option>
-//                           ))}
-//                         </select>
+//                           <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
+//                             <SelectValue placeholder="Select Category" />
+//                           </SelectTrigger>
+//                           <SelectContent>
+//                             {activeCategories.map((category) => (
+//                               <SelectItem
+//                                 key={category._id}
+//                                 value={category.title}
+//                               >
+//                                 {category.title}
+//                               </SelectItem>
+//                             ))}
+//                           </SelectContent>
+//                         </Select>
 //                       )}
 //                     />
 //                   </div>
@@ -428,19 +429,26 @@
 //                         defaultValue=""
 //                         rules={{ required: "Weight is required" }}
 //                         render={({ field }) => (
-//                           <select
-//                             {...field}
-//                             className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+//                           <Select
+//                             onValueChange={field.onChange}
+//                             defaultValue={field.value}
 //                           >
-//                             <option value="">Select Weight</option>
-//                             {deliveryChargeData
-//                               .filter((item) => item.category === "KG")
-//                               .map((item) => (
-//                                 <option key={item._id} value={item.weight}>
-//                                   {item.weight} kg
-//                                 </option>
-//                               ))}
-//                           </select>
+//                             <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
+//                               <SelectValue placeholder="Select Weight" />
+//                             </SelectTrigger>
+//                             <SelectContent>
+//                               {deliveryChargeData
+//                                 .filter((item) => item.category === "KG")
+//                                 .map((item) => (
+//                                   <SelectItem
+//                                     key={item._id}
+//                                     value={item.weight}
+//                                   >
+//                                     {item.weight} kg
+//                                   </SelectItem>
+//                                 ))}
+//                             </SelectContent>
+//                           </Select>
 //                         )}
 //                       />
 //                     </div>
@@ -459,16 +467,22 @@
 //                       defaultValue=""
 //                       rules={{ required: "Delivery Type is required" }}
 //                       render={({ field }) => (
-//                         <select
-//                           {...field}
-//                           className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+//                         <Select
+//                           onValueChange={field.onChange}
+//                           defaultValue={field.value}
 //                         >
-//                           <option value="">Select Delivery Type</option>
-//                           <option value="Same Day">Same Day</option>
-//                           <option value="Next Day">Next Day</option>
-//                           <option value="Sub City">Sub City</option>
-//                           <option value="Outside City">Outside City</option>
-//                         </select>
+//                           <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
+//                             <SelectValue placeholder="Select Delivery Type" />
+//                           </SelectTrigger>
+//                           <SelectContent>
+//                             <SelectItem value="Same Day">Same Day</SelectItem>
+//                             <SelectItem value="Next Day">Next Day</SelectItem>
+//                             <SelectItem value="Sub City">Sub City</SelectItem>
+//                             <SelectItem value="Outside City">
+//                               Outside City
+//                             </SelectItem>
+//                           </SelectContent>
+//                         </Select>
 //                       )}
 //                     />
 //                   </div>
@@ -485,16 +499,22 @@
 //                       control={control}
 //                       defaultValue=""
 //                       render={({ field }) => (
-//                         <select
-//                           {...field}
-//                           className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+//                         <Select
+//                           onValueChange={field.onChange}
+//                           defaultValue={field.value}
 //                         >
-//                           <option value="">Select Packaging Type</option>
-//                           <option value="Poly">Poly</option>
-//                           <option value="Bubble Poly">Bubble Poly</option>
-//                           <option value="Box">Box</option>
-//                           <option value="Box Poly">Box Poly</option>
-//                         </select>
+//                           <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
+//                             <SelectValue placeholder="Select Packaging Type" />
+//                           </SelectTrigger>
+//                           <SelectContent>
+//                             <SelectItem value="Poly">Poly</SelectItem>
+//                             <SelectItem value="Bubble Poly">
+//                               Bubble Poly
+//                             </SelectItem>
+//                             <SelectItem value="Box">Box</SelectItem>
+//                             <SelectItem value="Box Poly">Box Poly</SelectItem>
+//                           </SelectContent>
+//                         </Select>
 //                       )}
 //                     />
 //                   </div>
@@ -741,15 +761,23 @@
 //   );
 // };
 
-// export default CreateParcel;
+// export default CreateParcelAdmin;
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { FaMoneyBill } from "react-icons/fa";
 import { useForm, Controller } from "react-hook-form";
-import { generateStatus } from "../../../utils/statusGenerator";
+import { useGetAllDeliveryCategoryQuery } from "@/redux/features/deliveryCategory/deliveryCategoryApi";
 import { useGetAllMerchantQuery } from "@/redux/features/merchant/merchantApi";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useGetAllDeliveryChargeQuery } from "@/redux/features/deliveryCharge/deliveryChargeApi";
+import { useAddParcelMutation } from "@/redux/features/parcel/parcelApi"; // Import the hooks
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { generateStatus } from "@/utils/statusGenerator";
 
 interface DeliveryCharges {
   cashCollection: number;
@@ -760,14 +788,6 @@ interface DeliveryCharges {
   netPayable: number;
   currentPayable: number;
   totalPayable: number;
-}
-
-interface Category {
-  _id: string;
-  title: string;
-  status: string;
-  position: number;
-  __v: number;
 }
 
 interface DeliveryChargeData {
@@ -782,7 +802,18 @@ interface DeliveryChargeData {
   position: number;
 }
 
-const CreateParcel: React.FC = () => {
+interface CategoryData {
+  _id: string;
+  title: string;
+  status: string;
+}
+
+interface MerchantData {
+  _id: string;
+  name: string;
+}
+
+const CreateParcelAdmin: React.FC = () => {
   const { control, handleSubmit, watch } = useForm();
   const [charges, setCharges] = useState<DeliveryCharges>({
     cashCollection: 0,
@@ -795,14 +826,37 @@ const CreateParcel: React.FC = () => {
     totalPayable: 0,
   });
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [deliveryChargeData, setDeliveryChargeData] = useState<DeliveryChargeData[]>([]);
-
+  const [deliveryChargeData, setDeliveryChargeData] = useState<
+    DeliveryChargeData[]
+  >([]);
   const formData = watch();
+
+  const { data: categoriesData } = useGetAllDeliveryCategoryQuery([]);
+  const categories: CategoryData[] = categoriesData?.data || [];
+
+  const { data: merchantsData } = useGetAllMerchantQuery([]);
+  const merchants: MerchantData[] = merchantsData?.data || [];
+
+  const {
+    data: deliveryChargesData,
+    error: deliveryChargesError,
+  } = useGetAllDeliveryChargeQuery([]);
+
+  const [addParcel] = useAddParcelMutation(); // Use the mutation hook
+
+  useEffect(() => {
+    if (deliveryChargesData) {
+      setDeliveryChargeData(deliveryChargesData.data || []); // Handle undefined data
+    }
+    if (deliveryChargesError) {
+      console.error("Error fetching delivery charges:", deliveryChargesError);
+    }
+  }, [deliveryChargesData, deliveryChargesError]);
 
   useEffect(() => {
     const cashCollection = parseFloat(formData.cashCollection) || 0;
-    const codCharge = formData.paymentMethod === "COD" ? cashCollection * 0.02 : 0;
+    const codCharge =
+      formData.paymentMethod === "COD" ? cashCollection * 0.02 : 0;
 
     const weight = parseFloat(formData.weight) || 0;
     const deliveryChargeItem = deliveryChargeData.find(
@@ -853,42 +907,16 @@ const CreateParcel: React.FC = () => {
     deliveryChargeData,
   ]);
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/v1/deliveryCategory")
-      .then((response) => {
-        setCategories(response.data.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching categories:", error);
-      });
-  }, []);
-
-  useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/v1/deliveryCharge")
-      .then((response) => {
-        if (Array.isArray(response.data.data)) {
-          setDeliveryChargeData(response.data.data);
-        } else {
-          console.error("Unexpected data format:", response.data);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching delivery charges:", error);
-      });
-  }, []);
-
-  const activeCategories = categories.filter((category) => category.status === "Active");
-
-  const { data } = useGetAllMerchantQuery([]);
+  const activeCategories = categories.filter(
+    (category) => category.status === "Active"
+  );
 
   const onSubmit = async (data: any) => {
     const status = await generateStatus({
       title: "Parcel Create",
       statusDetails: {},
     });
-    console.log(status);
+
     const payload = {
       merchant: data.merchant,
       pickupPoints: data.pickupPoints,
@@ -917,30 +945,35 @@ const CreateParcel: React.FC = () => {
       parcelStatus: [status],
     };
 
-    axios
-      .post("http://localhost:5000/api/v1/parcel", payload)
+    addParcel(payload) // Use the mutation to add the parcel
+      .unwrap()
       .then((response) => {
-        console.log("Response data:", response.data);
+        console.log("Parcel added successfully:", response);
       })
       .catch((error) => {
-        console.error("Error sending data:", error);
+        console.error("Error adding parcel:", error);
       });
-
-    console.log("Form submitted", payload);
   };
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800">Add New Parcel</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+            Add New Parcel
+          </h2>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-6">
               <section>
-                <h3 className="text-xl font-medium mb-4 text-gray-700">Parcel Info</h3>
+                <h3 className="text-xl font-medium mb-4 text-gray-700">
+                  Parcel Info
+                </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="merchant" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="merchant"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Merchant <span className="text-red-500">*</span>
                     </label>
                     <Controller
@@ -949,13 +982,19 @@ const CreateParcel: React.FC = () => {
                       defaultValue=""
                       rules={{ required: "Merchant is required" }}
                       render={({ field }) => (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
                             <SelectValue placeholder="Select Merchant" />
                           </SelectTrigger>
                           <SelectContent>
-                            {data?.data?.map((merchant) => (
-                              <SelectItem key={merchant._id} value={merchant.name}>
+                            {merchants.map((merchant) => (
+                              <SelectItem
+                                key={merchant._id}
+                                value={merchant.name}
+                              >
                                 {merchant.name}
                               </SelectItem>
                             ))}
@@ -966,7 +1005,10 @@ const CreateParcel: React.FC = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="pickupPoints" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="pickupPoints"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Pickup Points
                     </label>
                     <Controller
@@ -985,7 +1027,10 @@ const CreateParcel: React.FC = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="pickupPhone" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="pickupPhone"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Pickup Phone
                     </label>
                     <Controller
@@ -1004,7 +1049,10 @@ const CreateParcel: React.FC = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="pickupAddress" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="pickupAddress"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Pickup Address
                     </label>
                     <Controller
@@ -1023,7 +1071,10 @@ const CreateParcel: React.FC = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="cashCollection" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="cashCollection"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Cash Collection <span className="text-red-500">*</span>
                     </label>
                     <Controller
@@ -1043,7 +1094,10 @@ const CreateParcel: React.FC = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="sellingPrice" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="sellingPrice"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Selling Price
                     </label>
                     <Controller
@@ -1062,7 +1116,10 @@ const CreateParcel: React.FC = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="advance" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="advance"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Advance
                     </label>
                     <Controller
@@ -1081,7 +1138,10 @@ const CreateParcel: React.FC = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="invoiceNumber" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="invoiceNumber"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Invoice Number
                     </label>
                     <Controller
@@ -1100,7 +1160,10 @@ const CreateParcel: React.FC = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="category" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="category"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Category <span className="text-red-500">*</span>
                     </label>
                     <Controller
@@ -1109,24 +1172,34 @@ const CreateParcel: React.FC = () => {
                       defaultValue=""
                       rules={{ required: "Category is required" }}
                       render={({ field }) => (
-                        <select
-                          {...field}
-                          className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
                         >
-                          <option value="">Select Category</option>
-                          {activeCategories.map((category) => (
-                            <option key={category._id} value={category.title}>
-                              {category.title}
-                            </option>
-                          ))}
-                        </select>
+                          <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
+                            <SelectValue placeholder="Select Category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {activeCategories.map((category) => (
+                              <SelectItem
+                                key={category._id}
+                                value={category.title}
+                              >
+                                {category.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       )}
                     />
                   </div>
 
                   {formData.category === "KG" && (
                     <div>
-                      <label htmlFor="weight" className="block text-gray-700 font-medium mb-1">
+                      <label
+                        htmlFor="weight"
+                        className="block text-gray-700 font-medium mb-1"
+                      >
                         Weight <span className="text-red-500">*</span>
                       </label>
                       <Controller
@@ -1135,26 +1208,36 @@ const CreateParcel: React.FC = () => {
                         defaultValue=""
                         rules={{ required: "Weight is required" }}
                         render={({ field }) => (
-                          <select
-                            {...field}
-                            className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
                           >
-                            <option value="">Select Weight</option>
-                            {deliveryChargeData
-                              .filter((item) => item.category === "KG")
-                              .map((item) => (
-                                <option key={item._id} value={item.weight}>
-                                  {item.weight} kg
-                                </option>
-                              ))}
-                          </select>
+                            <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
+                              <SelectValue placeholder="Select Weight" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {deliveryChargeData
+                                .filter((item) => item.category === "KG")
+                                .map((item) => (
+                                  <SelectItem
+                                    key={item._id}
+                                    value={String(item.weight)} // Convert weight to string
+                                  >
+                                    {item.weight} kg
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
                         )}
                       />
                     </div>
                   )}
 
                   <div>
-                    <label htmlFor="deliveryType" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="deliveryType"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Delivery Type <span className="text-red-500">*</span>
                     </label>
                     <Controller
@@ -1163,22 +1246,31 @@ const CreateParcel: React.FC = () => {
                       defaultValue=""
                       rules={{ required: "Delivery Type is required" }}
                       render={({ field }) => (
-                        <select
-                          {...field}
-                          className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
                         >
-                          <option value="">Select Delivery Type</option>
-                          <option value="Same Day">Same Day</option>
-                          <option value="Next Day">Next Day</option>
-                          <option value="Sub City">Sub City</option>
-                          <option value="Outside City">Outside City</option>
-                        </select>
+                          <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
+                            <SelectValue placeholder="Select Delivery Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Same Day">Same Day</SelectItem>
+                            <SelectItem value="Next Day">Next Day</SelectItem>
+                            <SelectItem value="Sub City">Sub City</SelectItem>
+                            <SelectItem value="Outside City">
+                              Outside City
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       )}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="packaging" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="packaging"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Packaging
                     </label>
                     <Controller
@@ -1186,22 +1278,31 @@ const CreateParcel: React.FC = () => {
                       control={control}
                       defaultValue=""
                       render={({ field }) => (
-                        <select
-                          {...field}
-                          className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500"
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
                         >
-                          <option value="">Select Packaging Type</option>
-                          <option value="Poly">Poly</option>
-                          <option value="Bubble Poly">Bubble Poly</option>
-                          <option value="Box">Box</option>
-                          <option value="Box Poly">Box Poly</option>
-                        </select>
+                          <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
+                            <SelectValue placeholder="Select Packaging Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Poly">Poly</SelectItem>
+                            <SelectItem value="Bubble Poly">
+                              Bubble Poly
+                            </SelectItem>
+                            <SelectItem value="Box">Box</SelectItem>
+                            <SelectItem value="Box Poly">Box Poly</SelectItem>
+                          </SelectContent>
+                        </Select>
                       )}
                     />
                   </div>
 
                   <div className="col-span-2">
-                    <label htmlFor="note" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="note"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Note
                     </label>
                     <Controller
@@ -1221,10 +1322,15 @@ const CreateParcel: React.FC = () => {
               </section>
 
               <section>
-                <h3 className="text-xl font-medium mb-4 text-gray-700">Customer Info</h3>
+                <h3 className="text-xl font-medium mb-4 text-gray-700">
+                  Customer Info
+                </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="customerName" className="block text-gray-700 font-medium mb-1">
+                    <label
+                      htmlFor="customerName"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
                       Customer Name <span className="text-red-500">*</span>
                     </label>
                     <Controller
@@ -1244,8 +1350,12 @@ const CreateParcel: React.FC = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="customerPhone" className="block text-gray-700 font-medium mb-1">
-                      Customer Phone Number <span className="text-red-500">*</span>
+                    <label
+                      htmlFor="customerPhone"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
+                      Customer Phone Number{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <Controller
                       name="customerPhone"
@@ -1264,8 +1374,12 @@ const CreateParcel: React.FC = () => {
                   </div>
 
                   <div className="col-span-2">
-                    <label htmlFor="customerAddress" className="block text-gray-700 font-medium mb-1">
-                      Customer Full Address <span className="text-red-500">*</span>
+                    <label
+                      htmlFor="customerAddress"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
+                      Customer Full Address{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <Controller
                       name="customerAddress"
@@ -1285,7 +1399,9 @@ const CreateParcel: React.FC = () => {
               </section>
 
               <section>
-                <h3 className="text-xl font-medium mb-4 text-gray-700">Parcel Options</h3>
+                <h3 className="text-xl font-medium mb-4 text-gray-700">
+                  Parcel Options
+                </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
                     <Controller
@@ -1335,7 +1451,9 @@ const CreateParcel: React.FC = () => {
                         >
                           <FaMoneyBill className="h-5 w-5" />
                           <span>
-                            {field.value === "COD" ? "Cash on Delivery" : field.value}
+                            {field.value === "COD"
+                              ? "Cash on Delivery"
+                              : field.value}
                           </span>
                         </button>
                       )}
@@ -1359,17 +1477,23 @@ const CreateParcel: React.FC = () => {
         <div className="w-full lg:w-80">
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-4 border-b border-gray-200 bg-gray-50">
-              <h3 className="text-lg font-medium text-gray-800">Delivery Charge Details</h3>
+              <h3 className="text-lg font-medium text-gray-800">
+                Delivery Charge Details
+              </h3>
             </div>
             <div className="p-4">
               <div className="space-y-2">
                 <div className="flex justify-between p-3 rounded-md">
                   <span className="text-gray-600">Cash Collection</span>
-                  <span className="font-medium">{charges.cashCollection} Tk</span>
+                  <span className="font-medium">
+                    {charges.cashCollection} Tk
+                  </span>
                 </div>
                 <div className="flex justify-between p-3 rounded-md">
                   <span className="text-gray-600">Delivery Charge</span>
-                  <span className="font-medium">{charges.deliveryCharge} Tk</span>
+                  <span className="font-medium">
+                    {charges.deliveryCharge} Tk
+                  </span>
                 </div>
                 <div className="flex justify-between p-3 rounded-md">
                   <span className="text-gray-600">COD Charge</span>
@@ -1389,17 +1513,22 @@ const CreateParcel: React.FC = () => {
                 </div>
                 <div className="flex justify-between p-3 rounded-md">
                   <span className="text-gray-600">Current Payable</span>
-                  <span className="font-medium">{charges.currentPayable} Tk</span>
+                  <span className="font-medium">
+                    {charges.currentPayable} Tk
+                  </span>
                 </div>
                 <div className="pt-3 border-t border-gray-200 mt-3">
                   <div className="flex justify-between p-3 rounded-md bg-purple-100 font-medium">
                     <span className="text-gray-800">Total Payable Amount</span>
-                    <span className="text-purple-700">{charges.totalPayable} Tk</span>
+                    <span className="text-purple-700">
+                      {charges.totalPayable} Tk
+                    </span>
                   </div>
                 </div>
                 <div className="mt-4 p-3 bg-gray-50 rounded-md">
                   <p className="text-sm text-gray-500 text-center">
-                    Note: If you request for pick up after 5pm, it will be collected on the next day.
+                    Note: If you request for pick up after 5pm, it will be
+                    collected on the next day.
                   </p>
                 </div>
               </div>
@@ -1411,4 +1540,4 @@ const CreateParcel: React.FC = () => {
   );
 };
 
-export default CreateParcel;
+export default CreateParcelAdmin;

@@ -51,14 +51,13 @@ const Footer: React.FC = () => {
 
           {/* About Section */}
           <div>
-            <h4 className="font-bold text-lg">About</h4>
+            <h4 className="font-bold text-lg">Pages</h4>
             <ul className="mt-3 space-y-2">
               {[
-                { text: "FAQ", link: "/faq-list" },
+                { text: "Home", link: "/" },
+                { text: "Tracking", link: "/tracking" },
                 { text: "About Us", link: "/about-us" },
-                { text: "Contact Us", link: "/contact-send" },
-                { text: "Privacy Policy", link: "/privacy-and-policy" },
-                { text: "Terms of Use", link: "/terms-of-condition" },
+                { text: "Contact Us", link: "/contact-us" },
               ].map(({ text, link }) => (
                 <li key={text}>
                   <a href={link} className="hover:underline">
@@ -100,7 +99,8 @@ const Footer: React.FC = () => {
                 },
                 {
                   icon: <FaEnvelope />,
-                  link: "https://mail.google.com/mail/?view=cm&fs=1&to=Classiccourier2025@gmail.com",
+                  // link: "https://mail.google.com/mail/?view=cm&fs=1&to=Classiccourier2025@gmail.com",
+                  link: "mailto:Classiccourier2025@gmail.com",
                 },
               ].map(({ icon, link }, index) => (
                 <a

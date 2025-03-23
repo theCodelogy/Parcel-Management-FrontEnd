@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Mail,
   Phone,
@@ -20,7 +20,7 @@ import {
   useGetAllDeliveryManQuery,
   useUpdateDeliveryManMutation,
 } from "@/redux/features/deliveryMan/deliveryManApi";
-import { TDeliveryMan } from "type/deliveryManType";
+import { hostImage } from "../../../utils/hostImageOnIMGBB";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { TDeliveryMan } from "type/deliveryManType";
 
 // Define the user data interface
 interface UserData {
@@ -66,11 +67,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   } = useForm({
     defaultValues: {
       name: userData.name,
-      email: userData.email,
       phone: userData.phone,
       address: userData.address,
     },
   });
+
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Initialize the update mutation
   const [updateDeliveryMan, { isLoading: updating }] =
@@ -78,13 +81,27 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   const onSubmit = async (data: any) => {
     try {
-      const payload = { id: userData.id, data };
+      let imageUrl = userData.avatarUrl;
+      if (selectedImage) {
+        imageUrl = await hostImage(selectedImage);
+      }
+
+      const payload = { id: userData.id, data: { ...data, image: imageUrl } };
       const response = await updateDeliveryMan(payload).unwrap();
       console.log("Update successful:", response);
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to update:", error);
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setSelectedImage(file);
+  };
+
+  const triggerFileInput = () => {
+    inputRef.current?.click();
   };
 
   return (
@@ -102,17 +119,6 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {errors.name && (
-              <span className="text-red-500">This field is required</span>
-            )}
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
-            <input
-              type="email"
-              {...register("email", { required: true })}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.email && (
               <span className="text-red-500">This field is required</span>
             )}
           </div>
@@ -136,6 +142,41 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             {errors.address && (
               <span className="text-red-500">This field is required</span>
             )}
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Profile Picture</label>
+            <div
+              onClick={triggerFileInput}
+              className="border-2 border-dashed rounded-lg p-4 transition-colors duration-200 cursor-pointer flex flex-col items-center justify-center space-y-2 hover:border-primary/50"
+            >
+              <input
+                ref={inputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              {selectedImage ? (
+                <div className="relative w-full max-h-48 overflow-hidden rounded-md">
+                  <img
+                    src={URL.createObjectURL(selectedImage)}
+                    alt="Preview"
+                    className="w-full h-auto object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="relative w-full max-h-48 overflow-hidden rounded-md">
+                  <img
+                    src={userData.avatarUrl}
+                    alt="Current Profile"
+                    className="w-full h-auto object-contain"
+                  />
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">
+                Click to upload or drag and drop
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>

@@ -1,12 +1,13 @@
 import React, { useState, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { hostImage } from "../../../utils/hostImageOnIMGBB";
-import toast from "react-hot-toast";
-import axios from "axios";
+import { hostImage } from "../../../../utils/hostImageOnIMGBB";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAddDeliveryManMutation } from "@/redux/features/deliveryMan/deliveryManApi";
+import { useGetAllBranchQuery } from "@/redux/features/branch/branchApi";
 
 interface AuthState {
   name: string;
@@ -54,6 +55,7 @@ const CreateDeliveryManPage: React.FC = () => {
     control,
     setError,
   } = useForm<AuthState>();
+
   const [state, setState] = useState<AuthState>({
     name: "",
     phone: "",
@@ -73,8 +75,18 @@ const CreateDeliveryManPage: React.FC = () => {
     loading: false,
   });
 
+  // Fetch branch data for the Hub select dropdown
+  const {
+    data: branchData,
+    isLoading: branchLoading,
+    error: branchError,
+  } = useGetAllBranchQuery([]);
+
+  const [addDeliveryMan] = useAddDeliveryManMutation();
+
   const onSubmit = async (data: AuthState): Promise<void> => {
     setState((prevState) => ({ ...prevState, loading: true }));
+    const toastId = toast.loading("Adding Delivery Man...");
 
     const payload: TDeliveryMan = {
       name: data.name,
@@ -102,24 +114,30 @@ const CreateDeliveryManPage: React.FC = () => {
       payload.image = imageUrl;
     }
     console.log("Payload being sent:", payload);
+
     try {
-      const res = await axios.post(
-        "https://parcel-management-back-end.vercel.app/api/v1/deliveryMan",
-        payload,
-        {
-          withCredentials: true,
-        }
-      );
-      const responseData = res.data;
-      if (responseData.success) {
-        console.log(responseData);
-        toast.success("Successfully Delivery Man added!");
+      const response = await addDeliveryMan(payload).unwrap();
+      if (response.success) {
+        console.log(response);
+        toast.success("Successfully added Delivery Man!", { id: toastId });
         navigate("/admin/deliveryman");
       }
     } catch (err: any) {
-      console.log(err.response.data);
-      if (err.response.data.message === "Duplicate Key Error") {
-        err.response.data.errorSource.forEach(
+      console.log(err.data);
+      // Get error message or fallback to default error text
+      const errorMessage = err.data?.message || "Error adding Delivery Man";
+
+      // Show the error message via toast, updating the loading toast
+      toast.error(errorMessage, { id: toastId });
+
+      // Also update form errors if needed
+      if (errorMessage === "This Email is Already Exist!") {
+        setError("email", {
+          type: "manual",
+          message: errorMessage,
+        });
+      } else if (errorMessage === "Duplicate Key Error") {
+        err.data.errorSource.forEach(
           (error: { path: string; message: string }) => {
             setError(error.path as keyof AuthState, {
               type: "manual",
@@ -127,10 +145,9 @@ const CreateDeliveryManPage: React.FC = () => {
             });
           }
         );
-      } else {
-        toast.error("Error adding Delivery Man");
       }
     } finally {
+      // Clear the loading state
       setState((prevState) => ({ ...prevState, loading: false }));
     }
   };
@@ -174,7 +191,9 @@ const CreateDeliveryManPage: React.FC = () => {
                 placeholder="Your Phone Number"
               />
               {errors.phone && (
-                <p className="mt-1 text-sm text-red-600">Phone is required</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.phone.message || "Phone is required"}
+                </p>
               )}
             </div>
 
@@ -328,17 +347,28 @@ const CreateDeliveryManPage: React.FC = () => {
               )}
             </div>
 
-            {/* Hub */}
+            {/* Hub as a select field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Hub
               </label>
-              <input
-                type="text"
-                {...register("hub", { required: true })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Hub"
-              />
+              {branchLoading ? (
+                <p>Loading branches...</p>
+              ) : branchError ? (
+                <p>Error loading branches</p>
+              ) : (
+                <select
+                  {...register("hub", { required: true })}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
+                >
+                  <option value="">Select a branch</option>
+                  {branchData?.data?.map((branch: any) => (
+                    <option key={branch._id} value={branch._id}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
+              )}
               {errors.hub && (
                 <p className="mt-1 text-sm text-red-600">Hub is required</p>
               )}
