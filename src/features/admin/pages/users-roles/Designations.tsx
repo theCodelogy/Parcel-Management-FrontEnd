@@ -1,9 +1,5 @@
-import React from 'react'
-
 const Designations = () => {
-  return (
-    <div>Designations</div>
-  )
-}
+  return <div>Designations</div>;
+};
 
-export default Designations
+export default Designations;

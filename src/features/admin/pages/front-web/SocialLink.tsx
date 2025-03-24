@@ -1,9 +1,5 @@
-import React from 'react'
-
 const SocialLink = () => {
-  return (
-    <div>SocialLink</div>
-  )
-}
+  return <div>SocialLink</div>;
+};
 
-export default SocialLink
+export default SocialLink;

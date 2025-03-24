@@ -1,50 +1,11 @@
 import React from "react";
-import {
-  Home,
-  Truck,
-  Building2,
-  Building,
-  CreditCard,
-  ListTodo,
-  Users,
-  UserPlus,
-  MessageSquare,
-  Package,
-  Tag,
-  Clock,
-  ShieldAlert,
-  Bell,
-  PackagePlus,
-  Database,
-  Wallet,
-  DollarSign,
-  ArrowDownRight,
-  ArrowUpRight,
-  Send,
-  Folder,
-  FileBox,
-  Puzzle,
-  BellRing,
-  UserCheck,
-  ClipboardCheck,
-  BarChart2,
-  Globe,
-  Section,
-  Settings,
-  Currency,
-  DatabaseBackup,
-  Link,
-} from "lucide-react";
-
-import Branch from "../features/admin/pages/branch-manage/Branch";
-import BranchPayments from "../features/admin/pages/branch-manage/BranchPayments";
-import DeliveryMan from "../features/admin/pages/DeliveryMan";
-import Merchants from "../features/admin/pages/merchant-manage/Merchants";
-import Payment from "../features/admin/pages/merchant-manage/Payment";
-import TodoList from "../features/admin/pages/TodoList";
+import BranchPayments from "../features/admin/pages/branch-manage/BranchPaymentsListPage";
+import DeliveryMan from "../features/admin/pages/delivery-man/DeliveryManPage";
+import Merchants from "../features/admin/pages/merchant-manage/MerchantsPage";
+import TodoList from "../features/admin/pages/TodoListPage";
 import AdminDashboard from "../features/admin/pages/AdminDashboard";
 import Ticket from "../features/admin/pages/Ticket";
-import Parcels from "../features/admin/pages/Parcels";
+import Parcels from "../features/admin/pages/parcel/AllParcelPageAdmin";
 import Offers from "../features/admin/pages/Offers";
 import DeceptionCheck from "../features/admin/pages/DeceptionCheck";
 import Subscribe from "../features/admin/pages/Subscribe";
@@ -95,451 +56,359 @@ import Packaging from "../features/admin/pages/setting/Packaging";
 import AssetsCategory from "../features/admin/pages/setting/AssetsCategory";
 import InvoiceGenerate from "../features/admin/pages/setting/InvoiceGenerate";
 import LogsDashboard from "../features/admin/components/LogsDashboard";
+import CreateDeliveryMan from "../features/admin/pages/delivery-man/CreateDeliveryManPage";
+import CreateMerchantsPage from "../features/admin/pages/merchant-manage/CreateMerchantsPage";
+import EditDeliveryManPage from "@/features/admin/pages/delivery-man/EditDeliveryManPage";
+import BranchPage from "../features/admin/pages/branch-manage/BranchPage";
+import EditMerchantPage from "@/features/admin/pages/merchant-manage/EditMerchantPage";
+import MerchantPaymentPage from "../features/admin/pages/merchant-manage/MerchantPaymentPage";
+import EditParcelPage from "@/features/admin/pages/EditParcelPage";
+import CreateParcelAdmin from "@/features/admin/pages/parcel/CreateParcelAdmin";
+import AdminProfilePage from "@/features/admin/pages/AdminProfilePage";
 
 export interface RouteItem {
-  label: string;
   path: string;
   element?: React.ReactNode;
   children?: RouteItem[];
-  icon?: React.FC<React.SVGProps<SVGSVGElement>>;
 }
 
 export const adminRoutes: RouteItem[] = [
   {
-    label: "Dashboard",
     path: "dashboard",
     element: <AdminDashboard />,
-    icon: Home,
   },
   {
-    label: "Delivery Man",
-    path: "delivery-man",
-    element: <DeliveryMan />,
-    icon: Truck,
+    path: "profile",
+    element: <AdminProfilePage />,
   },
   {
-    label: "Branch Manage",
-    path: "branch-manage",
-    icon: Building2,
+    path: "deliveryman",
     children: [
       {
-        label: "Branch",
-        path: "branch",
-        element: <Branch />,
-        icon: Building,
+        path: "",
+        element: <DeliveryMan />,
       },
       {
-        label: "Payments",
+        path: "create",
+        element: <CreateDeliveryMan />,
+      },
+      {
+        path: "edit",
+        element: <EditDeliveryManPage />,
+      },
+    ],
+  },
+  {
+    path: "branch-manage",
+    children: [
+      {
+        path: "branch",
+        element: <BranchPage />,
+      },
+      {
         path: "payments",
         element: <BranchPayments />,
-        icon: CreditCard,
       },
-      
     ],
-    
   },
-  
   {
-    label: "Merchant Manage",
     path: "merchant-manage",
-    icon: Users,
     children: [
       {
-        label: "Merchants",
         path: "merchants",
         element: <Merchants />,
-        icon: UserPlus,
       },
       {
-        label: "Payments",
+        path: "create",
+        element: <CreateMerchantsPage />,
+      },
+      {
+        path: "edit",
+        element: <EditMerchantPage />,
+      },
+      {
         path: "merchant-payment",
-        element: <Payment />,
-        icon: CreditCard,
+        element: <MerchantPaymentPage />,
       },
     ],
   },
   {
-    label: "Todo List",
     path: "todo-list",
     element: <TodoList />,
-    icon: ListTodo,
   },
   {
-    label: "Ticket",
     path: "ticket",
     element: <Ticket />,
-    icon: MessageSquare,
   },
   {
-    label: "Parcels",
     path: "parcels",
-    element: <Parcels />,
-    icon: Package,
+    children: [
+      {
+        path: "",
+        element: <Parcels />,
+      },
+      {
+        path: "create",
+        element: <CreateParcelAdmin />,
+      },
+      {
+        path: "edit",
+        element: <EditParcelPage />,
+      },
+    ],
   },
   {
-    label: "Offers",
     path: "offers",
     element: <Offers />,
-    icon: Tag,
   },
   {
-    label: "Active Logs",
     path: "active-logs",
     element: <LogsDashboard />,
-    icon: Clock,
   },
   {
-    label: "Deception Check",
     path: "deception-check",
     element: <DeceptionCheck />,
-    icon: ShieldAlert,
   },
   {
-    label: "Subscribe",
     path: "subscribe",
     element: <Subscribe />,
-    icon: Bell,
   },
   {
-    label: "Pickup Request",
     path: "pickup-request",
-    icon: PackagePlus,
     children: [
       {
-        label: "Regular",
         path: "regular",
         element: <PickupRegular />,
-        icon: Clock, // scheduled pickup
       },
       {
-        label: "Express",
         path: "express",
         element: <PickupExpress />,
-        icon: Truck, // express service indicated by truck icon
       },
     ],
   },
   {
-    label: "Assets",
     path: "assets",
     element: <Assets />,
-    icon: Database,
   },
   {
-    label: "Wallet Request",
     path: "wallet-request",
     element: <WalletRequest />,
-    icon: Wallet,
   },
   {
-    label: "Payment Received",
     path: "payment-received",
     element: <PaymentReceived />,
-    icon: DollarSign,
   },
   {
-    label: "Payout",
     path: "payout",
     element: <Payout />,
-    icon: DollarSign,
   },
   {
-    label: "Accounts",
     path: "accounts",
-    icon: Folder,
     children: [
       {
-        label: "Account Heads",
         path: "account-heads",
         element: <AccountHeads />,
-        icon: FileBox,
       },
       {
-        label: "Accounts",
         path: "accounts-list",
         element: <AccountsList />,
-        icon: Folder,
       },
       {
-        label: "Fund Transfer",
         path: "fund-transfer",
         element: <FundTransfer />,
-        icon: Send,
       },
       {
-        label: "Income",
         path: "income",
         element: <Income />,
-        icon: ArrowUpRight,
       },
       {
-        label: "Expense",
         path: "expense",
         element: <Expense />,
-        icon: ArrowDownRight,
       },
       {
-        label: "Paid Invoice",
         path: "paid-invoice",
         element: <PaidInvoice />,
-        icon: ArrowDownRight,
       },
     ],
   },
   {
-    label: "Users & Roles",
     path: "users-roles",
-    icon: UserCheck,
     children: [
       {
-        label: "Roles",
         path: "roles",
         element: <Roles />,
-        icon: ShieldAlert,
       },
       {
-        label: "Designations",
         path: "designations",
         element: <Designations />,
-        icon: UserPlus,
       },
       {
-        label: "Departments",
         path: "departments",
         element: <Departments />,
-        icon: Building2,
       },
       {
-        label: "Users",
         path: "users",
         element: <UsersRole />,
-        icon: Users,
       },
     ],
   },
   {
-    label: "Payroll",
     path: "payroll",
-    icon: ClipboardCheck,
     children: [
       {
-        label: "Salary Generate",
         path: "salary-generate",
         element: <SalaryGenerate />,
-        icon: DollarSign,
       },
       {
-        label: "Salary",
         path: "salary",
         element: <Salary />,
-        icon: Wallet,
       },
     ],
   },
   {
-    label: "Reports",
     path: "reports",
-    icon: BarChart2,
     children: [
       {
-        label: "Parcel Status Reports",
         path: "parcel-status-reports",
         element: <ParcelStatusReports />,
-        icon: Package,
       },
       {
-        label: "Parcel Wise Profit",
         path: "parcel-wise-profit",
         element: <ParcelWiseProfit />,
-        icon: DollarSign,
       },
       {
-        label: "Salary Reports",
         path: "salary-reports",
         element: <SalaryReports />,
-        icon: ClipboardCheck,
       },
       {
-        label: "Merchant/Branch/deliveryman",
         path: "merchant-branch-deliveryman",
         element: <MerchantBranchDeliveryman />,
-        icon: Users,
       },
       {
-        label: "Total summery",
         path: "total-summery",
         element: <TotalSummery />,
-        icon: BarChart2,
       },
     ],
   },
   {
-    label: "Push Notification",
     path: "push-notification",
     element: <PushNotification />,
-    icon: BellRing,
   },
   {
-    label: "Addons",
     path: "addons",
     element: <Addons />,
-    icon: Puzzle,
   },
   {
-    label: "Front Web",
     path: "front-web",
-    icon: Globe,
     children: [
       {
-        label: "Social Link",
         path: "social-link",
         element: <SocialLink />,
-        icon: Link, // using Link for social connections
       },
       {
-        label: "Service",
         path: "service",
         element: <Service />,
-        icon: Settings,
       },
       {
-        label: "Why Courier",
         path: "why-courier",
         element: <WhyCourier />,
-        icon: Truck,
       },
       {
-        label: "FAQ",
         path: "faq",
         element: <Faq />,
-        icon: MessageSquare,
       },
       {
-        label: "Partner",
         path: "partner",
         element: <Partner />,
-        icon: Users,
       },
       {
-        label: "Blogs",
         path: "blogs",
         element: <Blogs />,
-        icon: FileBox,
       },
       {
-        label: "Pages",
         path: "pages",
         element: <Pages />,
-        icon: Folder,
       },
       {
-        label: "Section",
         path: "section",
-        element: <Section />,
-        icon: Section,
+        // element: <Section />,
       },
     ],
   },
   {
-    label: "Setting",
     path: "setting",
-    icon: Settings,
     children: [
       {
-        label: "General Settings",
         path: "general-settings",
         element: <GeneralSettings />,
-        icon: Settings,
       },
       {
-        label: "Delivery Category",
         path: "delivery-category",
         element: <DeliveryCategory />,
-        icon: Tag,
       },
       {
-        label: "Delivery Charge",
         path: "delivery-charge",
         element: <DeliveryCharge />,
-        icon: DollarSign,
+      },
+      // {
+      //   path: "create-delivery-charge",
+      //   element: <DeliveryCharge />,
+      // },
+      {
+        path: "edit-delivery-charge",
+        element: <DeliveryCharge />,
       },
       {
-        label: "Delivery Type",
         path: "delivery-type",
         element: <DeliveryType />,
-        icon: Truck,
       },
       {
-        label: "Liquid/Fragile",
         path: "liquid-fragile",
         element: <LiquidFragile />,
-        icon: Package,
       },
       {
-        label: "SMS Setting",
         path: "sms-setting",
         element: <SmsSetting />,
-        icon: MessageSquare,
       },
       {
-        label: "SMS Send Setting",
         path: "sms-send-setting",
         element: <SmsSendSetting />,
-        icon: Send,
       },
       {
-        label: "Notification Settings",
         path: "notification-settings",
         element: <NotificationSettings />,
-        icon: Bell,
       },
       {
-        label: "GoogleMap Setting",
         path: "google-map-setting",
         element: <GoogleMapSetting />,
-        icon: Globe,
       },
       {
-        label: "Social login settings",
         path: "social-login-settings",
         element: <SocialLoginSettings />,
-        icon: UserCheck,
       },
       {
-        label: "Online Payment Setup",
         path: "online-payment-setup",
         element: <OnlinePaymentSetup />,
-        icon: CreditCard,
       },
       {
-        label: "Packaging",
         path: "packaging",
         element: <Packaging />,
-        icon: Package,
       },
       {
-        label: "Currency",
         path: "currency",
-        element: <Currency />,
-        icon: Currency,
+        // element: <Currency />,
       },
       {
-        label: "Assets Category",
         path: "assets-category",
         element: <AssetsCategory />,
-        icon: Database,
       },
       {
-        label: "Database Backup",
         path: "database-backup",
-        element: <DatabaseBackup />,
-        icon: DatabaseBackup,
+        // element: <DatabaseBackup />,
       },
       {
-        label: "Invoice Generate",
         path: "invoice-generate",
         element: <InvoiceGenerate />,
-        icon: FileBox,
       },
     ],
   },

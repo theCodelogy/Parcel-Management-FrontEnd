@@ -1,9 +1,5 @@
-import React from 'react'
-
 const WhyCourier = () => {
-  return (
-    <div>WhyCourier</div>
-  )
-}
+  return <div>WhyCourier</div>;
+};
 
-export default WhyCourier
+export default WhyCourier;

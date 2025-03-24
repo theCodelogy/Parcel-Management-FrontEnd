@@ -1,118 +1,97 @@
-import React, { useState } from 'react';
-import JoditEditor from 'jodit-react'; // Import JoditEditor
+import React from "react";
+import { useForm } from "react-hook-form";
+import JoditEditor from "jodit-react";
+
+interface FormData {
+  name: string;
+  email: string;
+  returnCharge: string;
+  openingBalance: string;
+  salary: string;
+  hub: string;
+  image: FileList;
+  address: string;
+  phone: string;
+  deliveryCharge: string;
+  pickupCharge: string;
+  password: string;
+  status: string;
+  drivingLicense: FileList;
+  description: string;
+}
 
 const CreateTicket: React.FC = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    returnCharge: '',
-    openingBalance: '',
-    salary: '',
-    hub: 'Badda',
-    image: null,
-    address: '',
-    phone: '',
-    deliveryCharge: '',
-    pickupCharge: '',
-    password: '',
-    status: 'Active',
-    drivingLicense: null,
-    description: '', // For the Jodit editor
-  });
+  const { register, handleSubmit, setValue, watch } = useForm<FormData>();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type, files } = e.target;
-  
-    if (type === 'file') {
-      // TypeScript knows that files are present on HTMLInputElement
-      const file = files ? files[0] : null;
-      setFormData((prev) => ({ ...prev, [name]: file }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+  const onSubmit = (data: FormData) => {
+    console.log("Form submitted:", data);
   };
-  
 
   const handleEditorChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, description: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
+    setValue("description", value);
   };
 
   const config = {
-    readonly: false, // Set to true for read-only mode
+    readonly: false,
     height: 400,
   };
 
   return (
     <div className="text-black p-8 rounded-xl shadow-lg max-w-2xl mx-auto my-10">
       <h2 className="text-3xl font-bold text-center mb-6">Create Ticket</h2>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-        
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="grid grid-cols-2 gap-4"
+      >
         {/* Name */}
         <div className="col-span-2">
-          <label htmlFor="name" className="block font-medium text-gray-700">Name *</label>
+          <label htmlFor="name" className="block font-medium text-gray-700">
+            Name *
+          </label>
           <input
             type="text"
-            name="name"
             id="name"
             placeholder="Name *"
-            value={formData.name}
-            onChange={handleChange}
+            {...register("name", { required: true })}
             className="p-2 rounded-lg border border-sky-600 w-full"
-            required
           />
         </div>
 
         {/* Email */}
         <input
           type="email"
-          name="email"
           placeholder="Email *"
-          value={formData.email}
-          onChange={handleChange}
+          {...register("email", { required: true })}
           className="p-2 rounded-lg border border-sky-600 w-full"
-          required
         />
 
         {/* Return Charge */}
         <input
           type="text"
-          name="returnCharge"
           placeholder="Return Charge"
-          value={formData.returnCharge}
-          onChange={handleChange}
+          {...register("returnCharge")}
           className="p-2 rounded-lg border border-sky-600 w-full"
         />
 
         {/* Opening Balance */}
         <input
           type="text"
-          name="openingBalance"
           placeholder="Opening Balance"
-          value={formData.openingBalance}
-          onChange={handleChange}
+          {...register("openingBalance")}
           className="p-2 rounded-lg border border-sky-600 w-full"
         />
 
         {/* Salary */}
         <input
           type="text"
-          name="salary"
           placeholder="Salary"
-          value={formData.salary}
-          onChange={handleChange}
+          {...register("salary")}
           className="p-2 rounded-lg border border-sky-600 w-full"
         />
 
         {/* Hub */}
         <select
-          name="hub"
-          value={formData.hub}
-          onChange={handleChange}
+          {...register("hub")}
           className="p-2 rounded-lg border border-sky-600 w-full"
         >
           <option value="Badda">Badda</option>
@@ -121,68 +100,53 @@ const CreateTicket: React.FC = () => {
         {/* Image */}
         <input
           type="file"
-          name="image"
-          onChange={handleChange}
+          {...register("image")}
           className="p-2 rounded-lg border border-sky-600 w-full"
         />
 
         {/* Address */}
         <input
           type="text"
-          name="address"
           placeholder="Address"
-          value={formData.address}
-          onChange={handleChange}
+          {...register("address")}
           className="p-2 rounded-lg border border-sky-600 w-full"
         />
 
         {/* Phone */}
         <input
           type="text"
-          name="phone"
           placeholder="Phone *"
-          value={formData.phone}
-          onChange={handleChange}
+          {...register("phone", { required: true })}
           className="p-2 rounded-lg border border-sky-600 w-full"
-          required
         />
 
         {/* Delivery Charge */}
         <input
           type="text"
-          name="deliveryCharge"
           placeholder="Delivery Charge"
-          value={formData.deliveryCharge}
-          onChange={handleChange}
+          {...register("deliveryCharge")}
           className="p-2 rounded-lg border border-sky-600 w-full"
         />
 
         {/* Pickup Charge */}
         <input
           type="text"
-          name="pickupCharge"
           placeholder="Pickup Charge"
-          value={formData.pickupCharge}
-          onChange={handleChange}
+          {...register("pickupCharge")}
           className="p-2 rounded-lg border border-sky-600 w-full"
         />
 
         {/* Password */}
         <input
           type="password"
-          name="password"
           placeholder="Password *"
-          value={formData.password}
-          onChange={handleChange}
+          {...register("password", { required: true })}
           className="p-2 rounded-lg border border-sky-600 w-full"
-          required
         />
 
         {/* Status Dropdown */}
         <select
-          name="status"
-          value={formData.status}
-          onChange={handleChange}
+          {...register("status")}
           className="p-2 rounded-lg border border-sky-600 w-full"
         >
           <option value="Active">Active</option>
@@ -192,16 +156,20 @@ const CreateTicket: React.FC = () => {
         {/* Driving License File Upload */}
         <input
           type="file"
-          name="drivingLicense"
-          onChange={handleChange}
+          {...register("drivingLicense")}
           className="p-2 rounded-lg border border-sky-600 w-full"
         />
 
         {/* Description (Jodit Editor) */}
         <div className="col-span-2">
-          <label htmlFor="description" className="block font-medium text-gray-700">Description</label>
+          <label
+            htmlFor="description"
+            className="block font-medium text-gray-700"
+          >
+            Description
+          </label>
           <JoditEditor
-            value={formData.description}
+            value={watch("description")}
             onChange={handleEditorChange}
             config={config}
             className="h-60"

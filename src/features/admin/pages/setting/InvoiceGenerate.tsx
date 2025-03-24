@@ -1,9 +1,5 @@
-import React from 'react'
-
 const InvoiceGenerate = () => {
-  return (
-    <div>InvoiceGenerate</div>
-  )
-}
+  return <div>InvoiceGenerate</div>;
+};
 
-export default InvoiceGenerate
+export default InvoiceGenerate;

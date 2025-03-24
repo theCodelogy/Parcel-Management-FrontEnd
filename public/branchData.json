@@ -1,0 +1,142 @@
+[
+  {
+    "id": 1,
+    "name": "Jatrabari Branch",
+    "phone": "01711111111",
+    "address": "Jatrabari, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 2,
+    "name": "Uttara Branch",
+    "phone": "01722222222",
+    "address": "Uttara, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 3,
+    "name": "Banani Branch",
+    "phone": "01733333333",
+    "address": "Banani, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 4,
+    "name": "Gulshan Branch",
+    "phone": "01744444444",
+    "address": "Gulshan, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 5,
+    "name": "Dhanmondi Branch",
+    "phone": "01755555555",
+    "address": "Dhanmondi, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 6,
+    "name": "Mirpur Branch",
+    "phone": "01766666666",
+    "address": "Mirpur, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 7,
+    "name": "Bashundhara Branch",
+    "phone": "01777777777",
+    "address": "Bashundhara, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 8,
+    "name": "Motijheel Branch",
+    "phone": "01788888888",
+    "address": "Motijheel, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 9,
+    "name": "Mohammadpur Branch",
+    "phone": "01799999999",
+    "address": "Mohammadpur, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 10,
+    "name": "Tejgaon Branch",
+    "phone": "01710101010",
+    "address": "Tejgaon, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 11,
+    "name": "Farmgate Branch",
+    "phone": "01712121212",
+    "address": "Farmgate, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 12,
+    "name": "Badda Branch",
+    "phone": "01713131313",
+    "address": "Badda, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 13,
+    "name": "Shahbag Branch",
+    "phone": "01714141414",
+    "address": "Shahbag, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 14,
+    "name": "Khilkhet Branch",
+    "phone": "01715151515",
+    "address": "Khilkhet, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 15,
+    "name": "Madhabpur Branch",
+    "phone": "01716161616",
+    "address": "Madhabpur, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 16,
+    "name": "Baridhara Branch",
+    "phone": "01717171717",
+    "address": "Baridhara, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 17,
+    "name": "Maghbazar Branch",
+    "phone": "01718181818",
+    "address": "Maghbazar, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 18,
+    "name": "Ramna Branch",
+    "phone": "01719191919",
+    "address": "Ramna, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 19,
+    "name": "Sutrapur Branch",
+    "phone": "01720202020",
+    "address": "Sutrapur, Dhaka",
+    "status": "Active"
+  },
+  {
+    "id": 20,
+    "name": "Paltan Branch",
+    "phone": "01721212121",
+    "address": "Paltan, Dhaka",
+    "status": "Active"
+  }
+]

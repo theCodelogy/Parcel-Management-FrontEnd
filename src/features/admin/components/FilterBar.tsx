@@ -14,10 +14,6 @@ export default function FilterForm() {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
-  const handleClear = () => {
-    setFilters({ name: "", email: "", phone: "" });
-  };
-
   return (
     <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md border dark:border-gray-700 mx-auto">
       <form

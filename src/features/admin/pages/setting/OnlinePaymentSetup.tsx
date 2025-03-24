@@ -1,9 +1,5 @@
-import React from 'react'
-
 const OnlinePaymentSetup = () => {
-  return (
-    <div>OnlinePaymentSetup</div>
-  )
-}
+  return <div>OnlinePaymentSetup</div>;
+};
 
-export default OnlinePaymentSetup
+export default OnlinePaymentSetup;

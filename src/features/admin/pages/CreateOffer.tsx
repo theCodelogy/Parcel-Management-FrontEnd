@@ -1,60 +1,55 @@
-import React, { useState } from "react";
+import React from "react";
+import { useForm } from "react-hook-form";
 import JoditEditor from "jodit-react";
 
+interface FormData {
+  title: string;
+  status: string;
+  date: string;
+  file: FileList | null;
+  description: string;
+}
+
 const CreateOffer: React.FC = () => {
-  const [formData, setFormData] = useState({
-    title: "",
-    status: "Active",
-    date: "",
-    file: null,
-    description: "",
-  });
+  const { register, handleSubmit, setValue, watch } = useForm<FormData>();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type, files } = e.target;
-
-    if (type === "file") {
-      setFormData((prev) => ({ ...prev, [name]: files ? files[0] : null }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+  const onSubmit = (data: FormData) => {
+    console.log("Form submitted:", data);
   };
 
   const handleEditorChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, description: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
+    setValue("description", value);
   };
 
   return (
     <div className="text-black p-8 rounded-xl shadow-lg max-w-2xl mx-auto my-20 bg-white">
-      <h2 className="text-3xl font-bold text-center mb-6 text-sky-600">Create Offer</h2>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-        
+      <h2 className="text-3xl font-bold text-center mb-6 text-sky-600">
+        Create Offer
+      </h2>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="grid grid-cols-2 gap-4"
+      >
         {/* Title */}
         <div className="col-span-2">
-          <label className="block text-sky-600 font-semibold mb-1">Title *</label>
+          <label className="block text-sky-600 font-semibold mb-1">
+            Title *
+          </label>
           <input
             type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
+            {...register("title", { required: true })}
             placeholder="Enter Title"
             className="p-2 w-full rounded-lg border border-sky-600 bg-transparent text-sky-600 focus:outline-none focus:border-sky-800"
-            required
           />
         </div>
 
         {/* Status */}
         <div className="col-span-2">
-          <label className="block text-sky-600 font-semibold mb-1">Status *</label>
+          <label className="block text-sky-600 font-semibold mb-1">
+            Status *
+          </label>
           <select
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
+            {...register("status", { required: true })}
             className="p-2 w-full rounded-lg border border-sky-600 bg-transparent text-sky-600 focus:outline-none focus:border-sky-800"
           >
             <option value="Active">Active</option>
@@ -64,14 +59,13 @@ const CreateOffer: React.FC = () => {
 
         {/* Date */}
         <div className="col-span-2">
-          <label className="block text-sky-600 font-semibold mb-1">Date *</label>
+          <label className="block text-sky-600 font-semibold mb-1">
+            Date *
+          </label>
           <input
             type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
+            {...register("date", { required: true })}
             className="p-2 w-full rounded-lg border border-sky-600 bg-transparent text-sky-600 focus:outline-none focus:border-sky-800"
-            required
           />
         </div>
 
@@ -80,17 +74,18 @@ const CreateOffer: React.FC = () => {
           <label className="block text-sky-600 font-semibold mb-1">File</label>
           <input
             type="file"
-            name="file"
-            onChange={handleChange}
+            {...register("file")}
             className="p-2 w-full rounded-lg border border-sky-600 bg-transparent text-sky-600 focus:outline-none focus:border-sky-800"
           />
         </div>
 
         {/* Description (Jodit Editor) */}
         <div className="col-span-2">
-          <label className="block text-sky-600 font-semibold mb-1">Description</label>
+          <label className="block text-sky-600 font-semibold mb-1">
+            Description
+          </label>
           <JoditEditor
-            value={formData.description}
+            value={watch("description")}
             onChange={handleEditorChange}
             config={{ readonly: false, height: 300 }}
             className="border border-sky-600 rounded-lg p-2"
