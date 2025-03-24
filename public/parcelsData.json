@@ -1,0 +1,147 @@
+[
+  {
+    "id": "TRK-00001",
+    "sender": "Sender 1",
+    "recipient": {
+      "name": "Recipient 1",
+      "phone": "+1123-456-7890",
+      "address": "101 Main St, City 1, Country"
+    },
+    "merchant": {
+      "name": "Merchant 1",
+      "id": "MERCH-001",
+      "contactPerson": "Contact 1",
+      "phone": "+1123-456-7891"
+    },
+    "financial": {
+      "codAmount": 3500,
+      "charges": 120,
+      "vat": 18,
+      "currentPayable": 3362
+    },
+    "payment": {
+      "status": "Paid",
+      "amountPaid": 3500,
+      "amountPending": 0,
+      "method": "Card"
+    },
+    "status": "Delivered",
+    "statusUpdates": [
+      {
+        "timestamp": "2025-02-20T08:00:00.000Z",
+        "status": "Pending",
+        "description": "Package waiting for pickup",
+        "location": "Location 1"
+      },
+      {
+        "timestamp": "2025-02-21T08:00:00.000Z",
+        "status": "In Transit",
+        "description": "Package in transit to next facility",
+        "location": "Location 2"
+      },
+      {
+        "timestamp": "2025-02-23T08:00:00.000Z",
+        "status": "Delivered",
+        "description": "Package delivered to recipient",
+        "location": "Location 3"
+      }
+    ],
+    "pickupDate": "2025-02-20",
+    "deliveryDate": "2025-02-23",
+    "address": "101 Main St, City 1, Country",
+    "weight": 4.56,
+    "proofOfDelivery": {
+      "videoUrl": "https://example.com/video/proof",
+      "verificationCode": "VC-8345",
+      "timestamp": "2025-02-23T08:00:00.000Z"
+    }
+  },
+  {
+    "id": "TRK-00002",
+    "sender": "Sender 2",
+    "recipient": {
+      "name": "Recipient 2",
+      "phone": "+1345-678-9012",
+      "address": "202 Main St, City 2, Country"
+    },
+    "merchant": {
+      "name": "Merchant 2",
+      "id": "MERCH-002",
+      "contactPerson": "Contact 2",
+      "phone": "+1345-678-9013"
+    },
+    "financial": {
+      "codAmount": 4200,
+      "charges": 100,
+      "vat": 15,
+      "currentPayable": 4085
+    },
+    "payment": {
+      "status": "Partial",
+      "amountPaid": 2100,
+      "amountPending": 2100,
+      "method": "Cash"
+    },
+    "status": "In Transit",
+    "statusUpdates": [
+      {
+        "timestamp": "2025-02-25T09:00:00.000Z",
+        "status": "Pending",
+        "description": "Package waiting for pickup",
+        "location": "Location 1"
+      },
+      {
+        "timestamp": "2025-02-26T09:00:00.000Z",
+        "status": "In Transit",
+        "description": "Package in transit to next facility",
+        "location": "Location 2"
+      }
+    ],
+    "pickupDate": "2025-02-25",
+    "deliveryDate": "2025-02-27",
+    "address": "202 Main St, City 2, Country",
+    "weight": 7.89,
+    "proofOfDelivery": null
+  },
+  {
+    "id": "TRK-00003",
+    "sender": "Sender 3",
+    "recipient": {
+      "name": "Recipient 3",
+      "phone": "+1456-789-0123",
+      "address": "303 Main St, City 3, Country"
+    },
+    "merchant": {
+      "name": "Merchant 3",
+      "id": "MERCH-003",
+      "contactPerson": "Contact 3",
+      "phone": "+1456-789-0124"
+    },
+    "financial": {
+      "codAmount": 2800,
+      "charges": 180,
+      "vat": 27,
+      "currentPayable": 2593
+    },
+    "payment": {
+      "status": "Pending",
+      "amountPaid": 1400,
+      "amountPending": 1400,
+      "method": "Cash"
+    },
+    "status": "Pending",
+    "statusUpdates": [
+      {
+        "timestamp": "2025-02-28T10:00:00.000Z",
+        "status": "Pending",
+        "description": "Package waiting for pickup",
+        "location": "Location 1"
+      }
+    ],
+    "pickupDate": "2025-02-28",
+    "deliveryDate": null,
+    "address": "303 Main St, City 3, Country",
+    "weight": 2.34,
+    "proofOfDelivery": null
+  }
+]

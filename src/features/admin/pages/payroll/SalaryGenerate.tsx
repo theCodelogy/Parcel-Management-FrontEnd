@@ -33,23 +33,46 @@ const initialSalaries: Salary[] = [
   },
 ];
 
-const SalaryGenerate = () => {
+const SalaryGenerate: React.FC = () => {
   const [salaries, setSalaries] = useState<Salary[]>(initialSalaries);
 
   // Auto Generate Salary Button Handler
   const handleAutoGenerateSalary = () => {
     alert("Salaries auto-generated!");
-    // Logic to auto-generate salaries can be added here
+    // Example logic to auto-generate salaries
+    const newSalaries = [
+      ...salaries,
+      {
+        id: salaries.length + 1,
+        user: "Auto User",
+        email: "auto.user@example.com",
+        month: "March",
+        amount: "৳22,000",
+        status: "Unpaid",
+        note: "Auto-generated",
+      },
+    ];
+    setSalaries(newSalaries); // Update the state with new salaries
   };
 
   // Create Salary Button Handler
   const handleCreateSalary = () => {
     alert("Create Salary button clicked!");
-    // Logic to create new salary can be added here
+    // Example logic to create a new salary
+    const newSalary = {
+      id: salaries.length + 1,
+      user: "New User",
+      email: "new.user@example.com",
+      month: "April",
+      amount: "৳21,000",
+      status: "Unpaid",
+      note: "Newly created",
+    };
+    setSalaries([...salaries, newSalary]); // Update the state with the new salary
   };
 
   // Conditional class for salary status
-  const getStatusClass = (status: string) => {
+  const getStatusClass = (status: string): string => {
     return status === "Paid"
       ? "bg-green-500 text-white px-4 py-2 rounded-full text-center"
       : "bg-red-500 text-white px-4 py-2 rounded-full text-center";
@@ -120,7 +143,7 @@ const SalaryGenerate = () => {
           </tbody>
         </table>
       </div>
-      <CreateSalary/>
+      <CreateSalary />
     </div>
   );
 };

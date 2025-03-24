@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 interface AccountHead {
   id: number;
@@ -29,14 +29,18 @@ const initialAccountHeads: AccountHead[] = [
 ];
 
 const AccountHeads = () => {
-  const [accountHeads, setAccountHeads] = useState<AccountHead[]>(initialAccountHeads);
+  const [accountHeads, setAccountHeads] =
+    useState<AccountHead[]>(initialAccountHeads);
 
   // Toggle status between Active and Inactive
   const toggleStatus = (id: number) => {
-    setAccountHeads(prevState =>
-      prevState.map(accountHead =>
+    setAccountHeads((prevState) =>
+      prevState.map((accountHead) =>
         accountHead.id === id
-          ? { ...accountHead, status: accountHead.status === "Active" ? "Inactive" : "Active" }
+          ? {
+              ...accountHead,
+              status: accountHead.status === "Active" ? "Inactive" : "Active",
+            }
           : accountHead
       )
     );
@@ -44,7 +48,9 @@ const AccountHeads = () => {
 
   return (
     <div className="p-6 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Account Heads</h2>
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        Account Heads
+      </h2>
 
       {/* Account Heads Table */}
       <div className="overflow-x-auto">
@@ -67,7 +73,9 @@ const AccountHeads = () => {
                   <button
                     onClick={() => toggleStatus(accountHead.id)}
                     className={`px-4 py-2 rounded-md text-white font-semibold ${
-                      accountHead.status === "Active" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"
+                      accountHead.status === "Active"
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-red-600 hover:bg-red-700"
                     }`}
                   >
                     {accountHead.status}

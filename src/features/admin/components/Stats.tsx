@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   FaBoxOpen,
   FaUsers,
@@ -6,8 +7,24 @@ import {
   FaWarehouse,
 } from "react-icons/fa";
 import { FiUsers } from "react-icons/fi";
+import { fetchdeliveryManApi } from "../services/deliveryManApi";
 
 const Stats = () => {
+  const [deliveryManCount, setDeliveryManCount] = useState(0);
+
+  useEffect(() => {
+    const getDeliveryMen = async () => {
+      try {
+        const data = await fetchdeliveryManApi();
+        setDeliveryManCount(data.length);
+      } catch (error) {
+        console.error("Error fetching delivery man data:", error);
+      }
+    };
+
+    getDeliveryMen();
+  }, []);
+
   const cards = [
     {
       title: "Total Parcel",
@@ -29,15 +46,15 @@ const Stats = () => {
     },
     {
       title: "Total Delivery Man",
-      count: 0,
-      link: "https://cte.fitspick.com/admin/deliveryman",
+      count: deliveryManCount,
+      link: "/admin/delivery-man",
       icon: <FiUsers size={30} />,
     },
     {
       title: "Total Branch",
       count: 0,
       link: "https://cte.fitspick.com/admin/hubs",
-      icon: <FaWarehouse size={30} />, // ✅ FIXED
+      icon: <FaWarehouse size={30} />,
     },
     {
       title: "Total Accounts",
@@ -65,10 +82,10 @@ const Stats = () => {
         <a
           key={index}
           href={card.link}
-          className="block bg-white p-4 rounded-lg shadow-md   hover:scale-105 transition"
+          className="block bg-white p-4 rounded-lg shadow-md hover:scale-105 transition"
         >
           <div className="flex items-center space-x-4">
-            <div className="p-3  text-[#7E0095] rounded-full">{card.icon}</div>
+            <div className="p-3 text-[#7E0095] rounded-full">{card.icon}</div>
             <div>
               <h5 className="text-[#7E0095]">{card.title}</h5>
               <h1 className="text-[#7E0095] text-2xl font-bold">

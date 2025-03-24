@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { FaEllipsisV, FaEdit, FaTrash } from "react-icons/fa";
 
 interface Payment {
@@ -37,10 +37,21 @@ const initialPayments: Payment[] = [
   },
 ];
 
-const PaymentReceived = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const PaymentReceived: React.FC = () => {
   const [payments, setPayments] = useState<Payment[]>(initialPayments);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+
+  // Handle Edit Payment
+  const handleEditPayment = (id: number) => {
+    // Logic to edit payment can be added here
+    alert(`Edit payment with ID: ${id}`);
+  };
+
+  // Handle Delete Payment
+  const handleDeletePayment = (id: number) => {
+    const updatedPayments = payments.filter((payment) => payment.id !== id);
+    setPayments(updatedPayments); // Update the state with the remaining payments
+  };
 
   return (
     <div className="p-6 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
@@ -87,10 +98,16 @@ const PaymentReceived = () => {
 
                   {openDropdown === payment.id && (
                     <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
-                      <button className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <button
+                        className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => handleEditPayment(payment.id)}
+                      >
                         <FaEdit className="mr-2" /> Edit
                       </button>
-                      <button className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <button
+                        className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => handleDeletePayment(payment.id)}
+                      >
                         <FaTrash className="mr-2" /> Delete
                       </button>
                     </div>

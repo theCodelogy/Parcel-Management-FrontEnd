@@ -27,7 +27,6 @@ const initialTransfers: FundTransfer[] = [
 ];
 
 const FundTransferTable = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [transfers, setTransfers] = useState<FundTransfer[]>(initialTransfers);
   const [filters, setFilters] = useState({
     fromAccount: "",
@@ -43,9 +42,15 @@ const FundTransferTable = () => {
     }));
   };
 
+  const addTransfer = (newTransfer: FundTransfer) => {
+    setTransfers((prevTransfers) => [...prevTransfers, newTransfer]);
+  };
+
   return (
     <div className="p-6 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Fund Transfers</h2>
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        Fund Transfers
+      </h2>
 
       {/* Filters */}
       <div className="mb-4 flex gap-4">
@@ -77,6 +82,15 @@ const FundTransferTable = () => {
       {/* Create Fund Transfer Button */}
       <button
         className="px-4 py-2 bg-blue-600 text-white rounded-md mb-4"
+        onClick={() =>
+          addTransfer({
+            id: 3,
+            fromAccount: "Account #11111",
+            toAccount: "Account #22222",
+            date: "2025-02-23",
+            amount: 300,
+          })
+        }
       >
         Create Fund Transfer
       </button>
@@ -96,10 +110,15 @@ const FundTransferTable = () => {
           </thead>
           <tbody className="text-gray-900 dark:text-gray-200">
             {transfers
-              .filter((transfer) =>
-                transfer.fromAccount.toLowerCase().includes(filters.fromAccount.toLowerCase()) &&
-                transfer.toAccount.toLowerCase().includes(filters.toAccount.toLowerCase()) &&
-                (filters.date ? transfer.date === filters.date : true)
+              .filter(
+                (transfer) =>
+                  transfer.fromAccount
+                    .toLowerCase()
+                    .includes(filters.fromAccount.toLowerCase()) &&
+                  transfer.toAccount
+                    .toLowerCase()
+                    .includes(filters.toAccount.toLowerCase()) &&
+                  (filters.date ? transfer.date === filters.date : true)
               )
               .map((transfer) => (
                 <tr key={transfer.id}>
@@ -121,7 +140,7 @@ const FundTransferTable = () => {
           </tbody>
         </table>
       </div>
-      <CreateFundTransfer/>
+      <CreateFundTransfer />
     </div>
   );
 };

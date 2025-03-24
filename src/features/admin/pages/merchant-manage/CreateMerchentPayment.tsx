@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from "react";
+import { useForm } from "react-hook-form";
 
 interface MerchantPaymentFormData {
   merchant: string;
@@ -13,80 +14,53 @@ interface MerchantPaymentFormData {
 }
 
 const CreateMerchantPaymentForm: React.FC = () => {
-  const [formData, setFormData] = useState<MerchantPaymentFormData>({
-    merchant: '',
-    invoice: '',
-    amount: 0,
-    merchantAccount: '',
-    isProcessed: false,
-    transId: '',
-    fromAccount: '',
-    reference: '',
-    description: '',
-  });
+  const { register, handleSubmit, watch } = useForm<MerchantPaymentFormData>();
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+  const onSubmit = (data: MerchantPaymentFormData) => {
+    console.log("Form submitted:", data);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
-  };
+  const isProcessed = watch("isProcessed");
 
   return (
     <div className="text-black p-8 rounded-xl shadow-lg max-w-2xl mx-auto my-20">
-      <h2 className="text-3xl font-bold text-center mb-6">Create Merchant Payment</h2>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+      <h2 className="text-3xl font-bold text-center mb-6">
+        Create Merchant Payment
+      </h2>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="grid grid-cols-2 gap-4"
+      >
         {/* Merchant */}
         <input
           type="text"
-          name="merchant"
           placeholder="Enter Merchant Name"
-          value={formData.merchant}
-          onChange={handleChange}
-          required
+          {...register("merchant", { required: true })}
           className="peer p-2 w-full rounded-lg border border-sky-600 bg-transparent text-sky-600 focus:outline-none focus:border-sky-800"
         />
 
         {/* Invoice */}
         <input
           type="text"
-          name="invoice"
           placeholder="Enter Invoice"
-          value={formData.invoice}
-          onChange={handleChange}
-          required
+          {...register("invoice", { required: true })}
           className="peer p-2 w-full rounded-lg border border-sky-600 bg-transparent text-sky-600 focus:outline-none focus:border-sky-800"
         />
 
         {/* Amount */}
         <input
           type="number"
-          name="amount"
           placeholder="Enter Amount"
-          value={formData.amount}
-          onChange={handleChange}
-          required
+          {...register("amount", { required: true, valueAsNumber: true })}
           className="peer p-2 w-full rounded-lg border border-sky-600 bg-transparent text-sky-600 focus:outline-none focus:border-sky-800"
         />
 
         {/* Merchant Account */}
         <select
-          name="merchantAccount"
-          value={formData.merchantAccount}
-          onChange={handleChange}
-          required
+          {...register("merchantAccount", { required: true })}
           className="peer p-2 w-full rounded-lg border border-sky-600 bg-transparent text-sky-600 focus:outline-none focus:border-sky-800"
         >
           <option value="">Select Merchant Account</option>
-          {/* Add options here */}
           <option value="Account1">Account 1</option>
           <option value="Account2">Account 2</option>
         </select>
@@ -96,9 +70,7 @@ const CreateMerchantPaymentForm: React.FC = () => {
           <label className="flex items-center">
             <input
               type="checkbox"
-              name="isProcessed"
-              checked={formData.isProcessed}
-              onChange={handleChange}
+              {...register("isProcessed")}
               className="mr-2"
             />
             Is Processed?
@@ -106,29 +78,22 @@ const CreateMerchantPaymentForm: React.FC = () => {
         </div>
 
         {/* Conditional fields */}
-        {formData.isProcessed && (
+        {isProcessed && (
           <>
             {/* Trans. ID */}
             <input
               type="text"
-              name="transId"
               placeholder="Enter Transaction ID"
-              value={formData.transId}
-              onChange={handleChange}
-              required
+              {...register("transId", { required: true })}
               className="peer p-2 w-full rounded-lg border border-sky-600 bg-transparent text-sky-600 focus:outline-none focus:border-sky-800"
             />
 
             {/* From Account */}
             <select
-              name="fromAccount"
-              value={formData.fromAccount}
-              onChange={handleChange}
-              required
+              {...register("fromAccount", { required: true })}
               className="peer p-2 w-full rounded-lg border border-sky-600 bg-transparent text-sky-600 focus:outline-none focus:border-sky-800"
             >
               <option value="">Select From Account</option>
-              {/* Add options here */}
               <option value="AccountA">Account A</option>
               <option value="AccountB">Account B</option>
             </select>
@@ -136,11 +101,8 @@ const CreateMerchantPaymentForm: React.FC = () => {
             {/* Reference */}
             <input
               type="text"
-              name="reference"
               placeholder="Enter Reference"
-              value={formData.reference}
-              onChange={handleChange}
-              required
+              {...register("reference", { required: true })}
               className="peer p-2 w-full rounded-lg border border-sky-600 bg-transparent text-sky-600 focus:outline-none focus:border-sky-800"
             />
           </>
@@ -148,11 +110,8 @@ const CreateMerchantPaymentForm: React.FC = () => {
 
         {/* Description */}
         <textarea
-          name="description"
           placeholder="Enter Description"
-          value={formData.description}
-          onChange={handleChange}
-          required
+          {...register("description", { required: true })}
           className="peer p-2 w-full rounded-lg border border-sky-600 bg-transparent text-sky-600 focus:outline-none focus:border-sky-800 col-span-2"
         />
 
