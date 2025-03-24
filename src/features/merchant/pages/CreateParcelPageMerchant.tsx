@@ -17,8 +17,8 @@ import {
 import { useAppSelector } from "@/redux/hooks";
 import { useCurrentUser } from "@/redux/features/auth/authSlice";
 import { TUser } from "@/interface";
+import { toast } from "sonner";
 
-// Define interfaces for the data structures
 interface DeliveryCharges {
   cashCollection: number;
   deliveryCharge: number;
@@ -62,7 +62,7 @@ const CreateParcelPageMerchant: React.FC = () => {
     currentPayable: 0,
     totalPayable: 0,
   });
-
+  const [loading, setLoading] = useState(false);
   const [deliveryChargeData, setDeliveryChargeData] = useState<
     DeliveryChargeData[]
   >([]);
@@ -149,12 +149,15 @@ const CreateParcelPageMerchant: React.FC = () => {
   const { data: merchantsData } = useGetAllMerchantQuery([
     { name: "email", value: email },
   ]);
-
   const merchant = merchantsData?.data?.find(
     (merchant) => merchant.email === email
   );
 
   const onSubmit = async (data: any) => {
+    setLoading(true);
+    // Start the loading toast and capture its ID
+    const toastId = toast.loading("Creating parcel...");
+
     const status = await generateStatus({
       title: "Parcel Create",
       statusDetails: {},
@@ -185,7 +188,7 @@ const CreateParcelPageMerchant: React.FC = () => {
       advance: parseFloat(data.advance) || 0,
       currentPayable: charges.currentPayable,
       parcelStatus: [status],
-      branchname: merchant?.hub || "", // <-- new field added
+      branchname: merchant?.hub || "",
     };
 
     console.log("Payload:", payload);
@@ -194,11 +197,18 @@ const CreateParcelPageMerchant: React.FC = () => {
       .unwrap()
       .then((response) => {
         console.log("Parcel added successfully:", response);
-        // Redirect after successful creation
+        // Update the toast with success and stop the loading state
+        toast.success("Parcel created successfully!", { id: toastId });
+        setLoading(false);
         navigate("/merchant/all-orders");
       })
       .catch((error) => {
         console.error("Error adding parcel:", error);
+        // Update the toast with an error message and stop the loading state
+        toast.error("Error creating parcel. Please try again.", {
+          id: toastId,
+        });
+        setLoading(false);
       });
   };
 
@@ -580,9 +590,10 @@ const CreateParcelPageMerchant: React.FC = () => {
               <div className="space-y-4 pt-4">
                 <button
                   type="submit"
+                  disabled={loading}
                   className="w-full py-3 bg-purple-600 text-white rounded font-medium disabled:bg-purple-300 disabled:cursor-not-allowed hover:bg-purple-700 transition duration-200"
                 >
-                  Submit
+                  {loading ? "Creating..." : "Submit"}
                 </button>
               </div>
             </div>

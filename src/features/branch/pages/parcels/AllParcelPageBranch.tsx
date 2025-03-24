@@ -283,7 +283,7 @@ const DeleteConfirmationModal = ({
   );
 };
 
-const ParcelPageBranch = () => {
+const AllParcelPageBranch = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { register, handleSubmit, reset } = useForm<Filters>({
@@ -693,7 +693,7 @@ const ParcelPageBranch = () => {
             <h2 className="text-xl font-semibold text-gray-900">Parcels</h2>
             <Button
               variant="default"
-              onClick={() => navigate("/branch/create-parcel")}
+              onClick={() => navigate("create")}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -1009,4 +1009,4 @@ const ParcelPageBranch = () => {
   );
 };
 
-export default ParcelPageBranch;
+export default AllParcelPageBranch;

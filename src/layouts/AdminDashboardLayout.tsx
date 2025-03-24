@@ -315,11 +315,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: FileText,
       path: "/admin/setting",
       children: [
-        {
-          id: "General Settings",
-          label: "General Settings",
-          path: "/admin/setting/general-settings",
-        },
+        // {
+        //   id: "General Settings",
+        //   label: "General Settings",
+        //   path: "/admin/setting/general-settings",
+        // },
         {
           id: "Delivery Category",
           label: "Delivery Category",
