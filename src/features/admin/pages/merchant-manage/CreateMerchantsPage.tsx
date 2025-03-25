@@ -1,114 +1,232 @@
-import React, { useState } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import React, { useState, useRef } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { hostImage } from "../../../../utils/hostImageOnIMGBB";
-import toast from "react-hot-toast";
-import axios from "axios";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useAddMerchantMutation } from "@/redux/features/merchant/merchantApi";
+import { useGetAllBranchQuery } from "@/redux/features/branch/branchApi";
 
-// Define the form input types
-interface IFormInput {
+interface MerchantFormState {
   businessName: string;
   name: string;
   email: string;
   phone: string;
   openingBalance: number;
   password: string;
-  vatPercent: number;
+  vat: number;
   hub: string;
   nid: string;
-  status: string;
-  tradeLicense: FileList;
-  image: FileList;
+  status: "Pending" | "Active" | "Disabled";
+  tradeLicense: File | null;
+  image: File | null;
   referenceName: string;
   referencePhone: string;
   paymentPeriod: number;
-  walletUserActivation: boolean;
+  walletUseActivation: boolean;
   address: string;
-  returnCharge: number;
-  insideCity: number;
-  subCity: number;
-  outsideCity: number;
+  returnCharges: number;
+  // Delivery Charge
+  isDefault: boolean;
+  sameDayCharge?: number;
+  nextDayCharge?: number;
+  subCityCharge?: number;
+  outsideCityCharge?: number;
+  sameDayIncreasePerKG?: number;
+  nextDayIncreasePerKG?: number;
+  subCityIncreasePerKG?: number;
+  outsideCityIncreasePerKG?: number;
+  // UI-only states
+  showPassword: boolean;
+  loading: boolean;
 }
 
-const CreateMerchantsPage: React.FC = () => {
+export type TMerchant = {
+  businessName: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: "Merchant";
+  openingBalance: number;
+  password: string;
+  vat: number;
+  hub: string;
+  nid: string;
+  status: "Pending" | "Active" | "Disabled";
+  tradeLicense: string;
+  image?: string;
+  referenceName: string;
+  referencePhone: string;
+  paymentPeriod: number;
+  walletUseActivation: boolean;
+  address: string;
+  returnCharges: number;
+  deliveryCharge: {
+    isDefault: boolean;
+    chargeList?: {
+      sameDay: number;
+      nextDay: number;
+      subCity: number;
+      outsideCity: number;
+    };
+    increasePerKG?: {
+      sameDay: number;
+      nextDay: number;
+      subCity: number;
+      outsideCity: number;
+    };
+  };
+  createdAt: Date;
+};
+
+const CreateMerchantPage: React.FC = () => {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
-    setError,
     formState: { errors },
-  } = useForm<IFormInput>();
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+    control,
+    setError,
+    watch,
+  } = useForm<MerchantFormState>();
+  const [state, setState] = useState<MerchantFormState>({
+    businessName: "",
+    name: "",
+    email: "",
+    phone: "",
+    openingBalance: 0,
+    password: "",
+    vat: 0,
+    hub: "",
+    nid: "",
+    status: "Pending",
+    tradeLicense: null,
+    image: null,
+    referenceName: "",
+    referencePhone: "",
+    paymentPeriod: 0,
+    walletUseActivation: false,
+    address: "",
+    returnCharges: 0,
+    isDefault: true,
+    sameDayCharge: undefined,
+    nextDayCharge: undefined,
+    subCityCharge: undefined,
+    outsideCityCharge: undefined,
+    sameDayIncreasePerKG: undefined,
+    nextDayIncreasePerKG: undefined,
+    subCityIncreasePerKG: undefined,
+    outsideCityIncreasePerKG: undefined,
+    showPassword: false,
+    loading: false,
+  });
 
-  const onSubmit: SubmitHandler<IFormInput> = async (data) => {
-    setLoading(true);
-    const payload = {
-      ...data,
-      vat: data.vatPercent,
-      walletUseActivation: data.walletUserActivation,
-      returnCharges: data.returnCharge,
-      codCharge: {
-        insideCity: data.insideCity,
-        subCity: data.subCity,
-        outsideCity: data.outsideCity,
+  // Fetch branch data for Hub select dropdown
+  const {
+    data: branchData,
+    isLoading: branchLoading,
+    error: branchError,
+  } = useGetAllBranchQuery([]);
+  const [addMerchant] = useAddMerchantMutation();
+
+  const onSubmit = async (data: MerchantFormState): Promise<void> => {
+    setState((prev) => ({ ...prev, loading: true }));
+    const toastId = toast.loading("Adding Merchant...");
+
+    // Build the payload for TMerchant
+    const payload: TMerchant = {
+      businessName: data.businessName,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      role: "Merchant",
+      openingBalance: Number(data.openingBalance),
+      password: data.password,
+      vat: Number(data.vat),
+      hub: data.hub,
+      nid: data.nid,
+      // You can set status from data if you want, here we mark it active upon submission
+      status: "Active",
+      tradeLicense: "",
+      referenceName: data.referenceName,
+      referencePhone: data.referencePhone,
+      paymentPeriod: Number(data.paymentPeriod),
+      walletUseActivation: data.walletUseActivation,
+      address: data.address,
+      returnCharges: Number(data.returnCharges),
+      deliveryCharge: {
+        isDefault: data.isDefault,
       },
-      openingBalance: data.openingBalance,
-      paymentPeriod: data.paymentPeriod,
-      tradeLicense: "", // Initialize as an empty string
-      image: "", // Initialize as an empty string
+      createdAt: new Date(),
     };
 
-    // Host tradeLicense if provided
-    if (data.tradeLicense.length > 0) {
-      const tradeLicensUrl = await hostImage(data.tradeLicense[0]);
-      payload.tradeLicense = tradeLicensUrl;
+    // Upload files if provided
+    if (state.tradeLicense) {
+      const tradeLicenseUrl = await hostImage(state.tradeLicense);
+      payload.tradeLicense = tradeLicenseUrl;
     }
-
-    // Host image if provided
-    if (data.image.length > 0) {
-      const imageUrl = await hostImage(data.image[0]);
+    if (state.image) {
+      const imageUrl = await hostImage(state.image);
       payload.image = imageUrl;
     }
 
+    // If not using the default delivery charge, include the charge details
+    if (!data.isDefault) {
+      payload.deliveryCharge.chargeList = {
+        sameDay: Number(data.sameDayCharge),
+        nextDay: Number(data.nextDayCharge),
+        subCity: Number(data.subCityCharge),
+        outsideCity: Number(data.outsideCityCharge),
+      };
+      payload.deliveryCharge.increasePerKG = {
+        sameDay: Number(data.sameDayIncreasePerKG),
+        nextDay: Number(data.nextDayIncreasePerKG),
+        subCity: Number(data.subCityIncreasePerKG),
+        outsideCity: Number(data.outsideCityIncreasePerKG),
+      };
+    }
+
+    console.log("Payload being sent:", payload);
+
     try {
-      const res = await axios.post(
-        "https://parcel-management-back-end.vercel.app/api/v1/merchant",
-        payload
-      );
-      const responseData = res.data;
-      if (responseData.success) {
-        toast.success("Successfully created merchant!");
+      const response = await addMerchant(payload).unwrap();
+      if (response.success) {
+        console.log(response);
+        toast.success("Successfully added Merchant!", { id: toastId });
         navigate("/admin/merchant-manage/merchants");
       }
     } catch (err: any) {
-      if (err.response && err.response.data && err.response.data.errorSource) {
-        err.response.data.errorSource.forEach((error: any) => {
-          setError(error.path, { type: "manual", message: error.message });
+      console.log(err.data);
+      const errorMessage = err.data?.message || "Error adding Merchant";
+      toast.error(errorMessage, { id: toastId });
+      // Example error handling for duplicate fields
+      if (errorMessage === "This Email is Already Exist!") {
+        setError("email", {
+          type: "manual",
+          message: errorMessage,
         });
-      } else {
-        console.error("An unexpected error occurred:", err);
       }
+    } finally {
+      setState((prev) => ({ ...prev, loading: false }));
     }
-
-    setTimeout(() => {
-      setLoading(false);
-    }, 1500);
   };
 
+  const isDefault = watch("isDefault");
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="flex items-center justify-center">
       <div className="w-full bg-white rounded-2xl shadow-xl overflow-auto p-8">
         <div className="col-span-2 mb-6 text-center">
           <h2 className="text-2xl font-bold text-gray-800">Create Merchant</h2>
         </div>
-
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Business Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Business Name <span className="text-red-500">*</span>
+                Business Name
               </label>
               <input
                 type="text"
@@ -118,14 +236,15 @@ const CreateMerchantsPage: React.FC = () => {
               />
               {errors.businessName && (
                 <p className="mt-1 text-sm text-red-600">
-                  {errors.businessName.message}
+                  Business Name is required
                 </p>
               )}
             </div>
 
+            {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Name <span className="text-red-500">*</span>
+                Name
               </label>
               <input
                 type="text"
@@ -134,34 +253,37 @@ const CreateMerchantsPage: React.FC = () => {
                 placeholder="Your Name"
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.name.message}
-                </p>
+                <p className="mt-1 text-sm text-red-600">Name is required</p>
               )}
             </div>
 
+            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
+                Email
               </label>
-              <input
-                type="email"
-                {...register("email", {
-                  pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="you@example.com"
-              />
+              <div className="relative">
+                <input
+                  type="email"
+                  {...register("email", {
+                    required: true,
+                    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  })}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
+                  placeholder="you@example.com"
+                />
+              </div>
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">
-                  {errors.email.message}
+                  {errors.email.message || "Please enter a valid email address"}
                 </p>
               )}
             </div>
 
+            {/* Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number <span className="text-red-500">*</span>
+                Phone
               </label>
               <input
                 type="text"
@@ -170,31 +292,36 @@ const CreateMerchantsPage: React.FC = () => {
                 placeholder="Your Phone Number"
               />
               {errors.phone && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.phone.message}
-                </p>
+                <p className="mt-1 text-sm text-red-600">Phone is required</p>
               )}
             </div>
 
+            {/* Opening Balance */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Opening Balance
               </label>
               <input
                 type="number"
-                {...register("openingBalance", { valueAsNumber: true })}
+                {...register("openingBalance", { required: true })}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="e.g., 1000"
+                placeholder="Opening Balance"
               />
+              {errors.openingBalance && (
+                <p className="mt-1 text-sm text-red-600">
+                  Opening Balance is required
+                </p>
+              )}
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password <span className="text-red-500">*</span>
+                Password
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={state.showPassword ? "text" : "password"}
                   {...register("password", { required: true, minLength: 8 })}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
                   placeholder="••••••••"
@@ -202,9 +329,14 @@ const CreateMerchantsPage: React.FC = () => {
                 <button
                   type="button"
                   className="absolute right-3 top-2 text-gray-400"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() =>
+                    setState((prev) => ({
+                      ...prev,
+                      showPassword: !prev.showPassword,
+                    }))
+                  }
                 >
-                  {showPassword ? (
+                  {state.showPassword ? (
                     <FaEyeSlash className="w-5 h-5" />
                   ) : (
                     <FaEye className="w-5 h-5" />
@@ -213,142 +345,176 @@ const CreateMerchantsPage: React.FC = () => {
               </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">
-                  {errors.password.message}
+                  Password must be at least 8 characters
                 </p>
               )}
             </div>
 
+            {/* VAT */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                VAT (%)
+                VAT
               </label>
               <input
                 type="number"
-                {...register("vatPercent", { valueAsNumber: true })}
+                {...register("vat", { required: true })}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="e.g., 15"
+                placeholder="VAT"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hub <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                {...register("hub", { required: true })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Hub Name"
-              />
-              {errors.hub && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.hub.message}
-                </p>
+              {errors.vat && (
+                <p className="mt-1 text-sm text-red-600">VAT is required</p>
               )}
             </div>
 
+            {/* Hub */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Hub
+              </label>
+              {branchLoading ? (
+                <p>Loading branches...</p>
+              ) : branchError ? (
+                <p>Error loading branches</p>
+              ) : (
+                <select
+                  {...register("hub", { required: true })}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
+                >
+                  <option value="">Select a branch</option>
+                  {branchData?.data?.map((branch: any) => (
+                    <option key={branch._id} value={branch._id}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {errors.hub && (
+                <p className="mt-1 text-sm text-red-600">Hub is required</p>
+              )}
+            </div>
+
+            {/* NID */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 NID
               </label>
               <input
                 type="text"
-                {...register("nid")}
+                {...register("nid", { required: true })}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="National ID"
+                placeholder="Your National ID"
               />
+              {errors.nid && (
+                <p className="mt-1 text-sm text-red-600">NID is required</p>
+              )}
             </div>
 
+            {/* Trade License */}
+            <Controller
+              name="tradeLicense"
+              control={control}
+              render={({ field }) => (
+                <FileUpload
+                  id="tradeLicense"
+                  label="Trade License"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(file) => {
+                    field.onChange(file);
+                    setState((prev) => ({ ...prev, tradeLicense: file }));
+                  }}
+                  error={errors.tradeLicense?.message}
+                />
+              )}
+            />
+
+            {/* Image */}
+            <Controller
+              name="image"
+              control={control}
+              render={({ field }) => (
+                <FileUpload
+                  id="image"
+                  label="Profile Image"
+                  accept="image/*"
+                  onChange={(file) => {
+                    field.onChange(file);
+                    setState((prev) => ({ ...prev, image: file }));
+                  }}
+                  error={errors.image?.message}
+                />
+              )}
+            />
+
+            {/* Reference Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
+                Reference Name
               </label>
               <input
                 type="text"
-                {...register("status")}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Status"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trade License Image
-              </label>
-              <input
-                type="file"
-                {...register("tradeLicense")}
-                className="w-full"
-                accept="image/*"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image
-              </label>
-              <input
-                type="file"
-                {...register("image")}
-                className="w-full"
-                accept="image/*"
-              />
-            </div>
-
-            <h2 className="col-span-2 text-2xl font-semibold text-gray-800">
-              Reference
-            </h2>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Referencing Name
-              </label>
-              <input
-                type="text"
-                {...register("referenceName")}
+                {...register("referenceName", { required: true })}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
                 placeholder="Reference Name"
               />
+              {errors.referenceName && (
+                <p className="mt-1 text-sm text-red-600">
+                  Reference Name is required
+                </p>
+              )}
             </div>
 
+            {/* Reference Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Reference Phone
               </label>
               <input
                 type="text"
-                {...register("referencePhone")}
+                {...register("referencePhone", { required: true })}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
                 placeholder="Reference Phone"
               />
+              {errors.referencePhone && (
+                <p className="mt-1 text-sm text-red-600">
+                  Reference Phone is required
+                </p>
+              )}
             </div>
 
+            {/* Payment Period */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment Period (Days)
+                Payment Period (in days)
               </label>
               <input
                 type="number"
-                {...register("paymentPeriod", { valueAsNumber: true })}
+                {...register("paymentPeriod", { required: true })}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Number of days"
+                placeholder="Payment Period"
               />
+              {errors.paymentPeriod && (
+                <p className="mt-1 text-sm text-red-600">
+                  Payment Period is required
+                </p>
+              )}
             </div>
 
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                {...register("walletUserActivation")}
-                className="mr-2"
-              />
+            {/* Wallet Use Activation */}
+            <div className="flex items-center space-x-2">
               <label className="text-sm font-medium text-gray-700">
                 Wallet Use Activation
               </label>
+              <input
+                type="checkbox"
+                {...register("walletUseActivation")}
+                className="h-4 w-4 text-red-600 border-gray-300 rounded"
+              />
             </div>
 
+            {/* Address */}
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Address <span className="text-red-500">*</span>
+                Address
               </label>
               <input
                 type="text"
@@ -357,72 +523,158 @@ const CreateMerchantsPage: React.FC = () => {
                 placeholder="Your Address"
               />
               {errors.address && (
+                <p className="mt-1 text-sm text-red-600">Address is required</p>
+              )}
+            </div>
+
+            {/* Return Charges */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Return Charges
+              </label>
+              <input
+                type="number"
+                {...register("returnCharges", { required: true })}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
+                placeholder="Return Charges"
+              />
+              {errors.returnCharges && (
                 <p className="mt-1 text-sm text-red-600">
-                  {errors.address.message}
+                  Return Charges is required
                 </p>
               )}
             </div>
 
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Return Charge (%)
+            {/* Delivery Charge Default Switch */}
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">
+                Use Default Delivery Charge?
               </label>
               <input
-                type="number"
-                {...register("returnCharge", { valueAsNumber: true })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Return Charge Percentage"
+                type="checkbox"
+                {...register("isDefault")}
+                className="h-4 w-4 text-red-600 border-gray-300 rounded"
               />
             </div>
 
-            <h2 className="col-span-2 text-2xl font-semibold text-gray-800">
-              COD Charge
-            </h2>
+            {/* Conditional Delivery Charge Fields */}
+            {!isDefault && (
+              <>
+                {/* Charge List */}
+                <div className="col-span-2">
+                  <h3 className="text-lg font-semibold text-gray-700">
+                    Delivery Charge (Charge List)
+                  </h3>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Same Day Charge
+                  </label>
+                  <input
+                    type="number"
+                    {...register("sameDayCharge", { required: true })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
+                    placeholder="Same Day Charge"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Next Day Charge
+                  </label>
+                  <input
+                    type="number"
+                    {...register("nextDayCharge", { required: true })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
+                    placeholder="Next Day Charge"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Sub City Charge
+                  </label>
+                  <input
+                    type="number"
+                    {...register("subCityCharge", { required: true })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
+                    placeholder="Sub City Charge"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Outside City Charge
+                  </label>
+                  <input
+                    type="number"
+                    {...register("outsideCityCharge", { required: true })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
+                    placeholder="Outside City Charge"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Inside City
-              </label>
-              <input
-                type="number"
-                {...register("insideCity", { valueAsNumber: true })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Inside City"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sub City
-              </label>
-              <input
-                type="number"
-                {...register("subCity", { valueAsNumber: true })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Sub City"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Outside City
-              </label>
-              <input
-                type="number"
-                {...register("outsideCity", { valueAsNumber: true })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                placeholder="Outside City"
-              />
-            </div>
+                {/* Increase Per KG */}
+                <div className="col-span-2">
+                  <h3 className="text-lg font-semibold text-gray-700">
+                    Delivery Charge (Increase Per KG)
+                  </h3>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Same Day Increase Per KG
+                  </label>
+                  <input
+                    type="number"
+                    {...register("sameDayIncreasePerKG", { required: true })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
+                    placeholder="Same Day Increase Per KG"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Next Day Increase Per KG
+                  </label>
+                  <input
+                    type="number"
+                    {...register("nextDayIncreasePerKG", { required: true })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
+                    placeholder="Next Day Increase Per KG"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Sub City Increase Per KG
+                  </label>
+                  <input
+                    type="number"
+                    {...register("subCityIncreasePerKG", { required: true })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
+                    placeholder="Sub City Increase Per KG"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Outside City Increase Per KG
+                  </label>
+                  <input
+                    type="number"
+                    {...register("outsideCityIncreasePerKG", {
+                      required: true,
+                    })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
+                    placeholder="Outside City Increase Per KG"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
+          {/* Submit Button */}
           <div className="mt-6">
             <button
               type="submit"
-              disabled={loading}
               className="w-full bg-[#d63384] text-white py-2 rounded-lg text-lg font-semibold hover:bg-red-700 transition duration-300"
+              disabled={state.loading}
             >
-              {loading ? "Processing..." : "Register"}
+              {state.loading ? "Submitting..." : "Submit"}
             </button>
           </div>
         </form>
@@ -431,4 +683,140 @@ const CreateMerchantsPage: React.FC = () => {
   );
 };
 
-export default CreateMerchantsPage;
+export default CreateMerchantPage;
+
+interface FileUploadProps {
+  id: string;
+  label: string;
+  accept?: string;
+  required?: boolean;
+  onChange: (file: File | null) => void;
+  error?: string;
+  className?: string;
+}
+
+const FileUpload: React.FC<FileUploadProps> = ({
+  id,
+  label,
+  accept = "image/*",
+  required = false,
+  onChange,
+  error,
+  className,
+}) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState<string>("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    onChange(file);
+
+    if (file) {
+      setFileName(file.name);
+
+      // Create preview for images
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          setPreviewUrl(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPreviewUrl(null);
+      }
+    } else {
+      setFileName("");
+      setPreviewUrl(null);
+    }
+  };
+
+  const triggerFileInput = () => {
+    inputRef.current?.click();
+  };
+
+  const removeFile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange(null);
+    setFileName("");
+    setPreviewUrl(null);
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className={cn("space-y-2", className)}>
+      <div className="flex items-center justify-between">
+        <label htmlFor={id} className="text-sm font-medium">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+      </div>
+
+      <div
+        onClick={triggerFileInput}
+        className={cn(
+          "border-2 border-dashed rounded-lg p-4 transition-colors duration-200 cursor-pointer",
+          "flex flex-col items-center justify-center space-y-2 hover:border-primary/50",
+          error ? "border-red-500" : "border-border",
+          className
+        )}
+      >
+        <input
+          ref={inputRef}
+          id={id}
+          type="file"
+          accept={accept}
+          onChange={handleFileChange}
+          className="hidden"
+        />
+
+        {previewUrl ? (
+          <div className="relative w-full max-h-48 overflow-hidden rounded-md">
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="w-full h-auto object-contain"
+            />
+            <Button
+              onClick={removeFile}
+              variant="destructive"
+              size="sm"
+              className="absolute top-2 right-2 rounded-full w-6 h-6 p-0 flex items-center justify-center"
+            >
+              ×
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="text-3xl text-muted-foreground">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {fileName ? fileName : "Click to upload or drag and drop"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {accept.split(",").join(", ")}
+            </p>
+          </>
+        )}
+      </div>
+
+      {error && <p className="text-sm text-red-500">{error}</p>}
+    </div>
+  );
+};

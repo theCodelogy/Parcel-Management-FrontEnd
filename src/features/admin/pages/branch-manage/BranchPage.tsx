@@ -317,7 +317,38 @@ const BranchPage = () => {
 
           <div className="overflow-x-auto">
             {isLoading ? (
-              <p className="p-3">Loading...</p>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="p-3 text-left">SL</TableHead>
+                    <TableHead className="p-3 text-left">Name</TableHead>
+                    <TableHead className="p-3 text-left">Phone</TableHead>
+                    <TableHead className="p-3 text-left">Address</TableHead>
+                    <TableHead className="p-3 text-left">Status</TableHead>
+                    <TableHead className="p-3 text-left">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: pageSize }).map((_, index) => (
+                    <TableRow
+                      key={`skeleton-${index}`}
+                      className="animate-pulse"
+                    >
+                      <TableCell className="p-3">
+                        <div className="h-4 w-4 bg-gray-200 rounded"></div>
+                      </TableCell>
+                      {Array.from({ length: 5 }).map((_, colIndex) => (
+                        <TableCell
+                          key={`skeleton-col-${colIndex}`}
+                          className="p-3"
+                        >
+                          <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             ) : error ? (
               <p className="p-3 text-red-600">
                 Error: {(error as any).message || "Failed to load data"}

@@ -229,14 +229,20 @@ const InvoicePage: React.FC = () => {
             {isLoading ? (
               Array.from({ length: pageSize }).map((_, index) => (
                 <TableRow key={`skeleton-${index}`} className="animate-pulse">
+                  {/* SL Column */}
                   <TableCell className="p-3">
                     <div className="h-4 w-4 bg-gray-200 rounded"></div>
                   </TableCell>
+                  {/* Tracker ID, Amount, Delivery Date Columns */}
                   {Array.from({ length: 3 }).map((_, colIndex) => (
                     <TableCell key={`skeleton-col-${colIndex}`} className="p-3">
                       <div className="h-4 bg-gray-200 rounded w-24"></div>
                     </TableCell>
                   ))}
+                  {/* Actions Column */}
+                  <TableCell className="p-3 text-center">
+                    <div className="h-4 bg-gray-200 rounded w-12 mx-auto"></div>
+                  </TableCell>
                 </TableRow>
               ))
             ) : currentData.length === 0 ? (

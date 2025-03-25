@@ -61,8 +61,6 @@ const MerchatnListPageBranch = () => {
   ]);
 
   // Transform the API response to ensure each object has the required properties.
-  // If the API response (TMerchant) is missing `details` and `currentBalance`,
-  // we add default values.
   const merchants: Merchant[] = (merchantsData?.data || []).map((m: any) => ({
     ...m,
     details: m.details || "",
@@ -124,14 +122,6 @@ const MerchatnListPageBranch = () => {
     console.log("View Details for:", merchant.businessName);
   };
 
-  if (isLoading) {
-    return <div className="p-6">Loading merchants...</div>;
-  }
-
-  if (isError) {
-    return <div className="p-6">Error fetching merchants data.</div>;
-  }
-
   return (
     <div className="container mx-auto p-4">
       <div className="bg-white p-6 rounded-lg shadow-md">
@@ -168,7 +158,6 @@ const MerchatnListPageBranch = () => {
                 <TableHead className="p-3 text-left">Details</TableHead>
                 <TableHead className="p-3 text-left">Hub</TableHead>
                 <TableHead className="p-3 text-left">Business Name</TableHead>
-                <TableHead className="p-3 text-left">Unique ID</TableHead>
                 <TableHead className="p-3 text-left">Phone</TableHead>
                 <TableHead className="p-3 text-left">Status</TableHead>
                 <TableHead className="p-3 text-left">Current Balance</TableHead>
@@ -176,81 +165,110 @@ const MerchatnListPageBranch = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentData.map((merchant, index) => (
-                <TableRow
-                  key={merchant._id}
-                  className="border-t border-gray-200"
-                >
-                  <TableCell className="p-3">
-                    {startIndex + index + 1}
-                  </TableCell>
-                  <TableCell className="p-3 flex items-center">
-                    <div>
-                      <img
-                        src={merchant.image}
-                        alt="Avatar"
-                        className="w-8 h-8 rounded-full mr-3"
-                      />
-                      <p className="font-semibold text-xs">{merchant.name}</p>
-                      <p className="text-xs">{merchant.email}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell className="p-3">{merchant.hub}</TableCell>
-                  <TableCell className="p-3">{merchant.businessName}</TableCell>
-                  <TableCell className="p-3">{merchant._id}</TableCell>
-                  <TableCell className="p-3">{merchant.phone}</TableCell>
-                  <TableCell className="p-3">
-                    <span
-                      className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                        merchant.status === "Active"
-                          ? "bg-green-200 text-green-800"
-                          : "bg-red-200 text-red-800"
-                      }`}
-                    >
-                      {merchant.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="p-3">
-                    {merchant.currentBalance}
-                  </TableCell>
-                  <TableCell className="p-3 relative">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="p-1 bg-gray-200 text-white rounded-full">
-                          <MoreVerticalIcon className="h-4 w-4 text-gray-800" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-32">
-                        <DropdownMenuItem
-                          className="flex items-center text-sm hover:bg-gray-100"
-                          onClick={() => handleGenerateInvoice(merchant)}
-                        >
-                          <FaFileInvoice className="mr-2" /> Generate Invoice
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="flex items-center text-sm hover:bg-gray-100"
-                          onClick={() => handleView(merchant)}
-                        >
-                          <FaEye className="mr-2" /> View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="flex items-center text-sm hover:bg-gray-100"
-                          onClick={() => handleEdit(merchant)}
-                        >
-                          <FaEdit className="mr-2" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="focus:text-white focus:bg-red-500 flex items-center text-sm text-red-600 hover:bg-gray-100"
-                          onClick={() => handleDelete(merchant._id)}
-                          disabled={isDeleting}
-                        >
-                          <Trash className="mr-2 focus:text-red-500" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {isLoading ? (
+                // Skeleton Loader for Table Body
+                Array.from({ length: pageSize }).map((_, index) => (
+                  <TableRow key={`skeleton-${index}`} className="animate-pulse">
+                    <TableCell className="p-3">
+                      <div className="h-4 w-4 bg-gray-200 rounded"></div>
+                    </TableCell>
+                    {Array.from({ length: 7 }).map((_, colIndex) => (
+                      <TableCell
+                        key={`skeleton-col-${colIndex}`}
+                        className="p-3"
+                      >
+                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : isError ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
+                    className="p-3 text-center text-red-600"
+                  >
+                    Error fetching merchants data.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                currentData.map((merchant, index) => (
+                  <TableRow
+                    key={merchant._id}
+                    className="border-t border-gray-200"
+                  >
+                    <TableCell className="p-3">
+                      {startIndex + index + 1}
+                    </TableCell>
+                    <TableCell className="p-3 flex items-center">
+                      <div>
+                        <img
+                          src={merchant.image}
+                          alt="Avatar"
+                          className="w-8 h-8 rounded-full mr-3"
+                        />
+                        <p className="font-semibold text-xs">{merchant.name}</p>
+                        <p className="text-xs">{merchant.email}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-3">{merchant.hub}</TableCell>
+                    <TableCell className="p-3">
+                      {merchant.businessName}
+                    </TableCell>
+                    <TableCell className="p-3">{merchant.phone}</TableCell>
+                    <TableCell className="p-3">
+                      <span
+                        className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                          merchant.status === "Active"
+                            ? "bg-green-200 text-green-800"
+                            : "bg-red-200 text-red-800"
+                        }`}
+                      >
+                        {merchant.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="p-3">
+                      {merchant.currentBalance}
+                    </TableCell>
+                    <TableCell className="p-3 relative">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="p-1 bg-gray-200 text-white rounded-full">
+                            <MoreVerticalIcon className="h-4 w-4 text-gray-800" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-32">
+                          <DropdownMenuItem
+                            className="flex items-center text-sm hover:bg-gray-100"
+                            onClick={() => handleGenerateInvoice(merchant)}
+                          >
+                            <FaFileInvoice className="mr-2" /> Generate Invoice
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="flex items-center text-sm hover:bg-gray-100"
+                            onClick={() => handleView(merchant)}
+                          >
+                            <FaEye className="mr-2" /> View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="flex items-center text-sm hover:bg-gray-100"
+                            onClick={() => handleEdit(merchant)}
+                          >
+                            <FaEdit className="mr-2" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="focus:text-white focus:bg-red-500 flex items-center text-sm text-red-600 hover:bg-gray-100"
+                            onClick={() => handleDelete(merchant._id)}
+                            disabled={isDeleting}
+                          >
+                            <Trash className="mr-2 focus:text-red-500" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>

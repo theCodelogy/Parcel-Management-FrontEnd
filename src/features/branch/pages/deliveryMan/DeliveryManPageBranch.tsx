@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import {
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import TablePagination from "@/components/ui/TablePagination";
+import TablePaginationInfo from "@/components/ui/TablePaginationInfo";
 import { toast } from "sonner";
 import {
   useDeleteDeliveryManMutation,
@@ -67,29 +68,6 @@ interface TQueryParam {
   name: string;
   value: string;
 }
-
-interface TablePaginationInfoProps {
-  startIndex: number;
-  pageSize: number;
-  totalEntries: number;
-  currentDataLength: number;
-}
-
-const TablePaginationInfo: React.FC<TablePaginationInfoProps> = ({
-  startIndex,
-  totalEntries,
-  currentDataLength,
-}) => {
-  return (
-    <div className="text-sm text-gray-600">
-      {totalEntries === 0
-        ? "No entries"
-        : `Showing ${startIndex + 1} to ${
-            startIndex + currentDataLength
-          } of ${totalEntries} entries`}
-    </div>
-  );
-};
 
 const DeliveryManPage = () => {
   const navigate = useNavigate();
@@ -333,38 +311,59 @@ const DeliveryManPage = () => {
           </div>
 
           <div className="overflow-x-auto">
-            {isLoading ? (
-              <div className="p-3 text-center">Loading...</div>
-            ) : error ? (
-              <p className="p-3 text-red-600">Error loading data</p>
-            ) : (
-              <Table>
-                <TableHeader>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="p-3 text-left">SL</TableHead>
+                  <TableHead className="p-3 text-left">User</TableHead>
+                  <TableHead className="p-3 text-left">Hub</TableHead>
+                  <TableHead className="p-3 text-left">
+                    Delivery Charge
+                  </TableHead>
+                  <TableHead className="p-3 text-left">Pickup Charge</TableHead>
+                  <TableHead className="p-3 text-left">Return Charge</TableHead>
+                  <TableHead className="p-3 text-left">
+                    Opening Balance
+                  </TableHead>
+                  <TableHead className="p-3 text-left">
+                    Current Balance
+                  </TableHead>
+                  <TableHead className="p-3 text-left">Status</TableHead>
+                  <TableHead className="p-3 text-left">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  // Skeleton Loader for Table Body
+                  Array.from({ length: pageSize }).map((_, index) => (
+                    <TableRow
+                      key={`skeleton-${index}`}
+                      className="animate-pulse"
+                    >
+                      <TableCell className="p-3">
+                        <div className="h-4 w-4 bg-gray-200 rounded"></div>
+                      </TableCell>
+                      {Array.from({ length: 9 }).map((_, colIndex) => (
+                        <TableCell
+                          key={`skeleton-col-${colIndex}`}
+                          className="p-3"
+                        >
+                          <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : error ? (
                   <TableRow>
-                    <TableHead className="p-3 text-left">SL</TableHead>
-                    <TableHead className="p-3 text-left">User</TableHead>
-                    <TableHead className="p-3 text-left">Hub</TableHead>
-                    <TableHead className="p-3 text-left">
-                      Delivery Charge
-                    </TableHead>
-                    <TableHead className="p-3 text-left">
-                      Pickup Charge
-                    </TableHead>
-                    <TableHead className="p-3 text-left">
-                      Return Charge
-                    </TableHead>
-                    <TableHead className="p-3 text-left">
-                      Opening Balance
-                    </TableHead>
-                    <TableHead className="p-3 text-left">
-                      Current Balance
-                    </TableHead>
-                    <TableHead className="p-3 text-left">Status</TableHead>
-                    <TableHead className="p-3 text-left">Actions</TableHead>
+                    <TableCell
+                      colSpan={10}
+                      className="p-3 text-center text-red-600"
+                    >
+                      Error loading data
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentData.map((man, index) => (
+                ) : (
+                  currentData.map((man, index) => (
                     <TableRow
                       key={man._id}
                       className="border-t border-gray-200 hover:bg-gray-50 transition-colors duration-200"
@@ -440,10 +439,10 @@ const DeliveryManPage = () => {
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
 
           {/* Pagination Section */}

@@ -330,16 +330,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           label: "Delivery Charge",
           path: "/admin/setting/delivery-charge",
         },
-        {
-          id: "Create Delivery Charge",
-          label: "Create Delivery Charge",
-          path: "/admin/setting/create-delivery-charge",
-        },
-        {
-          id: "Edit Delivery Charge",
-          label: "Edit Delivery Charge",
-          path: "/admin/setting/edit-delivery-charge",
-        },
+
         {
           id: "Delivery Type",
           label: "Delivery Type",
