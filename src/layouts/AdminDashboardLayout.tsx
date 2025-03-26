@@ -270,15 +270,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       id: "Branch Manage",
       label: "Branch Manage",
       icon: Package,
-      path: "/admin/branch-manage",
-      children: [
-        { id: "Branch", label: "Branch", path: "/admin/branch-manage/branch" },
-        {
-          id: "Payments",
-          label: "Payments",
-          path: "/admin/branch-manage/payments",
-        },
-      ],
+      path: "/admin/branch-manage/branch",
     },
     {
       id: "Merchant Manage",

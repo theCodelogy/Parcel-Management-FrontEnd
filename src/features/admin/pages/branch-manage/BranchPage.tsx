@@ -9,7 +9,6 @@ import {
   MoreVerticalIcon,
   Loader2,
 } from "lucide-react";
-import Modal from "react-modal";
 import TablePagination from "../../../../components/ui/TablePagination";
 import {
   Table,
@@ -33,31 +32,37 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import {
   useGetAllBranchQuery,
   useAddBranchMutation,
   useUpdateBranchMutation,
   useDeleteBranchMutation,
 } from "../../../../redux/features/branch/branchApi"; // Import the RTK Query hooks
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"; // Import shadcn/ui Dialog components
+
+export type TBranch = {
+  _id: string; // Add the _id property
+  name: string;
+  branchManagerName: string;
+  password: string;
+  phone: string;
+  email: string;
+  address: string;
+  status: "Active" | "Disabled";
+  role: "Branch";
+  createdAt: Date;
+};
 
 interface Filters {
   name: string;
   phone: string;
-}
-
-interface BranchData {
-  _id: string;
-  name: string;
-  branchManagerName: string;
-  phone: string;
-  address: string;
-  password?: string; // Password should not be used in frontend, but kept for consistency with provided data.  Make it optional.
-  email: string;
-  status: "Active" | "Inactive"; // Use union type
-  role: "Branch";
-  createdAt: string;
-  updatedAt: string;
 }
 
 interface TablePaginationInfoProps {
@@ -99,8 +104,20 @@ const BranchPage = () => {
     handleSubmit: handleSubmitCreate,
     reset: resetCreateForm,
     control: controlCreate,
-  } = useForm({
-    defaultValues: { name: "", phone: "", address: "", status: "Active" },
+    formState: { errors: createErrors },
+    setError: setCreateError,
+  } = useForm<TBranch>({
+    defaultValues: {
+      name: "",
+      branchManagerName: "",
+      password: "",
+      phone: "",
+      email: "",
+      address: "",
+      status: "Active",
+      role: "Branch",
+      createdAt: new Date(),
+    },
   });
 
   // react-hook-form for edit branch form
@@ -110,14 +127,20 @@ const BranchPage = () => {
     reset: resetEditForm,
     control: controlEdit,
     setValue: setValueEdit,
-  } = useForm<{
-    name: string;
-    phone: string;
-    address: string;
-    status: "Active" | "Inactive";
-  }>({
-    // Define the type of the form
-    defaultValues: { name: "", phone: "", address: "", status: "Active" },
+    formState: { errors: editErrors },
+    setError: setEditError,
+  } = useForm<TBranch>({
+    defaultValues: {
+      name: "",
+      branchManagerName: "",
+      password: "",
+      phone: "",
+      email: "",
+      address: "",
+      status: "Active",
+      role: "Branch",
+      createdAt: new Date(),
+    },
   });
 
   // RTK Query hooks
@@ -135,7 +158,7 @@ const BranchPage = () => {
     { name: "phone", value: filterParams.phone },
   ]); // Initial query with empty filters
 
-  const branches: BranchData[] = branchesData?.data || []; // Type the branches variable
+  const branches: TBranch[] = branchesData?.data || []; // Type the branches variable
   console.log("Branches data:", branches);
   const [addBranch] = useAddBranchMutation();
   const [updateBranch] = useUpdateBranchMutation();
@@ -145,46 +168,70 @@ const BranchPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoadingForm, setIsLoadingForm] = useState(false);
-  const [branchToEdit, setBranchToEdit] = useState<BranchData | null>(null);
+  const [branchToEdit, setBranchToEdit] = useState<TBranch | null>(null);
+
+  // New state for filter button loading state
+  const [isFiltering, setIsFiltering] = useState(false);
 
   // Filter handlers
-  const onSubmit = (data: Filters) => {
+  const onSubmit = async (data: Filters) => {
     console.log("Filter data submitted:", data);
+    setIsFiltering(true); // Set loading state to true
     setFilterParams(data); // Update filter state
+    try {
+      await refetch(); // Manually trigger refetch with new filters
+    } finally {
+      setIsFiltering(false); // Set loading state to false
+    }
   };
 
   const onClear = () => {
     console.log("Clearing filter data...");
     resetFilterForm();
     setFilterParams({ name: "", phone: "" });
+    setIsFiltering(false);
   };
 
   // Form submit handler for creating a new branch
-  const handleCreateSubmit = async (data: any) => {
+  const handleCreateSubmit = async (data: TBranch) => {
     setIsLoadingForm(true);
+    const toastId = toast.loading("Creating branch...");
     try {
       const response = await addBranch(data).unwrap();
       console.log("Branch created successfully:", response);
       refetch();
-      toast.success("Branch created successfully");
+      toast.success("Branch created successfully", { id: toastId });
       setIsCreateModalOpen(false);
       resetCreateForm();
     } catch (error: any) {
       console.error("Error creating branch:", error.data);
-      toast.error(error.data?.message || "Failed to create branch");
+      const errorMessage = error.data?.message || "Failed to create branch";
+      toast.error(errorMessage, { id: toastId });
+
+      if (errorMessage === "This Email is Already Exist!") {
+        setCreateError("email", {
+          type: "manual",
+          message: errorMessage,
+        });
+      } else if (errorMessage === "Duplicate Key Error") {
+        error.data.errorSource.forEach(
+          (error: { path: string; message: string }) => {
+            setCreateError(error.path as keyof TBranch, {
+              type: "manual",
+              message: error.message,
+            });
+          }
+        );
+      }
     } finally {
       setIsLoadingForm(false);
     }
   };
 
   // Form submit handler for editing a branch
-  const handleEditSubmit = async (data: {
-    name: string;
-    phone: string;
-    address: string;
-    status: "Active" | "Inactive";
-  }) => {
+  const handleEditSubmit = async (data: TBranch) => {
     setIsLoadingForm(true);
+    const toastId = toast.loading("Updating branch...");
     try {
       if (branchToEdit?._id) {
         const response = await updateBranch({
@@ -193,13 +240,30 @@ const BranchPage = () => {
         }).unwrap();
         console.log("Branch edited successfully:", response);
         refetch();
-        toast.success("Branch edited successfully");
+        toast.success("Branch edited successfully", { id: toastId });
         setIsEditModalOpen(false);
         resetEditForm();
       }
     } catch (error: any) {
       console.error("Error editing branch:", error.data);
-      toast.error(error.data?.message || "Failed to edit branch");
+      const errorMessage = error.data?.message || "Failed to edit branch";
+      toast.error(errorMessage, { id: toastId });
+
+      if (errorMessage === "This Email is Already Exist!") {
+        setEditError("email", {
+          type: "manual",
+          message: errorMessage,
+        });
+      } else if (errorMessage === "Duplicate Key Error") {
+        error.data.errorSource.forEach(
+          (error: { path: string; message: string }) => {
+            setEditError(error.path as keyof TBranch, {
+              type: "manual",
+              message: error.message,
+            });
+          }
+        );
+      }
     } finally {
       setIsLoadingForm(false);
     }
@@ -208,13 +272,15 @@ const BranchPage = () => {
   // Delete handler for deleting a branch
   const handleDelete = async (branchId: string) => {
     setIsLoadingForm(true);
+    const toastId = toast.loading("Deleting branch...");
     try {
       await deleteBranch(branchId).unwrap();
       refetch();
-      toast.success("Branch deleted successfully");
+      toast.success("Branch deleted successfully", { id: toastId });
     } catch (error: any) {
       console.error("Error deleting branch:", error.data);
-      toast.error(error.data?.message || "Failed to delete branch");
+      const errorMessage = error.data?.message || "Failed to delete branch";
+      toast.error(errorMessage, { id: toastId });
     } finally {
       setIsLoadingForm(false);
     }
@@ -237,10 +303,12 @@ const BranchPage = () => {
   };
 
   // Open edit modal and set branch data to edit
-  const handleEdit = (branch: BranchData) => {
+  const handleEdit = (branch: TBranch) => {
     setBranchToEdit(branch);
     setValueEdit("name", branch.name);
+    setValueEdit("branchManagerName", branch.branchManagerName);
     setValueEdit("phone", branch.phone);
+    setValueEdit("email", branch.email);
     setValueEdit("address", branch.address);
     setValueEdit("status", branch.status);
     setIsEditModalOpen(true);
@@ -292,8 +360,37 @@ const BranchPage = () => {
             <button
               type="submit"
               className="flex items-center gap-2 bg-[#6610f2] text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-700 transition-colors"
+              disabled={isFiltering} // Disable button when filtering
             >
-              <Filter className="text-sm" /> Filter
+              {isFiltering ? ( // Show loader if filtering
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5 mr-3"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Filtering...
+                </>
+              ) : (
+                <>
+                  <Filter className="text-sm" /> Filter
+                </>
+              )}
             </button>
           </div>
         </form>
@@ -440,193 +537,303 @@ const BranchPage = () => {
         </div>
       </div>
 
-      {/* Create Branch Modal using react-modal */}
-      <Modal
-        isOpen={isCreateModalOpen}
-        onRequestClose={() => setIsCreateModalOpen(false)}
-        contentLabel="Create Branch Modal"
-        style={{
-          content: {
-            top: "50%",
-            left: "50%",
-            right: "auto",
-            bottom: "auto",
-            transform: "translate(-50%, -50%)",
-            width: "500px",
-          },
-          overlay: { backgroundColor: "rgba(0, 0, 0, 0.5)" },
-        }}
-      >
-        <div className="mb-4">
-          <h2 className="text-2xl font-semibold">Create Branch</h2>
-          <p>Fill in the details to create a new branch.</p>
-        </div>
-        <form
-          onSubmit={handleSubmitCreate(handleCreateSubmit)}
-          className="space-y-4"
-        >
-          <div>
-            <label className="block text-sm font-medium">
-              Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              {...registerCreate("name")}
-              placeholder="Branch Name"
-              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">
-              Phone <span className="text-red-500">*</span>
-            </label>
-            <input
-              {...registerCreate("phone")}
-              placeholder="Phone"
-              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">
-              Address <span className="text-red-500">*</span>
-            </label>
-            <input
-              {...registerCreate("address")}
-              placeholder="Address"
-              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">
-              Status <span className="text-red-500">*</span>
-            </label>
-            <Controller
-              control={controlCreate}
-              name="status"
-              render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
+      {/* Create Branch Modal using shadcn/ui Dialog */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create Branch</DialogTitle>
+            <DialogDescription>
+              Fill in the details to create a new branch.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={handleSubmitCreate(handleCreateSubmit)}
+            className="space-y-4"
+          >
+            <div>
+              <label className="block text-sm font-medium">
+                Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...registerCreate("name", { required: "Name is required" })}
+                placeholder="Branch Name"
+                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              />
+              {createErrors.name && (
+                <p className="text-red-500 text-sm">
+                  {createErrors.name.message}
+                </p>
               )}
-            />
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="submit" disabled={isLoadingForm}>
-              {isLoadingForm && (
-                <Loader2 className="animate-spin h-4 w-4 mr-1" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Branch Manager Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...registerCreate("branchManagerName", {
+                  required: "Branch Manager Name is required",
+                })}
+                placeholder="Branch Manager Name"
+                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              />
+              {createErrors.branchManagerName && (
+                <p className="text-red-500 text-sm">
+                  {createErrors.branchManagerName.message}
+                </p>
               )}
-              Create
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsCreateModalOpen(false)}
-              disabled={isLoadingForm}
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </Modal>
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Phone <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...registerCreate("phone", { required: "Phone is required" })}
+                placeholder="Phone"
+                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              />
+              {createErrors.phone && (
+                <p className="text-red-500 text-sm">
+                  {createErrors.phone.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...registerCreate("email", { required: "Email is required" })}
+                placeholder="Email"
+                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              />
+              {createErrors.email && (
+                <p className="text-red-500 text-sm">
+                  {createErrors.email.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Address <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...registerCreate("address", {
+                  required: "Address is required",
+                })}
+                placeholder="Address"
+                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              />
+              {createErrors.address && (
+                <p className="text-red-500 text-sm">
+                  {createErrors.address.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...registerCreate("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters long",
+                  },
+                })}
+                type="password"
+                placeholder="Password"
+                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              />
+              {createErrors.password && (
+                <p className="text-red-500 text-sm">
+                  {createErrors.password.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Status <span className="text-red-500">*</span>
+              </label>
+              <Controller
+                control={controlCreate}
+                name="status"
+                rules={{ required: "Status is required" }}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Disabled">Disabled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {createErrors.status && (
+                <p className="text-red-500 text-sm">
+                  {createErrors.status.message}
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button type="submit" disabled={isLoadingForm}>
+                {isLoadingForm && (
+                  <Loader2 className="animate-spin h-4 w-4 mr-1" />
+                )}
+                Create
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCreateModalOpen(false)}
+                disabled={isLoadingForm}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-      {/* Edit Branch Modal using react-modal */}
-      <Modal
-        isOpen={isEditModalOpen}
-        onRequestClose={() => setIsEditModalOpen(false)}
-        contentLabel="Edit Branch Modal"
-        style={{
-          content: {
-            top: "50%",
-            left: "50%",
-            right: "auto",
-            bottom: "auto",
-            transform: "translate(-50%, -50%)",
-            width: "500px",
-          },
-          overlay: { backgroundColor: "rgba(0, 0, 0, 0.5)" },
-        }}
-      >
-        <div className="mb-4">
-          <h2 className="text-2xl font-semibold">Edit Branch</h2>
-          <p>Edit the details of the branch.</p>
-        </div>
-        <form
-          onSubmit={handleSubmitEdit(handleEditSubmit)}
-          className="space-y-4"
-        >
-          <div>
-            <label className="block text-sm font-medium">
-              Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              {...registerEdit("name")}
-              placeholder="Branch Name"
-              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">
-              Phone <span className="text-red-500">*</span>
-            </label>
-            <input
-              {...registerEdit("phone")}
-              placeholder="Phone"
-              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">
-              Address <span className="text-red-500">*</span>
-            </label>
-            <input
-              {...registerEdit("address")}
-              placeholder="Address"
-              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">
-              Status <span className="text-red-500">*</span>
-            </label>
-            <Controller
-              control={controlEdit}
-              name="status"
-              render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
+      {/* Edit Branch Modal using shadcn/ui Dialog */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Branch</DialogTitle>
+            <DialogDescription>
+              Edit the details of the branch.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={handleSubmitEdit(handleEditSubmit)}
+            className="space-y-4"
+          >
+            <div>
+              <label className="block text-sm font-medium">
+                Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...registerEdit("name", { required: "Name is required" })}
+                placeholder="Branch Name"
+                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              />
+              {editErrors.name && (
+                <p className="text-red-500 text-sm">
+                  {editErrors.name.message}
+                </p>
               )}
-            />
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="submit" disabled={isLoadingForm}>
-              {isLoadingForm && (
-                <Loader2 className="animate-spin h-4 w-4 mr-1" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Branch Manager Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...registerEdit("branchManagerName", {
+                  required: "Branch Manager Name is required",
+                })}
+                placeholder="Branch Manager Name"
+                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              />
+              {editErrors.branchManagerName && (
+                <p className="text-red-500 text-sm">
+                  {editErrors.branchManagerName.message}
+                </p>
               )}
-              Save
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsEditModalOpen(false)}
-              disabled={isLoadingForm}
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </Modal>
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Phone <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...registerEdit("phone", { required: "Phone is required" })}
+                placeholder="Phone"
+                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              />
+              {editErrors.phone && (
+                <p className="text-red-500 text-sm">
+                  {editErrors.phone.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...registerEdit("email", { required: "Email is required" })}
+                placeholder="Email"
+                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              />
+              {editErrors.email && (
+                <p className="text-red-500 text-sm">
+                  {editErrors.email.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Address <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...registerEdit("address", {
+                  required: "Address is required",
+                })}
+                placeholder="Address"
+                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              />
+              {editErrors.address && (
+                <p className="text-red-500 text-sm">
+                  {editErrors.address.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Status <span className="text-red-500">*</span>
+              </label>
+              <Controller
+                control={controlEdit}
+                name="status"
+                rules={{ required: "Status is required" }}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Disabled">Disabled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {editErrors.status && (
+                <p className="text-red-500 text-sm">
+                  {editErrors.status.message}
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button type="submit" disabled={isLoadingForm}>
+                {isLoadingForm && (
+                  <Loader2 className="animate-spin h-4 w-4 mr-1" />
+                )}
+                Save
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditModalOpen(false)}
+                disabled={isLoadingForm}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
