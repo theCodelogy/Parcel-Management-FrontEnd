@@ -183,7 +183,7 @@ const AdminDashboard: React.FC = () => {
       title: "Total Parcels Delivered",
       value: deliveredParcels ? deliveredParcels.data?.length ?? 0 : 0,
       icon: <CheckCircle className="h-5 w-5" />,
-      path: "/delivered-parcels",
+      path: "/admin/parcels?status=Delivered",
     },
   ];
 

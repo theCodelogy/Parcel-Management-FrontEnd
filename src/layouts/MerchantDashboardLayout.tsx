@@ -25,6 +25,8 @@ import {
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { logout, useCurrentUser } from "@/redux/features/auth/authSlice";
 import { TUser } from "@/interface";
+import { useGetAllMerchantQuery } from "@/redux/features/merchant/merchantApi";
+import { TMerchant } from "type/merchantType";
 
 interface MenuToggleProps {
   isOpen: boolean;
@@ -136,6 +138,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       label: "Create Parcel",
       icon: PackagePlus,
       path: "/merchant/create-parcel",
+    },
+    {
+      id: "Wallet Request",
+      label: "Wallet Request",
+      icon: Wallet,
+      path: "/merchant/wallet-request",
     },
   ];
 
@@ -321,12 +329,20 @@ const MerchantDashboardLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { name, email } = useAppSelector(useCurrentUser) as TUser;
-  console.log(name, email);
+  const { email } = useAppSelector(useCurrentUser) as TUser;
+  // const { data, isLoading } = useGetAllMerchantQuery([
+  //   { name: "email", value: email },
+  // ]);
+  const { data } = useGetAllMerchantQuery([{ name: "email", value: email }]);
+
+  // Pick the first matching record from the returned array.
+  const merchantData: TMerchant | undefined = data?.data?.[0];
+
   const userProfile = {
-    name: name,
+    name: merchantData?.name ?? "",
     email: email,
   };
+
   useEffect(() => {
     const checkIfMobile = () => {
       // Define mobile as any screen below 1024px.
@@ -404,9 +420,18 @@ const MerchantDashboardLayout: React.FC = () => {
         }`}
       >
         <div className="p-4 md:p-6">
-          <div>
-            <Outlet />
-          </div>
+          {/* {isLoading ? (
+            <div className="text-center text-gray-600">Loading...</div>
+          ) : merchantData?.status === "Pending" ? (
+            <div className="text-center text-gray-600">
+              Waiting for approval...
+            </div>
+          ) : (
+            <div>
+              <Outlet />
+            </div>
+          )} */}
+          <Outlet />
         </div>
       </main>
     </div>

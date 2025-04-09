@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { FaSignInAlt, FaEnvelope } from "react-icons/fa";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useLoginMutation } from "@/redux/features/auth/authApi";
 import { useAppDispatch } from "@/redux/hooks";
 import { setUser } from "@/redux/features/auth/authSlice";
@@ -15,7 +15,6 @@ interface FormData {
 
 const LoginPage: React.FC = () => {
   const dispatch = useAppDispatch();
-
   const navigate = useNavigate();
   const {
     register,
@@ -25,33 +24,40 @@ const LoginPage: React.FC = () => {
   const [login] = useLoginMutation();
 
   const onSubmit = async (data: FormData) => {
-    const tostId = toast.loading("Login in");
     const payload = {
       emailORphone: data.emailORphone,
       password: data.password,
     };
 
-    try {
-      const res = await login(payload).unwrap();
-      const { name, email, role, phone } = verifyToken(res.data?.token);
-      dispatch(
-        setUser({ user: { name, email, role, phone }, token: res.data?.token })
-      );
+    await toast.promise(
+      login(payload)
+        .unwrap()
+        .then((res) => {
+          const { name, email, role, phone } = verifyToken(res.data?.token);
+          dispatch(
+            setUser({
+              user: { name, email, role, phone },
+              token: res.data?.token,
+            })
+          );
 
-      if (role === "Super Admin") {
-        navigate("/admin/dashboard");
-      } else if (role === "Merchant") {
-        navigate("/merchant/dashboard");
-      } else if (role === "Branch") {
-        navigate("/branch/dashboard");
-      } else if (role === "Delivery Man") {
-        navigate("/rider/assigned-parcels");
+          if (role === "Super Admin") {
+            navigate("/admin/dashboard");
+          } else if (role === "Merchant") {
+            navigate("/merchant/dashboard");
+          } else if (role === "Branch") {
+            navigate("/branch/dashboard");
+          } else if (role === "Delivery Man") {
+            navigate("/rider/assigned-parcels");
+          }
+          return res;
+        }),
+      {
+        loading: "Login in",
+        success: "Logged in Success!",
+        error: (error: any) => error.data.message,
       }
-
-      toast.success("Loged in Success!", { id: tostId });
-    } catch (error: any) {
-      toast.error(error.data.message, { id: tostId });
-    }
+    );
   };
 
   return (

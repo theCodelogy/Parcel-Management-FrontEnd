@@ -10,6 +10,7 @@ const InvoiceComponent: React.FC = () => {
   const location = useLocation();
   const { tracker, invoiceDate, invoiceTime, merchantName, merchantPhone } =
     location.state || {};
+  console.log(invoiceDate);
 
   const invoiceItems = tracker
     ? [

@@ -11,6 +11,12 @@ import {
   LayoutDashboard,
   Package,
   ChevronDown,
+  Settings,
+  DollarSign,
+  Wallet,
+  Truck,
+  ClipboardList,
+  Gift,
 } from "lucide-react";
 import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -31,6 +37,7 @@ import {
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { logout, useCurrentUser } from "@/redux/features/auth/authSlice";
 import { TUser } from "@/interface";
+// import { FaFileInvoice } from "react-icons/fa";
 
 interface MenuToggleProps {
   isOpen: boolean;
@@ -276,24 +283,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       id: "Merchant Manage",
       label: "Merchant Manage",
       icon: FileText,
-      path: "/admin/merchant-manage",
-      children: [
-        {
-          id: "Merchants",
-          label: "Merchants",
-          path: "/admin/merchant-manage/merchants",
-        },
-        // {
-        //   id: "Create Merchants",
-        //   label: "Create Merchants",
-        //   path: "/admin/merchant-manage/create-merchants",
-        // },
-        {
-          id: "Merchant Payment",
-          label: "Merchant Payment",
-          path: "/admin/merchant-manage/merchant-payment",
-        },
-      ],
+      path: "/admin/merchant-manage/merchants",
     },
     {
       id: "Parcel",
@@ -302,16 +292,96 @@ const Sidebar: React.FC<SidebarProps> = ({
       path: "/admin/parcels",
     },
     {
+      id: "Offers",
+      label: "Offers",
+      icon: Gift,
+      path: "/admin/offers",
+    },
+    {
+      id: "Active Logs",
+      label: "Active Logs",
+      icon: ClipboardList,
+      path: "/admin/active-logs",
+    },
+    {
+      id: "Pickup Request",
+      label: "Pickup Request",
+      icon: Truck,
+      path: "/admin/pickup-request",
+      children: [
+        {
+          id: "Regular",
+          label: "Regular",
+          path: "/admin/pickup-request/regular",
+        },
+        {
+          id: "Express",
+          label: "Express",
+          path: "/admin/pickup-request/express",
+        },
+      ],
+    },
+    {
+      id: "Wallet Request",
+      label: "Wallet Request",
+      icon: Wallet,
+      path: "/admin/wallet-request",
+    },
+    {
+      id: "Payment Received",
+      label: "Payment Received",
+      icon: DollarSign,
+      path: "/admin/payment-received",
+    },
+    // {
+    //   id: "Accounts",
+    //   label: "Accounts",
+    //   icon: FaFileInvoice,
+    //   path: "/admin/accounts",
+    //   children: [
+    //     {
+    //       id: "Account Heads",
+    //       label: "Account Heads",
+    //       path: "/admin/accounts/account-heads",
+    //     },
+    //     {
+    //       id: "Accounts List",
+    //       label: "Accounts List",
+    //       path: "/admin/accounts/accounts-list",
+    //     },
+    //     {
+    //       id: "Fund Transfer",
+    //       label: "Fund Transfer",
+    //       path: "/admin/accounts/fund-transfer",
+    //     },
+    //     {
+    //       id: "Income",
+    //       label: "Income",
+    //       path: "/admin/accounts/income",
+    //     },
+    //     {
+    //       id: "Expense",
+    //       label: "Expense",
+    //       path: "/admin/accounts/expense",
+    //     },
+    //     {
+    //       id: "Paid Invoice",
+    //       label: "Paid Invoice",
+    //       path: "/admin/accounts/paid-invoice",
+    //     },
+    //   ],
+    // },
+    {
       id: "Setting",
       label: "Setting",
-      icon: FileText,
+      icon: Settings,
       path: "/admin/setting",
       children: [
-        // {
-        //   id: "General Settings",
-        //   label: "General Settings",
-        //   path: "/admin/setting/general-settings",
-        // },
+        {
+          id: "General Settings",
+          label: "General Settings",
+          path: "/admin/setting/general-settings",
+        },
         {
           id: "Delivery Category",
           label: "Delivery Category",
@@ -322,20 +392,20 @@ const Sidebar: React.FC<SidebarProps> = ({
           label: "Delivery Charge",
           path: "/admin/setting/delivery-charge",
         },
-
-        {
-          id: "Delivery Type",
-          label: "Delivery Type",
-          path: "/admin/setting/delivery-type",
-        },
         {
           id: "Liquid Fragile",
           label: "Liquid Fragile",
           path: "/admin/setting/liquid-fragile",
         },
+        {
+          id: "Packaging",
+          label: "Packaging",
+          path: "/admin/setting/packaging",
+        },
       ],
     },
   ];
+
   // logout
   const dispatch = useAppDispatch();
   const navigate = useNavigate();

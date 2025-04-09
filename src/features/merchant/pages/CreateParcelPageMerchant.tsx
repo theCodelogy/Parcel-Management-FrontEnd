@@ -324,7 +324,7 @@ const CreateParcelPageMerchant: React.FC = () => {
                       )}
                     />
                   </div>
-                  {formData.category === "KG" && (
+                  {/* {formData.category === "KG" && (
                     <div>
                       <label
                         htmlFor="weight"
@@ -356,6 +356,39 @@ const CreateParcelPageMerchant: React.FC = () => {
                                     {item.weight} kg
                                   </SelectItem>
                                 ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </div>
+                  )} */}
+                  {formData.category === "KG" && (
+                    <div>
+                      <label
+                        htmlFor="weight"
+                        className="block text-gray-700 font-medium mb-1"
+                      >
+                        Weight <span className="text-red-500">*</span>
+                      </label>
+                      <Controller
+                        name="weight"
+                        control={control}
+                        defaultValue=""
+                        rules={{ required: "Weight is required" }}
+                        render={({ field }) => (
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
+                              <SelectValue placeholder="Select Weight" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[1, 2, 3, 4, 5].map((weight) => (
+                                <SelectItem key={weight} value={`${weight}`}>
+                                  {weight} kg
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         )}

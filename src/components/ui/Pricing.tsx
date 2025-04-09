@@ -1,85 +1,121 @@
-import React, { useState } from "react";
+import React from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useGetAllDeliveryChargeQuery } from "@/redux/features/deliveryCharge/deliveryChargeApi";
 
-interface Price {
-  weight: string;
-  price: number;
-}
-
-interface Tab {
-  name: string;
-  prices: Price[];
-}
-
-const calculatePrices = (
-  base: number,
-  increment: number,
-  maxKg: number = 10
-): Price[] => {
-  return Array.from({ length: maxKg }, (_, i) => ({
-    weight: (i + 1).toString(),
-    price: base + i * increment,
-  }));
+export type TDeliveryCharge = {
+  _id?: string;
+  chargeList?: {
+    sameDay: number;
+    nextDay: number;
+    subCity: number;
+    outsideCity: number;
+  };
+  increasePerKG?: {
+    sameDay: number;
+    nextDay: number;
+    subCity: number;
+    outsideCity: number;
+  };
 };
 
-const Pricing: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>("Same Day");
+const DeliveryChargePage: React.FC = () => {
+  const { data, error, isLoading } = useGetAllDeliveryChargeQuery([]);
 
-  const tabs: Tab[] = [
-    {
-      name: "Same Day",
-      prices: calculatePrices(60, 40),
-    },
-    {
-      name: "Next Day",
-      prices: calculatePrices(70, 40),
-    },
-    {
-      name: "Sub City",
-      prices: calculatePrices(100, 40),
-    },
-    {
-      name: "Outside City",
-      prices: calculatePrices(130, 40),
-    },
-  ];
+  if (error) {
+    return (
+      <div className="text-center text-red-500 mt-10">Error loading data</div>
+    );
+  }
+
+  const deliveryData: TDeliveryCharge | undefined = (
+    data?.data as TDeliveryCharge[]
+  )?.[0];
+
+  const calculateCharge = (
+    baseCharge: number,
+    increasePerKG: number,
+    weight: number
+  ) => {
+    return baseCharge + (weight - 1) * increasePerKG;
+  };
+
+  const deliveryTypes = deliveryData?.chargeList
+    ? Object.keys(deliveryData.chargeList)
+    : [];
 
   return (
-    <div className="p-6 text-center">
-      <h1 className="text-3xl font-bold text-gray-800 border-b-2 border-[#A31621] inline-block mb-6">
-        Classic Courier BD Pricing
-      </h1>
-
-      <div className="flex justify-center space-x-4 mb-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab.name}
-            className={`px-4 py-2 rounded-lg font-medium ${
-              activeTab === tab.name
-                ? "bg-[#A31621] text-white"
-                : "bg-gray-200 text-gray-800"
-            }`}
-            onClick={() => setActiveTab(tab.name)}
-          >
-            {tab.name}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {tabs
-          .find((tab) => tab.name === activeTab)
-          ?.prices.map(({ weight, price }) => (
-            <div
-              key={weight}
-              className="border border-[#A31621] p-4 rounded-lg shadow-md"
+    <div className="px-4 py-8 w-full">
+      <Tabs
+        defaultValue="sameDay"
+        className="w-full flex flex-col items-center"
+      >
+        <TabsList className="flex flex-wrap justify-center gap-2 mb-6">
+          {deliveryTypes.map((deliveryType) => (
+            <TabsTrigger
+              key={deliveryType}
+              value={deliveryType}
+              className="h-10 px-4 text-sm sm:text-base font-medium border rounded-md data-[state=active]:bg-[#A31621] data-[state=active]:text-white"
             >
-              <p className="text-lg font-semibold">Up To {weight} (KG)</p>
-              <p className="text-2xl font-bold">৳ {price}.00</p>
-            </div>
+              {deliveryType.replace(/([A-Z])/g, " $1")}
+            </TabsTrigger>
           ))}
-      </div>
+        </TabsList>
+
+        {deliveryTypes.map((deliveryType) => {
+          const baseCharge =
+            deliveryData?.chargeList?.[
+              deliveryType as keyof typeof deliveryData.chargeList
+            ] || 0;
+          const increasePerKG =
+            deliveryData?.increasePerKG?.[
+              deliveryType as keyof typeof deliveryData.increasePerKG
+            ] || 0;
+
+          return (
+            <TabsContent
+              key={deliveryType}
+              value={deliveryType}
+              className="w-full"
+            >
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto mt-10 sm:mt-0 justify-items-center">
+                {isLoading
+                  ? Array.from({ length: 10 }).map((_, index) => (
+                      <div
+                        key={`skeleton-${index}`}
+                        className="w-full sm:max-w-sm border border-[#A31621] p-4 rounded-lg shadow-md animate-pulse"
+                      >
+                        <div className="h-6 bg-gray-300 rounded w-3/4 mb-3"></div>
+                        <div className="h-8 bg-gray-300 rounded w-1/2"></div>
+                      </div>
+                    ))
+                  : Array.from({ length: 10 }).map((_, index) => {
+                      const weight = index + 1;
+                      const price = calculateCharge(
+                        baseCharge,
+                        increasePerKG,
+                        weight
+                      );
+                      return (
+                        <div
+                          key={weight}
+                          className="w-full sm:max-w-sm border border-[#A31621] p-4 rounded-lg shadow-md hover:scale-105 transition-transform duration-300"
+                        >
+                          <p className="text-lg font-semibold">
+                            Up To {weight} (KG)
+                          </p>
+                          <p className="text-2xl font-bold text-[#A31621]">
+                            ৳ {price}.00
+                          </p>
+                        </div>
+                      );
+                    })}
+              </div>
+            </TabsContent>
+          );
+        })}
+      </Tabs>
     </div>
   );
 };
 
-export default Pricing;
+export default DeliveryChargePage;

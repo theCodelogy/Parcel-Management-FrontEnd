@@ -242,7 +242,7 @@ const AllParcelPageAdmin = () => {
       trackerId: "",
       phone: "",
       date: "",
-      status: "",
+      status: new URLSearchParams(location.search).get("status") || "",
     },
   });
 
@@ -250,7 +250,7 @@ const AllParcelPageAdmin = () => {
     trackerId: "",
     phone: "",
     date: "",
-    status: "",
+    status: new URLSearchParams(location.search).get("status") || "",
   });
 
   const [trackers, setTrackers] = useState<Tracker[]>([]);
@@ -660,9 +660,6 @@ const AllParcelPageAdmin = () => {
               className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700"
             >
               Csv
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-200 text-gray-700">
-              PDF
             </button>
           </div>
 

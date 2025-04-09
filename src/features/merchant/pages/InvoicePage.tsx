@@ -78,6 +78,7 @@ type ApiResponse = {
   customerPhone: string;
   customerAddress: string;
   invoice: string;
+  createdAt: string; // Added creation date field
 };
 
 export type Tracker = {
@@ -108,6 +109,7 @@ export type Tracker = {
   customerName: string;
   customerPhone: string;
   invoiceNumber: string;
+  createdAt: string; // Added creation date field
 };
 
 const formatCurrency = (amount: number): string => {
@@ -136,7 +138,6 @@ const InvoicePage: React.FC = () => {
 
   const { data, isLoading, isError } = useGetAllParcelQuery([
     { name: "merchantEmail", value: email },
-    { name: "currentStatus", value: "Delivered" },
   ]);
 
   useEffect(() => {
@@ -189,6 +190,7 @@ const InvoicePage: React.FC = () => {
           customerName: item.customerName,
           customerPhone: item.customerPhone,
           invoiceNumber: item.invoice,
+          createdAt: item.createdAt, // Added creation date field
         };
       });
       setTrackers(trackers);
@@ -221,7 +223,7 @@ const InvoicePage: React.FC = () => {
               <TableHead className="p-3 text-left">SL</TableHead>
               <TableHead className="p-3 text-left">Tracker ID</TableHead>
               <TableHead className="p-3 text-left">Amount</TableHead>
-              <TableHead className="p-3 text-left">Delivery Date</TableHead>
+              <TableHead className="p-3 text-left">Date</TableHead>
               <TableHead className="p-3 text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -229,17 +231,14 @@ const InvoicePage: React.FC = () => {
             {isLoading ? (
               Array.from({ length: pageSize }).map((_, index) => (
                 <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                  {/* SL Column */}
                   <TableCell className="p-3">
                     <div className="h-4 w-4 bg-gray-200 rounded"></div>
                   </TableCell>
-                  {/* Tracker ID, Amount, Delivery Date Columns */}
                   {Array.from({ length: 3 }).map((_, colIndex) => (
                     <TableCell key={`skeleton-col-${colIndex}`} className="p-3">
                       <div className="h-4 bg-gray-200 rounded w-24"></div>
                     </TableCell>
                   ))}
-                  {/* Actions Column */}
                   <TableCell className="p-3 text-center">
                     <div className="h-4 bg-gray-200 rounded w-12 mx-auto"></div>
                   </TableCell>
@@ -297,21 +296,38 @@ const InvoicePage: React.FC = () => {
                     </div>
                   </TableCell>
                   <TableCell className="p-3">
-                    {formatDate(tracker.deliveryDate)}
+                    {formatDate(tracker.createdAt)}
                   </TableCell>
                   <TableCell className="p-3 text-center">
                     <button
                       className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded shadow transition-all duration-300 flex items-center gap-2"
                       onClick={() =>
                         navigate(`/merchant/invoice/${tracker.trackingId}`, {
+                          // state: {
+                          //   tracker,
+                          //   invoiceNumber: tracker.invoiceNumber,
+                          //   invoiceDate: formatDate(tracker.deliveryDate),
+                          //   invoiceTime:
+                          //     tracker.deliveryDate !== null
+                          //       ? new Date(
+                          //           tracker.deliveryDate
+                          //         ).toLocaleTimeString("en-US", {
+                          //           hour: "2-digit",
+                          //           minute: "2-digit",
+                          //           hour12: true,
+                          //         })
+                          //       : "",
+                          //   merchantName: tracker.merchant.name,
+                          //   merchantPhone: tracker.merchant.phone,
+                          // },
                           state: {
                             tracker,
                             invoiceNumber: tracker.invoiceNumber,
-                            invoiceDate: formatDate(tracker.deliveryDate),
+                            invoiceDate: formatDate(tracker.createdAt),
                             invoiceTime:
-                              tracker.deliveryDate !== null
+                              tracker.createdAt !== null
                                 ? new Date(
-                                    tracker.deliveryDate
+                                    tracker.createdAt
                                   ).toLocaleTimeString("en-US", {
                                     hour: "2-digit",
                                     minute: "2-digit",

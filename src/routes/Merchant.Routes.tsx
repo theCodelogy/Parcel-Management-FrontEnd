@@ -7,6 +7,7 @@ import Support from "../features/merchant/pages/Support";
 import InvoiceGenerate from "@/features/merchant/pages/InvoiceGenerate";
 import MerchantProfilePage from "@/features/merchant/pages/MerchantProfilePage";
 import CreateParcelPageMerchant from "../features/merchant/pages/CreateParcelPageMerchant";
+import WalletRequestMerchant from "@/features/merchant/pages/WalletRequestMerchant";
 
 export const merchantRoutes = [
   {
@@ -40,6 +41,10 @@ export const merchantRoutes = [
   {
     path: "create-parcel",
     element: <CreateParcelPageMerchant />,
+  },
+  {
+    path: "wallet-request",
+    element: <WalletRequestMerchant />,
   },
   {
     path: "profile",

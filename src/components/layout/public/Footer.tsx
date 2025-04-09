@@ -1,19 +1,19 @@
 import React from "react";
-import { FaFacebookSquare, FaPaperPlane, FaEnvelope } from "react-icons/fa";
+import { FaFacebookSquare, FaEnvelope } from "react-icons/fa";
 import logo from "../../../assets/logo.png";
 
 const Footer: React.FC = () => {
   return (
     <footer className="bg-gray-100 text-gray-800 py-10">
-      <div className="container mx-auto px-6 sm:px-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {/* Logo & Description */}
           <div>
-            <div>
+            <div className="flex items-center mb-4">
               <a href="/">
                 <img className="w-20 rounded-full" src={logo} alt="Logo" />
               </a>
-              <h2 className="text-2xl font-bold">ClassicCourierBD</h2>
+              <h2 className="text-2xl font-bold ml-4">ClassicCourierBD</h2>
             </div>
             <p className="mt-3 font-semibold">01624581062</p>
             <p>
@@ -41,9 +41,7 @@ const Footer: React.FC = () => {
                 "Warehousing",
               ].map((service) => (
                 <li key={service}>
-                  <a href="#" className="hover:underline">
-                    {service}
-                  </a>
+                  <p>{service}</p>
                 </li>
               ))}
             </ul>
@@ -68,29 +66,9 @@ const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Subscription & Social Media */}
+          {/* Social Media */}
           <div>
-            <h4 className="font-bold text-lg">Subscribe</h4>
-            <p className="mt-3">
-              Get business news, tips, and solutions to your problems from our
-              experts.
-            </p>
-            <form action="#" className="mt-3 flex">
-              <input
-                type="email"
-                placeholder="Enter Email"
-                className="p-2 rounded-l w-full text-gray-800 border border-gray-300"
-                required
-              />
-              <button
-                type="submit"
-                className="bg-gray-800 text-white px-4 rounded-r hover:bg-gray-700"
-              >
-                <FaPaperPlane />
-              </button>
-            </form>
-
-            <h4 className="mt-4 font-bold text-lg">Follow Us</h4>
+            <h4 className="font-bold text-lg">Follow Us</h4>
             <div className="flex gap-4 mt-3 text-2xl">
               {[
                 {
@@ -99,7 +77,6 @@ const Footer: React.FC = () => {
                 },
                 {
                   icon: <FaEnvelope />,
-                  // link: "https://mail.google.com/mail/?view=cm&fs=1&to=Classiccourier2025@gmail.com",
                   link: "mailto:Classiccourier2025@gmail.com",
                 },
               ].map(({ icon, link }, index) => (

@@ -75,6 +75,8 @@ export const baseApi = createApi({
     "Branch",
     "LiquidFragile",
     "User",
+    "Packaging",
+    "WalletRequest"
   ],
   endpoints: () => ({}),
 });

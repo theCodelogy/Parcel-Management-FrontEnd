@@ -10,6 +10,7 @@ const merchant = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: ["Merchant"],
     }),
 
     getAllMerchant: builder.query({

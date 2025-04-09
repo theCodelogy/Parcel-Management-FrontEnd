@@ -15,13 +15,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useGetAllPackagingQuery } from "@/redux/features/packaging/packagingApi";
 
 interface DeliveryCharges {
   cashCollection: number;
   deliveryCharge: number;
   codCharge: number;
+  packagingCharge: number; // Add packaging charge
   totalCharge: number;
-  vat: number;
   netPayable: number;
   currentPayable: number;
   totalPayable: number;
@@ -29,14 +30,19 @@ interface DeliveryCharges {
 
 interface DeliveryChargeData {
   _id: string;
-  category: string;
-  weight: number;
-  sameDay: number;
-  nextDay: number;
-  subCity: number;
-  outsideCity: number;
-  status: string;
-  position: number;
+  chargeList: {
+    sameDay: number;
+    nextDay: number;
+    subCity: number;
+    outsideCity: number;
+  };
+  increasePerKG: {
+    sameDay: number;
+    nextDay: number;
+    subCity: number;
+    outsideCity: number;
+  };
+  updatedAt: string;
 }
 
 interface CategoryData {
@@ -45,6 +51,11 @@ interface CategoryData {
   status: string;
 }
 
+interface PackagingData {
+  _id: string;
+  title: string;
+  price: number;
+}
 interface MerchantData {
   _id: string;
   businessName: string;
@@ -66,7 +77,6 @@ interface MerchantData {
   walletUseActivation: boolean;
   address: string;
   returnCharges: number;
-  // Marking deliveryCharge as optional to match the API response
   deliveryCharge?: {
     isDefault: boolean;
     chargeList: {
@@ -92,8 +102,8 @@ const CreateParcelAdmin: React.FC = () => {
     cashCollection: 0,
     deliveryCharge: 0,
     codCharge: 0,
+    packagingCharge: 0, // Initialize packaging charge
     totalCharge: 0,
-    vat: 0,
     netPayable: 0,
     currentPayable: 0,
     totalPayable: 0,
@@ -104,11 +114,13 @@ const CreateParcelAdmin: React.FC = () => {
   >([]);
   const formData = watch();
 
+  const { data: packagingData } = useGetAllPackagingQuery([]);
+  const packaging: PackagingData[] = packagingData?.data || [];
+  console.log(packaging);
   const { data: categoriesData } = useGetAllDeliveryCategoryQuery([]);
   const categories: CategoryData[] = categoriesData?.data || [];
 
   const { data: merchantsData } = useGetAllMerchantQuery([]);
-  // Now that deliveryCharge is optional, this assignment works fine.
   const merchants: MerchantData[] = merchantsData?.data || [];
 
   const { data: deliveryChargesData, error: deliveryChargesError } =
@@ -127,56 +139,89 @@ const CreateParcelAdmin: React.FC = () => {
 
   useEffect(() => {
     const cashCollection = parseFloat(formData.cashCollection) || 0;
-    const codCharge =
-      formData.paymentMethod === "COD" ? cashCollection * 0.02 : 0;
-    const weight = parseFloat(formData.weight) || 0;
-    const deliveryChargeItem = deliveryChargeData.find(
-      (item) => item.weight === weight && item.category === formData.category
-    );
+    const sellingPrice = parseFloat(formData.sellingPrice) || 0;
+    const advance = parseFloat(formData.advance) || 0;
 
-    let deliveryCharge = 0;
-    if (deliveryChargeItem) {
+    let codCharge = 0;
+    switch (formData.deliveryType) {
+      case "Same Day":
+      case "Next Day":
+        codCharge = sellingPrice * 0.01;
+        break;
+      case "Sub City":
+        codCharge = sellingPrice * 0.02;
+        break;
+      case "Outside City":
+        codCharge = sellingPrice * 0.03;
+        break;
+      default:
+        codCharge = 0;
+    }
+
+    const weight = parseFloat(formData.weight) || 0;
+
+    let baseCharge = 0;
+    let increasePerKG = 0;
+
+    if (deliveryChargeData.length > 0) {
+      const chargeData = deliveryChargeData[0];
       switch (formData.deliveryType) {
         case "Same Day":
-          deliveryCharge = deliveryChargeItem.sameDay;
+          baseCharge = chargeData.chargeList.sameDay;
+          increasePerKG = chargeData.increasePerKG.sameDay;
           break;
         case "Next Day":
-          deliveryCharge = deliveryChargeItem.nextDay;
+          baseCharge = chargeData.chargeList.nextDay;
+          increasePerKG = chargeData.increasePerKG.nextDay;
           break;
         case "Sub City":
-          deliveryCharge = deliveryChargeItem.subCity;
+          baseCharge = chargeData.chargeList.subCity;
+          increasePerKG = chargeData.increasePerKG.subCity;
           break;
         case "Outside City":
-          deliveryCharge = deliveryChargeItem.outsideCity;
+          baseCharge = chargeData.chargeList.outsideCity;
+          increasePerKG = chargeData.increasePerKG.outsideCity;
           break;
         default:
-          deliveryCharge = 0;
+          baseCharge = 0;
+          increasePerKG = 0;
       }
     }
 
-    const totalCharge = cashCollection + deliveryCharge + codCharge;
-    const vat = totalCharge * 0.15;
-    const netPayable = totalCharge + vat;
+    const deliveryCharge = baseCharge + (weight - 1) * increasePerKG;
+
+    // Get the selected packaging price
+    const selectedPackaging = packaging.find(
+      (pkg) => pkg.title === formData.packaging
+    );
+    const packagingCharge = selectedPackaging ? selectedPackaging.price : 0;
+
+    const totalCharge =
+      cashCollection + deliveryCharge + codCharge + packagingCharge;
+    const netPayable = totalCharge;
     const currentPayable = netPayable;
-    const totalPayable = netPayable;
+    const totalPayable = sellingPrice - advance; // Update totalPayable calculation
 
     setCharges({
       cashCollection,
       deliveryCharge,
       codCharge,
+      packagingCharge, // Update packaging charge
       totalCharge,
-      vat,
       netPayable,
       currentPayable,
       totalPayable,
     });
   }, [
     formData.cashCollection,
-    formData.paymentMethod,
+    formData.sellingPrice,
     formData.deliveryType,
     formData.weight,
     deliveryChargeData,
     formData.category,
+    formData.packaging, // Add packaging to dependencies
+    packaging, // Add packaging data to dependencies
+    formData.advance, // Add advance to dependencies
   ]);
 
   const activeCategories = categories.filter(
@@ -223,12 +268,13 @@ const CreateParcelAdmin: React.FC = () => {
       deliveryCharge: charges.deliveryCharge,
       liquidORFragile: data.liquidFragile ? 1 : 0,
       codCharge: charges.codCharge,
+      packagingCharge: charges.packagingCharge, // Include packaging charge in payload
       totalCharge: charges.totalCharge,
-      vat: charges.vat,
       netPayable: charges.netPayable,
       advance: parseFloat(data.advance) || 0,
       currentPayable: charges.currentPayable,
       parcelStatus: [status],
+      vat: 0, // Add VAT as 0%
     };
 
     addParcel(payload)
@@ -393,44 +439,42 @@ const CreateParcelAdmin: React.FC = () => {
                       )}
                     />
                   </div>
-                  {formData.category === "KG" && (
-                    <div>
-                      <label
-                        htmlFor="weight"
-                        className="block text-gray-700 font-medium mb-1"
-                      >
-                        Weight <span className="text-red-500">*</span>
-                      </label>
-                      <Controller
-                        name="weight"
-                        control={control}
-                        defaultValue=""
-                        rules={{ required: "Weight is required" }}
-                        render={({ field }) => (
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
-                              <SelectValue placeholder="Select Weight" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {deliveryChargeData
-                                .filter((item) => item.category === "KG")
-                                .map((item) => (
-                                  <SelectItem
-                                    key={item._id}
-                                    value={String(item.weight)}
-                                  >
-                                    {item.weight} kg
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                    </div>
-                  )}
+
+                  <div>
+                    <label
+                      htmlFor="weight"
+                      className="block text-gray-700 font-medium mb-1"
+                    >
+                      Weight <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      name="weight"
+                      control={control}
+                      defaultValue=""
+                      rules={{ required: "Weight is required" }}
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <SelectTrigger className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:border-purple-500">
+                            <SelectValue placeholder="Select Weight" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[...Array(10).keys()].map((weight) => (
+                              <SelectItem
+                                key={weight + 1}
+                                value={`${weight + 1}`}
+                              >
+                                {weight + 1} kg
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+
                   <div>
                     <label
                       htmlFor="deliveryType"
@@ -483,12 +527,14 @@ const CreateParcelAdmin: React.FC = () => {
                             <SelectValue placeholder="Select Packaging Type" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Poly">Poly</SelectItem>
-                            <SelectItem value="Bubble Poly">
-                              Bubble Poly
-                            </SelectItem>
-                            <SelectItem value="Box">Box</SelectItem>
-                            <SelectItem value="Box Poly">Box Poly</SelectItem>
+                            {packaging?.map((packaging) => (
+                              <SelectItem
+                                key={packaging._id}
+                                value={packaging.title}
+                              >
+                                {packaging.title}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       )}
@@ -678,7 +724,7 @@ const CreateParcelAdmin: React.FC = () => {
             <div className="p-4">
               <div className="space-y-2">
                 <div className="flex justify-between p-3 rounded-md">
-                  <span className="text-gray-600">Cash Collection</span>
+                  <span className="text-gray-600">Product Price</span>
                   <span className="font-medium">
                     {charges.cashCollection} Tk
                   </span>
@@ -694,12 +740,14 @@ const CreateParcelAdmin: React.FC = () => {
                   <span className="font-medium">{charges.codCharge} Tk</span>
                 </div>
                 <div className="flex justify-between p-3 rounded-md">
+                  <span className="text-gray-600">Packaging Charge</span>
+                  <span className="font-medium">
+                    {charges.packagingCharge} Tk
+                  </span>
+                </div>
+                {/* <div className="flex justify-between p-3 rounded-md">
                   <span className="text-gray-600">Total Charge</span>
                   <span className="font-medium">{charges.totalCharge} Tk</span>
-                </div>
-                <div className="flex justify-between p-3 rounded-md">
-                  <span className="text-gray-600">VAT</span>
-                  <span className="font-medium">{charges.vat} Tk</span>
                 </div>
                 <div className="flex justify-between p-3 rounded-md">
                   <span className="text-gray-600">Net Payable</span>
@@ -710,7 +758,7 @@ const CreateParcelAdmin: React.FC = () => {
                   <span className="font-medium">
                     {charges.currentPayable} Tk
                   </span>
-                </div>
+                </div> */}
                 <div className="pt-3 border-t border-gray-200 mt-3">
                   <div className="flex justify-between p-3 rounded-md bg-purple-100 font-medium">
                     <span className="text-gray-800">Total Payable Amount</span>

@@ -8,6 +8,13 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAddMerchantMutation } from "@/redux/features/merchant/merchantApi";
 import { useGetAllBranchQuery } from "@/redux/features/branch/branchApi";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface MerchantFormState {
   businessName: string;
@@ -131,6 +138,88 @@ const CreateMerchantPage: React.FC = () => {
   } = useGetAllBranchQuery([]);
   const [addMerchant] = useAddMerchantMutation();
 
+  // const onSubmit = async (data: MerchantFormState): Promise<void> => {
+  //   setState((prev) => ({ ...prev, loading: true }));
+  //   const toastId = toast.loading("Adding Merchant...");
+
+  //   // Build the payload for TMerchant
+  //   const payload: TMerchant = {
+  //     businessName: data.businessName,
+  //     name: data.name,
+  //     email: data.email,
+  //     phone: data.phone,
+  //     role: "Merchant",
+  //     openingBalance: Number(data.openingBalance),
+  //     password: data.password,
+  //     vat: Number(data.vat),
+  //     hub: data.hub,
+  //     nid: data.nid,
+  //     // You can set status from data if you want, here we mark it active upon submission
+  //     status: "Active",
+  //     tradeLicense: "",
+  //     referenceName: data.referenceName,
+  //     referencePhone: data.referencePhone,
+  //     paymentPeriod: Number(data.paymentPeriod),
+  //     walletUseActivation: data.walletUseActivation,
+  //     address: data.address,
+  //     returnCharges: Number(data.returnCharges),
+  //     deliveryCharge: {
+  //       isDefault: data.isDefault,
+  //     },
+  //     createdAt: new Date(),
+  //   };
+
+  //   // Upload files if provided
+  //   if (state.tradeLicense) {
+  //     const tradeLicenseUrl = await hostImage(state.tradeLicense);
+  //     payload.tradeLicense = tradeLicenseUrl;
+  //   }
+  //   if (state.image) {
+  //     const imageUrl = await hostImage(state.image);
+  //     payload.image = imageUrl;
+  //   }
+
+  //   // If not using the default delivery charge, include the charge details
+  //   if (!data.isDefault) {
+  //     payload.deliveryCharge.chargeList = {
+  //       sameDay: Number(data.sameDayCharge),
+  //       nextDay: Number(data.nextDayCharge),
+  //       subCity: Number(data.subCityCharge),
+  //       outsideCity: Number(data.outsideCityCharge),
+  //     };
+  //     payload.deliveryCharge.increasePerKG = {
+  //       sameDay: Number(data.sameDayIncreasePerKG),
+  //       nextDay: Number(data.nextDayIncreasePerKG),
+  //       subCity: Number(data.subCityIncreasePerKG),
+  //       outsideCity: Number(data.outsideCityIncreasePerKG),
+  //     };
+  //   }
+
+  //   console.log("Payload being sent:", payload);
+
+  //   try {
+  //     const response = await addMerchant(payload).unwrap();
+  //     if (response.success) {
+  //       console.log(response);
+  //       toast.success("Successfully added Merchant!", { id: toastId });
+  //       navigate("/admin/merchant-manage/merchants");
+  //     }
+  //   } catch (err: any) {
+  //     console.log(err.data);
+  //     const errorMessage = err.data?.message || "Error adding Merchant";
+  //     toast.error(errorMessage, { id: toastId });
+  //     // Example error handling for duplicate fields
+  //     if (errorMessage === "This Email is Already Exist!") {
+  //       setError("email", {
+  //         type: "manual",
+  //         message: errorMessage,
+  //       });
+  //     }
+  //   } finally {
+  //     setState((prev) => ({ ...prev, loading: false }));
+  //   }
+  // };
+
   const onSubmit = async (data: MerchantFormState): Promise<void> => {
     setState((prev) => ({ ...prev, loading: true }));
     const toastId = toast.loading("Adding Merchant...");
@@ -147,7 +236,6 @@ const CreateMerchantPage: React.FC = () => {
       vat: Number(data.vat),
       hub: data.hub,
       nid: data.nid,
-      // You can set status from data if you want, here we mark it active upon submission
       status: "Active",
       tradeLicense: "",
       referenceName: data.referenceName,
@@ -201,12 +289,22 @@ const CreateMerchantPage: React.FC = () => {
       console.log(err.data);
       const errorMessage = err.data?.message || "Error adding Merchant";
       toast.error(errorMessage, { id: toastId });
-      // Example error handling for duplicate fields
+
+      // Handle specific errors
       if (errorMessage === "This Email is Already Exist!") {
         setError("email", {
           type: "manual",
           message: errorMessage,
         });
+      } else if (errorMessage === "Duplicate Key Error") {
+        err.data.errorSource.forEach(
+          (error: { path: string; message: string }) => {
+            setError(error.path as keyof MerchantFormState, {
+              type: "manual",
+              message: error.message,
+            });
+          }
+        );
       }
     } finally {
       setState((prev) => ({ ...prev, loading: false }));
@@ -366,7 +464,7 @@ const CreateMerchantPage: React.FC = () => {
               )}
             </div>
 
-            {/* Hub */}
+            {/* Hub as a select field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Hub
@@ -376,17 +474,28 @@ const CreateMerchantPage: React.FC = () => {
               ) : branchError ? (
                 <p>Error loading branches</p>
               ) : (
-                <select
-                  {...register("hub", { required: true })}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600"
-                >
-                  <option value="">Select a branch</option>
-                  {branchData?.data?.map((branch: any) => (
-                    <option key={branch._id} value={branch._id}>
-                      {branch.name}
-                    </option>
-                  ))}
-                </select>
+                <Controller
+                  name="hub"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      defaultValue={field.value}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a branch" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {branchData?.data?.map((branch: any) => (
+                          <SelectItem key={branch._id} value={branch.name}>
+                            {branch.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               )}
               {errors.hub && (
                 <p className="mt-1 text-sm text-red-600">Hub is required</p>
